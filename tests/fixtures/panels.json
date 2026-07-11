@@ -1,0 +1,37 @@
+[
+  {
+    "kind": "dashboard",
+    "taken_at": "2026-07-11T12:00:00Z",
+    "payload": {
+      "as_of": "2026-07-11",
+      "rows": [
+        { "label": "ES", "value": "6,412.50", "change": "+0.4%" },
+        { "label": "2y UST", "value": "4.31%", "change": "+6bp" },
+        { "label": "DXY", "value": "95.84", "change": "-0.3%" },
+        { "label": "WTI", "value": "71.20", "change": "+0.1%" },
+        { "label": "Gold", "value": "3,905", "change": "+0.6%" }
+      ]
+    }
+  },
+  {
+    "kind": "odds_lens",
+    "taken_at": "2026-07-11T12:00:00Z",
+    "payload": {
+      "as_of": "2026-07-11",
+      "rows": [
+        { "label": "Fed cut by September", "value": "38%", "change": "-7pp", "note": "Polymarket" },
+        { "label": "Recession called in 2026", "value": "21%", "change": "+2pp", "note": "Polymarket" }
+      ]
+    }
+  },
+  {
+    "kind": "scoreboard",
+    "taken_at": "2026-07-11T12:00:00Z",
+    "payload": {
+      "rows": [
+        { "label": "Resolved claims", "value": "2" },
+        { "label": "Hit rate", "value": "50%" }
+      ]
+    }
+  }
+]

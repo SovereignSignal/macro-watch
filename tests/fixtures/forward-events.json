@@ -1,0 +1,30 @@
+[
+  {
+    "event_id": "fe-2026-07-15-us-cpi",
+    "date": "2026-07-15",
+    "event": "US CPI (June)",
+    "expectation": "Core +0.28% m/m consensus; shelter still the swing factor.",
+    "surprise": "A 0.4%+ core print would force the slow-cut repricing to accelerate; below 0.2% revives September.",
+    "resolution": null
+  },
+  {
+    "event_id": "fe-2026-07-30-fomc",
+    "date": "2026-07-30",
+    "event": "FOMC decision",
+    "expectation": "Hold; statement tweaks on the QT taper.",
+    "surprise": "Any signal that the first cut slips past September.",
+    "resolution": null
+  },
+  {
+    "event_id": "fe-2026-07-03-us-payrolls",
+    "date": "2026-07-03",
+    "event": "US payrolls (June)",
+    "expectation": "+110k consensus; unemployment steady at 4.3%.",
+    "surprise": "A sub-50k print would crack the rate-path theme's floor.",
+    "resolution": {
+      "outcome": "+147k with upward revisions; the front end sold off 8bp on the print.",
+      "resolved_at": "2026-07-05",
+      "note": "Expectation held: no surprise threshold was met."
+    }
+  }
+]

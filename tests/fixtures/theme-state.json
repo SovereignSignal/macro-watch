@@ -1,0 +1,35 @@
+{
+  "taken_at": "2026-07-11T12:10:00Z",
+  "payload": {
+    "as_of": "2026-07-11",
+    "themes": [
+      {
+        "slug": "rate-path-repricing",
+        "name": "Rate-path repricing",
+        "conviction": "high",
+        "current_read": "The front end is still underpricing how slow the cutting cycle gets.",
+        "raise_conditions": ["Core CPI re-accelerates above 0.3% m/m", "Another tailed 2y auction"],
+        "lower_conditions": ["Labor market cracks force the Fed's hand"],
+        "triggers": [
+          { "name": "2y auction demand", "state": "live" },
+          { "name": "July CPI", "state": "pending" }
+        ]
+      },
+      {
+        "slug": "dollar-downtrend",
+        "name": "Dollar downtrend",
+        "conviction": "medium",
+        "current_read": "Differentials are narrowing on schedule; the weekly closes keep confirming.",
+        "raise_conditions": "ECB holds while the Fed blinks",
+        "lower_conditions": ["A risk-off bid returns to the dollar"],
+        "triggers": [{ "name": "DXY 200dma", "state": "watching" }]
+      },
+      {
+        "slug": "china-reflation",
+        "name": "China reflation",
+        "conviction": "low",
+        "current_read": "Retired 2026-07-05: the stimulus impulse faded before commodities ever confirmed."
+      }
+    ]
+  }
+}

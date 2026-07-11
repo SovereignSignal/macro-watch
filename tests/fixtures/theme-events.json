@@ -1,0 +1,90 @@
+[
+  {
+    "event_id": "te-2026-06-20-rate-path-1",
+    "date": "2026-06-20",
+    "theme_slug": "rate-path-repricing",
+    "theme_name": "Rate-path repricing",
+    "direction": "candidate",
+    "evidence": "Fed speakers opened the door to a slower cutting path; front-end vol caught a bid.",
+    "trigger_state": "0 of 3 triggers live",
+    "next_check": "2026-06-24 FOMC minutes",
+    "source": "daily"
+  },
+  {
+    "event_id": "te-2026-06-24-rate-path-1",
+    "date": "2026-06-24",
+    "theme_slug": "rate-path-repricing",
+    "theme_name": "Rate-path repricing",
+    "direction": "raise",
+    "evidence": "Payrolls beat plus hawkish minutes; the two-year repriced 15bp in two sessions.",
+    "trigger_state": "2 of 3 triggers live",
+    "next_check": "2026-07-15 CPI",
+    "source": "daily"
+  },
+  {
+    "event_id": "te-2026-07-08-rate-path-1",
+    "date": "2026-07-08",
+    "theme_slug": "rate-path-repricing",
+    "theme_name": "Rate-path repricing",
+    "direction": "raise",
+    "evidence": "Auction tail confirmed demand fragility at the front end.",
+    "trigger_state": "2 of 3 triggers live",
+    "next_check": "2026-07-15 CPI",
+    "source": "daily"
+  },
+  {
+    "event_id": "te-2026-06-21-dollar-1",
+    "date": "2026-06-21",
+    "theme_slug": "dollar-downtrend",
+    "theme_name": "Dollar downtrend",
+    "direction": "candidate",
+    "evidence": "DXY failed at the 200-day for the third time; rate differentials starting to narrow.",
+    "trigger_state": null,
+    "next_check": "2026-06-28 weekend review",
+    "source": "daily"
+  },
+  {
+    "event_id": "te-2026-06-28-dollar-1",
+    "date": "2026-06-28",
+    "theme_slug": "dollar-downtrend",
+    "theme_name": "Dollar downtrend",
+    "direction": "raise",
+    "evidence": "Weekly close below the June range on narrowing differentials; theme promoted from candidate.",
+    "trigger_state": "1 of 2 triggers live",
+    "next_check": "2026-07-05",
+    "source": "weekly"
+  },
+  {
+    "event_id": "te-2026-07-05-dollar-1",
+    "date": "2026-07-05",
+    "theme_slug": "dollar-downtrend",
+    "theme_name": "Dollar downtrend",
+    "direction": "hold",
+    "evidence": "No new information; positioning unchanged into CPI week.",
+    "trigger_state": "1 of 2 triggers live",
+    "next_check": "2026-07-15 CPI",
+    "source": "weekly"
+  },
+  {
+    "event_id": "te-2026-05-30-china-1",
+    "date": "2026-05-30",
+    "theme_slug": "china-reflation",
+    "theme_name": "China reflation",
+    "direction": "candidate",
+    "evidence": "Credit impulse turned positive for the first time in a year; commodities not confirming yet.",
+    "trigger_state": null,
+    "next_check": "2026-06-15 credit data",
+    "source": "weekly"
+  },
+  {
+    "event_id": "te-2026-07-05-china-1",
+    "date": "2026-07-05",
+    "theme_slug": "china-reflation",
+    "theme_name": "China reflation",
+    "direction": "retire",
+    "evidence": "Stimulus impulse faded; credit data rolled over for a third month. Candidate retired without promotion.",
+    "trigger_state": null,
+    "next_check": null,
+    "source": "weekly"
+  }
+]

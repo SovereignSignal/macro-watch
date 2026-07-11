@@ -1,0 +1,26 @@
+[
+  {
+    "date": "2026-07-08",
+    "kind": "daily",
+    "subject": "Front-end repricing meets a heavy auction week",
+    "telegram_ping": "Two-year yields snapped higher into supply; the rate-path theme is doing the work.",
+    "html": "<h2>Rates</h2><p>The two-year backed up nine basis points into a heavy auction slate, and the tail on today's reopening says demand at the front end is fragile. The rate-path repricing theme carries this brief.</p><h2>Lens</h2><p>Prediction markets moved the same direction but slower: the September-cut contract shed seven points. When the lens lags the tape, the tape usually wins.</p><h2>Deep research</h2><p>Term premium models put most of this month's move in the real-rate leg, not inflation compensation. That is a positioning story, not an inflation scare.</p>",
+    "sent_verified_at": "2026-07-08T14:04:12Z"
+  },
+  {
+    "date": "2026-07-09",
+    "kind": "daily",
+    "subject": "Oil's quiet tape hides a positioning story",
+    "telegram_ping": "WTI barely moved while options skew flipped; someone is paying for upside.",
+    "html": "<h2>Energy</h2><p>WTI closed a quiet session almost unchanged, but call skew flipped positive for the first time since April. Flat price plus rising call skew is how positioning stories start.</p><h2>Rates</h2><p>Follow-through from yesterday's auction tail: the front end steadied but did not recover. The theme map holds its raise.</p>",
+    "sent_verified_at": "2026-07-09T14:03:47Z"
+  },
+  {
+    "date": "2026-07-11",
+    "kind": "weekend",
+    "subject": "Weekend review: what the map got right about the dollar",
+    "telegram_ping": "The dollar downtrend theme aged well this week; the map holds it at medium conviction.",
+    "html": "<h2>The week in themes</h2><p>The dollar downtrend theme was the week's best performer: DXY closed below its June range while rate differentials narrowed on schedule. The map holds conviction at medium pending the CPI print.</p><h2>Grading</h2><p>One claim resolved this week and it resolved correct. The scoreboard is thin by design: the system grades only what it committed to in writing.</p>",
+    "sent_verified_at": "2026-07-11T12:02:33Z"
+  }
+]
