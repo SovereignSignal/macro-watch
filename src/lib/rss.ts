@@ -1,0 +1,38 @@
+import { xmlEscape } from './format';
+import type { BriefListItem } from './queries/briefs';
+
+export function siteUrl(): string {
+  return (process.env.SITE_URL ?? 'https://macro.watch').replace(/\/$/, '');
+}
+
+/** RSS 2.0 of briefs: title = subject, body = ping + link (spec §5). */
+export function buildFeed(items: BriefListItem[]): string {
+  const base = siteUrl();
+  const entries = items
+    .map((b) => {
+      const link = `${base}/briefs/${b.date}`;
+      return [
+        '    <item>',
+        `      <title>${xmlEscape(b.subject)}</title>`,
+        `      <link>${link}</link>`,
+        `      <guid isPermaLink="true">${link}</guid>`,
+        `      <pubDate>${b.sentVerifiedAt.toUTCString()}</pubDate>`,
+        `      <description>${xmlEscape(`${b.ping}\n\n${link}`)}</description>`,
+        '    </item>',
+      ].join('\n');
+    })
+    .join('\n');
+  return [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<rss version="2.0">',
+    '  <channel>',
+    '    <title>macro.watch</title>',
+    `    <link>${base}</link>`,
+    '    <description>Daily macro brief from SovsClaw — a Sovereign Signal system. AI-composed, deterministically validated, self-graded.</description>',
+    '    <language>en</language>',
+    entries,
+    '  </channel>',
+    '</rss>',
+    '',
+  ].join('\n');
+}
