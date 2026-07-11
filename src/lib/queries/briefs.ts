@@ -1,9 +1,16 @@
-import { desc, eq } from 'drizzle-orm';
+import { and, desc, eq, gte } from 'drizzle-orm';
 import { cache } from 'react';
 import type { Db } from '@/db/client';
 import { briefs } from '@/db/schema';
 
 export type BriefRow = typeof briefs.$inferSelect;
+
+// Smoke sentinels are written with pre-2000 dates (see scripts/smoke.mjs).
+// They must NEVER surface on public listings — only their direct permalink
+// renders (which is how the smoke round-trip verifies without polluting the
+// site). Every listing/latest/RSS/search query filters through this bound.
+export const PUBLIC_BRIEF_MIN_DATE = '2000-01-01';
+
 
 export type BriefListItem = {
   date: string;
@@ -14,7 +21,12 @@ export type BriefListItem = {
 };
 
 export async function getLatestBrief(db: Db): Promise<BriefRow | null> {
-  const rows = await db.select().from(briefs).orderBy(desc(briefs.date)).limit(1);
+  const rows = await db
+    .select()
+    .from(briefs)
+    .where(gte(briefs.date, PUBLIC_BRIEF_MIN_DATE))
+    .orderBy(desc(briefs.date))
+    .limit(1);
   return rows[0] ?? null;
 }
 
@@ -37,5 +49,6 @@ export async function listBriefs(db: Db): Promise<BriefListItem[]> {
       sentVerifiedAt: briefs.sentVerifiedAt,
     })
     .from(briefs)
+    .where(gte(briefs.date, PUBLIC_BRIEF_MIN_DATE))
     .orderBy(desc(briefs.date));
 }

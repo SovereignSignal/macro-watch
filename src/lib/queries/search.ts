@@ -1,6 +1,7 @@
 import { desc, sql } from 'drizzle-orm';
 import type { Db } from '@/db/client';
 import { briefs, claims, themeEvents } from '@/db/schema';
+import { PUBLIC_BRIEF_MIN_DATE } from '@/lib/queries/briefs';
 
 export type SearchResult = {
   type: 'brief' | 'theme-event' | 'claim';
@@ -25,7 +26,7 @@ export async function searchAll(db: Db, q: string): Promise<SearchResult[]> {
   const briefHits = await db
     .select({ date: briefs.date, subject: briefs.subject, ping: briefs.ping })
     .from(briefs)
-    .where(sql`${briefs.search} @@ websearch_to_tsquery('english', ${query})`)
+    .where(sql`${briefs.search} @@ websearch_to_tsquery('english', ${query}) AND ${briefs.date} >= ${PUBLIC_BRIEF_MIN_DATE}`)
     .orderBy(sql`ts_rank(${briefs.search}, websearch_to_tsquery('english', ${query})) desc`)
     .limit(LIMIT);
 

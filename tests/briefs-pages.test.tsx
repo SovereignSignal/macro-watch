@@ -37,3 +37,24 @@ it('permalink 404s for a missing or malformed date', async () => {
   await expect(BriefPage({ params: Promise.resolve({ date: '1900-01-01' }) })).rejects.toThrow();
   await expect(BriefPage({ params: Promise.resolve({ date: 'not-a-date' }) })).rejects.toThrow();
 });
+
+it('pre-2000 sentinel briefs never appear in listings or latest, but permalink still renders', async () => {
+  const db = await createTestDb();
+  await seedAll(db);
+  const { upsertBrief } = await import('@/lib/ingest/briefs');
+  await upsertBrief(db, {
+    date: '1999-01-01',
+    kind: 'daily',
+    subject: 'Smoke test brief (sentinel — not market content)',
+    telegram_ping: 'sentinel',
+    html: '<p>sentinel</p>',
+    sent_verified_at: '1999-01-01T00:00:00Z',
+  });
+  const { getLatestBrief, listBriefs, getBriefByDate } = await import('@/lib/queries/briefs');
+  const latest = await getLatestBrief(db);
+  expect(latest?.date).not.toBe('1999-01-01');
+  const list = await listBriefs(db);
+  expect(list.some((b) => b.date === '1999-01-01')).toBe(false);
+  const direct = await getBriefByDate(db, '1999-01-01');
+  expect(direct?.subject).toContain('sentinel');
+});
