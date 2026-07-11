@@ -1,7 +1,8 @@
-import { asc, desc, eq, inArray, sql } from 'drizzle-orm';
+import { asc, desc, eq, gte, inArray, sql } from 'drizzle-orm';
 import { cache } from 'react';
 import type { Db } from '@/db/client';
 import { briefs, claims, themeEvents, themes, themeState } from '@/db/schema';
+import { type FieldEvent, windowStart } from '@/lib/field-map';
 import type { ThemeStateCard } from '@/lib/ingest/themes';
 
 export type ThemeCard = {
@@ -89,6 +90,27 @@ export async function getThemeMapCards(
       (b.lastEventAt ?? '').localeCompare(a.lastEventAt ?? ''),
   );
   return { takenAt: snap?.takenAt ?? null, cards };
+}
+
+/**
+ * Every theme event inside the field's 30-day pressure window, grouped by
+ * theme — feeds the /map hero's x-axis (presentation read only).
+ */
+export async function getRecentThemeEvents(
+  db: Db,
+  asOf: string,
+): Promise<Record<string, FieldEvent[]>> {
+  const rows = await db
+    .select({
+      slug: themeEvents.themeSlug,
+      direction: themeEvents.direction,
+      date: themeEvents.date,
+    })
+    .from(themeEvents)
+    .where(gte(themeEvents.date, windowStart(asOf)));
+  const out: Record<string, FieldEvent[]> = {};
+  for (const r of rows) (out[r.slug] ??= []).push({ direction: r.direction, date: r.date });
+  return out;
 }
 
 // ----------------------------------------------------- per-theme dossier ---

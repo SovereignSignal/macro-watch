@@ -65,6 +65,19 @@ it('/map renders an empty state with no data', async () => {
   await createTestDb();
   const markup = renderToStaticMarkup(await MapPage());
   expect(markup).toContain('No themes on the map yet');
+  expect(markup).not.toContain('The field'); // no broken hero either
+});
+
+it('/map renders the field hero above the grid, nodes linked to dossiers', async () => {
+  const db = await createTestDb();
+  await seedAll(db);
+  const markup = renderToStaticMarkup(await MapPage());
+  expect(markup).toContain('The field');
+  expect(markup).toContain('← easing · pressure · building →');
+  expect(markup).toContain('field-node');
+  expect(markup).toContain('href="/map/rate-path-repricing"'); // SVG node link
+  expect(markup).toContain('RETIRED'); // china-reflation pins to the shelf
+  expect(markup.indexOf('the-field')).toBeLessThan(markup.indexOf('theme-grid'));
 });
 
 it('/map/[theme] renders the full dossier with brief-linked timeline', async () => {

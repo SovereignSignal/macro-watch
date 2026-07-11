@@ -785,6 +785,112 @@ h3 {
   margin: 0;
 }
 
+/* --- the field (map hero) -------------------------------------------------- */
+/* Position is the encoding: conviction band (y) × 30-day pressure (x).
+   Marks reuse the validated house tokens — amber lit diamonds, faint off
+   states, hairline rules; the halo is the standard ~10% accent wash. */
+
+.field {
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  background: var(--card);
+  padding: 0.9rem 0.9rem 0.75rem;
+  margin: 1.1rem 0 0.5rem;
+}
+
+.field-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Never squash: below ~40rem the field scrolls inside its frame. */
+.field-scroll svg {
+  display: block;
+  min-width: 40rem;
+  width: 100%;
+  height: auto;
+}
+
+.field-band-label {
+  fill: var(--faint);
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 8.5px;
+  letter-spacing: 0.16em;
+}
+
+.field-quad {
+  fill: var(--faint);
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+}
+
+.field-axis-label {
+  fill: var(--muted);
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+}
+
+.fn-halo {
+  fill: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+.fn-lit {
+  fill: var(--accent);
+}
+
+.fn-cand {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.3;
+}
+
+.fn-off {
+  fill: none;
+  stroke: var(--faint);
+  stroke-width: 1;
+}
+
+/* A candidate's gauge is not yet earned — the house dashed treatment,
+   so unrated candidates still read distinct from unrated actives. */
+.field-node.is-candidate .fn-cand,
+.field-node.is-candidate .fn-off {
+  stroke-dasharray: 2 1.4;
+}
+
+.fn-label {
+  fill: var(--ink);
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 10px;
+  letter-spacing: 0.01em;
+}
+
+.field-node.is-shelf .fn-label {
+  fill: var(--faint);
+}
+
+.field-hit {
+  fill: transparent;
+}
+
+.field a {
+  text-decoration: none;
+}
+
+.field a:hover .fn-label,
+.field a:focus-visible .fn-label {
+  fill: var(--accent);
+}
+
+.field figcaption {
+  margin-top: 0.55rem;
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  color: var(--faint);
+  font-size: 0.7rem;
+  letter-spacing: 0.02em;
+}
+
 /* --- charts -------------------------------------------------------------------- */
 
 figure {
