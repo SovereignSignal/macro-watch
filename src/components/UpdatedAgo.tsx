@@ -16,7 +16,7 @@ export function UpdatedAgo({ takenAt }: { takenAt: string }) {
     return () => clearInterval(id);
   }, []);
   return (
-    <span className="updated-ago" title={new Date(takenAt).toUTCString()}>
+    <span className="chip updated-ago" title={new Date(takenAt).toUTCString()}>
       {now === null ? 'updated —' : `updated ${formatAgo(new Date(takenAt).getTime(), now)}`}
     </span>
   );

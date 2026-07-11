@@ -1,36 +1,39 @@
-/* ------------------------------------------------------------------ */
-/* macro.watch — the house sheet.                                      */
-/* Georgia serif, sharp-market-note restraint, light + dark (spec §8). */
-/* ------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------- */
+/* macro.watch — the house sheet.                                             */
+/* A printed market note holding live instruments: Georgia body, Fraunces     */
+/* display, IBM Plex Mono for everything that is data. Bone & ink, venom      */
+/* amber accent. Direction colors (up/down/hold) are reserved for direction   */
+/* and grading semantics — never decoration. Light + dark (spec §8).          */
+/* ------------------------------------------------------------------------- */
 
 :root {
   color-scheme: light dark;
-  --bg: #faf9f5;
-  --ink: #1d1c18;
-  --muted: #6f6c63;
-  --faint: #a3a099;
-  --rule: #ddd9d0;
-  --card: #f2f0ea;
-  --accent: #7c2323;
-  --up: #2e6b46;
-  --down: #9c3327;
-  --hold: #8a6d1f;
+  --bg: #fafaf7; /* bone */
+  --ink: #16181d;
+  --muted: #6b6e76;
+  --faint: #9a9da4; /* derived third text level (legacy token) */
+  --rule: #e3e0d8;
+  --card: #ffffff;
+  --accent: #a66b00; /* venom amber */
+  --up: #1e7f4f;
+  --down: #b3362c;
+  --hold: #8a8578;
   --maxw: 44rem;
   --maxw-wide: 70rem;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #181713;
-    --ink: #e8e5dc;
-    --muted: #9a968b;
-    --faint: #6c6961;
-    --rule: #34322b;
-    --card: #211f1a;
-    --accent: #cf8b6b;
-    --up: #7db894;
-    --down: #d18a7c;
-    --hold: #c7a34f;
+    --bg: #101215; /* charcoal */
+    --ink: #e8e4da; /* warm paper */
+    --muted: #9b978c;
+    --faint: #6b675e;
+    --rule: #26282e;
+    --card: #16181d;
+    --accent: #d9a03f;
+    --up: #4da37a;
+    --down: #d46a5a;
+    --hold: #7a766b;
   }
 }
 
@@ -47,6 +50,16 @@ body {
   line-height: 1.55;
 }
 
+::selection {
+  background: color-mix(in srgb, var(--accent) 24%, transparent);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
 a {
   color: var(--accent);
   text-decoration-thickness: 1px;
@@ -56,20 +69,22 @@ a {
 h1,
 h2,
 h3 {
-  font-weight: normal;
-  line-height: 1.25;
+  font-family: var(--font-display, Georgia, serif);
+  font-weight: 500;
+  line-height: 1.22;
+  letter-spacing: -0.015em;
 }
 
 h1 {
-  font-size: 1.9rem;
+  font-weight: 700;
+  font-size: 2.05rem;
+  letter-spacing: -0.02em;
   margin: 0.5rem 0 1rem;
 }
 
 h2 {
-  font-size: 1.25rem;
-  margin: 2.5rem 0 0.75rem;
-  border-bottom: 1px solid var(--rule);
-  padding-bottom: 0.35rem;
+  font-size: 1.3rem;
+  margin: 2.6rem 0 0.8rem;
 }
 
 h3 {
@@ -89,7 +104,7 @@ h3 {
   padding: 1.5rem 1.25rem 4rem;
 }
 
-/* --- masthead ----------------------------------------------------- */
+/* --- masthead ------------------------------------------------------------ */
 
 .site-header {
   max-width: var(--maxw-wide);
@@ -98,28 +113,44 @@ h3 {
   border-bottom: 1px solid var(--rule);
 }
 
+.masthead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
 .site-name {
-  font-size: 1.5rem;
+  font-family: var(--font-display, Georgia, serif);
+  font-weight: 700;
+  font-size: 1.7rem;
+  letter-spacing: -0.02em;
   color: var(--ink);
   text-decoration: none;
-  letter-spacing: 0.02em;
+}
+
+.site-name-tld {
+  color: var(--accent);
 }
 
 .byline {
-  margin: 0.15rem 0 0;
-  font-style: italic;
+  margin: 0.35rem 0 0;
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 0.66rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
   color: var(--muted);
-  font-size: 0.9rem;
 }
 
 .site-nav {
-  margin-top: 0.9rem;
+  margin-top: 1.1rem;
   display: flex;
   flex-wrap: wrap;
-  gap: 1.1rem;
-  font-size: 0.78rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  gap: 0.4rem 1.35rem;
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 0.74rem;
+  letter-spacing: 0.05em;
 }
 
 .site-nav a {
@@ -128,7 +159,10 @@ h3 {
 }
 
 .site-nav a:hover {
-  color: var(--accent);
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+  text-underline-offset: 4px;
 }
 
 .site-footer {
@@ -141,36 +175,96 @@ h3 {
 }
 
 .site-footer p {
-  margin: 0.3rem 0;
+  margin: 0.35rem 0;
 }
 
-/* --- shared atoms -------------------------------------------------- */
+.footer-mark {
+  color: var(--accent);
+  font-size: 0.7rem;
+  vertical-align: 1px;
+}
 
+.footer-links {
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  padding-top: 0.35rem;
+}
+
+/* --- shared atoms ---------------------------------------------------------- */
+
+/* Chips: the freshness/state micro-vocabulary. Mono, machined corners. */
+.chip,
 .badge {
-  display: inline-block;
-  font-size: 0.68rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 0.66rem;
+  letter-spacing: 0.09em;
   border: 1px solid var(--rule);
-  border-radius: 2px;
+  border-radius: 3px;
   padding: 0.1rem 0.45rem;
   color: var(--muted);
+  white-space: nowrap;
   vertical-align: middle;
+  font-style: normal;
+}
+
+.chip-live {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--rule));
+}
+
+.chip-live::before {
+  content: '';
+  width: 0.45em;
+  height: 0.45em;
+  border-radius: 50%;
+  background: currentColor;
+  flex: none;
+}
+
+@keyframes chip-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .chip-live::before {
+    animation: chip-pulse 2.4s ease-in-out infinite;
+  }
+}
+
+.chip-official-latest {
+  color: var(--ink);
+}
+
+.chip-unverified {
+  border-style: dashed;
+  color: var(--faint);
+}
+
+.chip-pending {
+  color: var(--faint);
 }
 
 .badge-weekend {
-  border-color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--rule));
   color: var(--accent);
 }
 
 .badge-active {
-  border-color: var(--up);
-  color: var(--up);
+  color: var(--ink);
 }
 
 .badge-candidate {
-  border-color: var(--hold);
-  color: var(--hold);
+  border-style: dashed;
 }
 
 .badge-retired {
@@ -178,9 +272,7 @@ h3 {
 }
 
 .updated-ago {
-  font-size: 0.8rem;
-  color: var(--faint);
-  font-style: italic;
+  color: var(--muted);
 }
 
 .empty-state {
@@ -197,12 +289,40 @@ h3 {
 }
 
 .date {
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
   color: var(--muted);
-  font-size: 0.9rem;
+  font-size: 0.76rem;
+  letter-spacing: 0.02em;
   margin-right: 0.6rem;
 }
 
-/* --- the brief ------------------------------------------------------ */
+.crumb {
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 0.74rem;
+}
+
+.crumb a {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.crumb a:hover {
+  color: var(--accent);
+}
+
+.page-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.page-head h1 {
+  margin-bottom: 0.6rem;
+}
+
+/* --- the brief ------------------------------------------------------------- */
 
 .brief-body p {
   margin: 0.9rem 0;
@@ -232,10 +352,11 @@ h3 {
   max-width: 100%;
 }
 
-/* --- panels ---------------------------------------------------------- */
+/* --- panels (dashboard, odds lens) ------------------------------------------- */
 
 .panel {
   border: 1px solid var(--rule);
+  border-radius: 3px;
   background: var(--card);
   padding: 1rem 1.25rem;
   margin: 2rem 0;
@@ -250,8 +371,6 @@ h3 {
 
 .panel-head h2 {
   margin: 0;
-  border: none;
-  padding: 0;
   font-size: 1.05rem;
 }
 
@@ -263,7 +382,7 @@ h3 {
 }
 
 .panel-table td {
-  padding: 0.3rem 0.5rem 0.3rem 0;
+  padding: 0.34rem 0.5rem 0.34rem 0;
   border-bottom: 1px solid var(--rule);
 }
 
@@ -273,6 +392,8 @@ h3 {
 
 .num {
   text-align: right;
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 0.85rem;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -290,25 +411,11 @@ h3 {
   font-size: 0.85rem;
 }
 
-/* --- theme map -------------------------------------------------------- */
-
-.theme-strip {
-  list-style: none;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.6rem;
-  padding: 0;
-}
-
-.theme-strip li {
-  border: 1px solid var(--rule);
-  padding: 0.35rem 0.7rem;
-  font-size: 0.9rem;
-}
+/* --- instrument cards (theme map, strip, dossier) — the signature ------------- */
 
 .theme-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
   gap: 1rem;
   padding: 0;
   list-style: none;
@@ -316,46 +423,292 @@ h3 {
 
 .theme-card {
   border: 1px solid var(--rule);
+  border-radius: 3px;
   background: var(--card);
-  padding: 1rem 1.1rem;
+  padding: 0.95rem 1.1rem 1rem;
+  transition: border-color 0.15s ease;
+}
+
+.theme-card:hover {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--rule));
+}
+
+/* One orchestrated moment: the grid rises into place on load. */
+@keyframes card-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .theme-grid > li {
+    opacity: 0;
+    animation: card-rise 0.45s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+    animation-delay: calc(min(var(--i, 0), 14) * 45ms);
+  }
+}
+
+.theme-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.75rem;
 }
 
 .theme-card h3 {
-  margin: 0 0 0.4rem;
+  margin: 0;
+  font-size: 1.12rem;
 }
 
-.read {
-  margin: 0.4rem 0;
+.theme-card h3 a {
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.theme-card h3 a:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+/* The conviction gauge: ◆◆◇ */
+.conv-scale {
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 0.78rem;
+  letter-spacing: 0.22em;
+  white-space: nowrap;
+}
+
+.conv-scale .d-lit {
+  color: var(--accent);
+}
+
+.conv-scale .d-off {
+  color: var(--faint);
+}
+
+/* A retired instrument reads powered-down: gauge and trace go faint. */
+.is-retired .conv-scale .d-lit {
+  color: var(--faint);
+}
+
+.is-retired .spark-line {
+  stroke: var(--faint);
+}
+
+.is-retired .spark-dot {
+  fill: var(--faint);
+}
+
+.theme-card-gauge {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+.theme-card-gauge .spark {
+  margin-left: auto;
 }
 
 .conv {
-  font-size: 0.78rem;
-  letter-spacing: 0.1em;
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--muted);
 }
 
 .conv-high {
-  color: var(--up);
+  color: var(--ink);
+  font-weight: 500;
 }
 
 .conv-medium {
-  color: var(--hold);
+  color: var(--muted);
 }
 
 .conv-low {
   color: var(--faint);
 }
 
+.read {
+  margin: 0.65rem 0 0.15rem;
+  font-size: 0.98rem;
+}
+
+/* Trigger rows: state glyph, name, freshness chip. */
 .trigger-list {
   list-style: none;
   padding: 0;
-  margin: 0.5rem 0 0;
-  font-size: 0.85rem;
+  margin: 0.7rem 0 0;
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 0.74rem;
   color: var(--muted);
 }
 
-/* --- timeline ---------------------------------------------------------- */
+.trigger-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.32rem 0;
+  border-top: 1px solid var(--rule);
+}
+
+.trigger-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tick {
+  flex: none;
+  width: 1em;
+  text-align: center;
+  color: var(--faint);
+}
+
+.tick-live {
+  color: var(--accent);
+}
+
+.tick-watching {
+  color: var(--muted);
+}
+
+/* Micro conviction trace on each instrument. */
+.spark {
+  display: block;
+  flex: none;
+}
+
+.spark-line {
+  stroke: var(--accent);
+  stroke-width: 1.5;
+  fill: none;
+}
+
+.spark-dot {
+  fill: var(--accent);
+}
+
+/* Home strip: the same instruments, compact. */
+.theme-strip {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+  gap: 0.65rem;
+  padding: 0;
+}
+
+.theme-strip li {
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  background: var(--card);
+  padding: 0.55rem 0.75rem 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  transition: border-color 0.15s ease;
+}
+
+.theme-strip li:hover {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--rule));
+}
+
+.strip-name {
+  font-family: var(--font-display, Georgia, serif);
+  font-weight: 500;
+  font-size: 0.98rem;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.strip-name:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.strip-gauge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.strip-gauge .conv-scale {
+  font-size: 0.68rem;
+}
+
+.strip-gauge .spark {
+  margin-left: auto;
+}
+
+.map-link {
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 0.78rem;
+}
+
+/* Dossier header: the instrument panel at full size. */
+.dossier-head {
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  background: var(--card);
+  padding: 1.1rem 1.25rem 1.15rem;
+  margin: 0.9rem 0 1.6rem;
+}
+
+.dossier-head h1 {
+  margin: 0;
+  font-size: 1.65rem;
+}
+
+.dossier-head .theme-card-gauge {
+  margin-top: 0.7rem;
+}
+
+.dossier-head .conv-scale {
+  font-size: 0.9rem;
+}
+
+.dossier-head .read {
+  margin-bottom: 0;
+}
+
+.since {
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  color: var(--faint);
+}
+
+/* Raise/lower condition headings — direction semantics, so direction color. */
+.cond {
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-weight: 400;
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin: 1.2rem 0 0.4rem;
+}
+
+.cond-raise {
+  color: var(--up);
+}
+
+.cond-lower {
+  color: var(--down);
+}
+
+/* --- timeline ---------------------------------------------------------------- */
 
 .timeline {
   list-style: none;
@@ -365,16 +718,17 @@ h3 {
 
 .timeline li {
   border-left: 2px solid var(--rule);
-  padding: 0 0 1.1rem 1rem;
+  padding: 0 0 1.2rem 1.05rem;
 }
 
 .dir {
-  font-size: 0.7rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  padding: 0.05rem 0.4rem;
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 0.66rem;
+  letter-spacing: 0.1em;
+  padding: 0.06rem 0.4rem;
   border: 1px solid currentColor;
-  border-radius: 2px;
+  border-radius: 3px;
+  white-space: nowrap;
 }
 
 .dir-raise {
@@ -403,12 +757,14 @@ h3 {
 }
 
 .meta {
-  font-size: 0.82rem;
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 0.7rem;
+  letter-spacing: 0.02em;
   color: var(--faint);
   margin: 0;
 }
 
-/* --- charts -------------------------------------------------------------- */
+/* --- charts -------------------------------------------------------------------- */
 
 figure {
   margin: 1.5rem 0;
@@ -426,8 +782,9 @@ figure {
 
 .chart-label {
   fill: var(--faint);
-  font-size: 10px;
-  font-family: Georgia, serif;
+  font-size: 9px;
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  letter-spacing: 0.08em;
 }
 
 .chart-line {
@@ -437,40 +794,70 @@ figure {
 }
 
 .conviction-chart figcaption {
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
   color: var(--faint);
-  font-size: 0.82rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.02em;
 }
 
-/* --- data tables (claims, related claims) --------------------------------- */
+/* --- data tables (claims, related claims) ---------------------------------------- */
+
+.table-scroll {
+  overflow-x: auto;
+  margin: 1rem 0;
+  -webkit-overflow-scrolling: touch;
+}
 
 .data-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.92rem;
+  font-size: 0.9rem;
   margin: 1rem 0;
+}
+
+.table-scroll .data-table {
+  margin: 0;
+}
+
+.data-table--claims {
+  min-width: 58rem;
+}
+
+.data-table--compact {
+  min-width: 30rem;
 }
 
 .data-table th {
   text-align: left;
-  font-weight: normal;
-  font-size: 0.72rem;
-  letter-spacing: 0.12em;
+  font-weight: 400;
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--muted);
   border-bottom: 1px solid var(--ink);
   padding: 0.4rem 0.75rem 0.4rem 0;
+  white-space: nowrap;
 }
 
 .data-table td {
   border-bottom: 1px solid var(--rule);
-  padding: 0.45rem 0.75rem 0.45rem 0;
+  padding: 0.5rem 0.75rem 0.5rem 0;
   vertical-align: top;
 }
 
+.cell-mono {
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 0.76rem;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
 /* Pipeline vocabulary (spec/db: pending|hit|miss|partial|expired|
-   judgment-required|void) — not the site-plan draft's open/resolved_*. */
+   judgment-required|void). hit/miss/partial are grading (PnL) semantics —
+   direction colors apply; the rest are neutral states. */
 .status-pending {
-  color: var(--hold);
+  color: var(--muted);
 }
 
 .status-hit {
@@ -494,7 +881,7 @@ figure {
   color: var(--faint);
 }
 
-/* --- forms (filters, search) ------------------------------------------------ */
+/* --- forms (filters, search) ------------------------------------------------------ */
 
 .filters {
   display: flex;
@@ -502,35 +889,57 @@ figure {
   gap: 0.9rem;
   align-items: flex-end;
   margin: 1.25rem 0;
-  font-size: 0.9rem;
 }
 
 .filters label {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.3rem;
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 0.64rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   color: var(--muted);
 }
 
-.filters select,
+.filters select {
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 0.82rem;
+  color: var(--ink);
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 0.32rem 0.5rem;
+}
+
 .search-form input {
   font-family: inherit;
-  font-size: 0.95rem;
+  font-size: 1rem;
   color: var(--ink);
-  background: var(--bg);
+  background: var(--card);
   border: 1px solid var(--rule);
-  padding: 0.3rem 0.5rem;
+  border-radius: 3px;
+  padding: 0.35rem 0.6rem;
 }
 
 .filters button,
 .search-form button {
-  font-family: inherit;
-  font-size: 0.9rem;
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 0.74rem;
+  letter-spacing: 0.06em;
   background: var(--card);
   color: var(--ink);
   border: 1px solid var(--muted);
-  padding: 0.35rem 0.9rem;
+  border-radius: 3px;
+  padding: 0.4rem 1rem;
   cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.filters button:hover,
+.search-form button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .search-form {
@@ -541,9 +950,10 @@ figure {
 
 .search-form input {
   flex: 1;
+  min-width: 0;
 }
 
-/* --- archive + search results ------------------------------------------------ */
+/* --- archive + search results ------------------------------------------------------- */
 
 .archive-list {
   list-style: none;
@@ -552,7 +962,7 @@ figure {
 
 .archive-list li {
   border-bottom: 1px solid var(--rule);
-  padding: 1rem 0;
+  padding: 1.05rem 0;
 }
 
 .excerpt {
@@ -561,32 +971,33 @@ figure {
   font-size: 0.95rem;
 }
 
-/* --- scoreboards ---------------------------------------------------------------- */
+/* --- scoreboards ----------------------------------------------------------------------- */
 
 .boards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
   gap: 1rem;
   margin: 1.25rem 0;
 }
 
 .board {
   border: 1px solid var(--rule);
+  border-radius: 3px;
   background: var(--card);
   padding: 0.9rem 1rem;
 }
 
 .board h3 {
   margin: 0 0 0.5rem;
-  font-size: 0.95rem;
+  font-size: 0.98rem;
 }
 
 .board dl {
   margin: 0;
   display: grid;
   grid-template-columns: auto auto;
-  gap: 0.15rem 1rem;
-  font-size: 0.9rem;
+  gap: 0.18rem 1rem;
+  font-size: 0.88rem;
 }
 
 .board dt {
@@ -596,18 +1007,24 @@ figure {
 .board dd {
   margin: 0;
   text-align: right;
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 0.8rem;
   font-variant-numeric: tabular-nums;
 }
 
 .hit-rate {
-  font-size: 1.6rem;
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-weight: 500;
+  font-size: 1.55rem;
+  letter-spacing: -0.01em;
   margin: 0.2rem 0;
 }
 
-/* --- catalysts -------------------------------------------------------------------- */
+/* --- catalysts ---------------------------------------------------------------------------- */
 
 .catalyst {
   border: 1px solid var(--rule);
+  border-radius: 3px;
   background: var(--card);
   padding: 1rem 1.1rem;
   margin: 1rem 0;
@@ -632,14 +1049,92 @@ figure {
 
 .vs h4 {
   margin: 0 0 0.3rem;
-  font-size: 0.72rem;
-  letter-spacing: 0.12em;
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 0.64rem;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--muted);
-  font-weight: normal;
+  font-weight: 400;
+}
+
+.vs p {
+  margin: 0;
 }
 
 .home-footer-links {
   margin-top: 3rem;
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 0.76rem;
   color: var(--muted);
+}
+
+/* --- small screens (down to 380px) ----------------------------------------------------------- */
+
+@media (max-width: 30rem) {
+  body {
+    font-size: 1rem;
+  }
+
+  h1 {
+    font-size: 1.65rem;
+  }
+
+  .site-header {
+    padding-top: 1.4rem;
+  }
+
+  .site-name {
+    font-size: 1.45rem;
+  }
+
+  .container,
+  .container-wide,
+  .site-header,
+  .site-footer {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .site-nav {
+    gap: 0.4rem 1.05rem;
+  }
+
+  .panel {
+    padding: 0.8rem 0.9rem;
+  }
+}
+
+/* --- print (brief permalinks read like the note they are) ------------------------------------- */
+
+@media print {
+  body {
+    background: #fff;
+    color: #000;
+  }
+
+  .site-nav,
+  .site-footer,
+  .home-footer-links,
+  .masthead .chip {
+    display: none;
+  }
+
+  .site-header {
+    border-bottom: 1px solid #000;
+    padding-top: 0;
+  }
+
+  .site-name,
+  .site-name-tld,
+  .byline {
+    color: #000;
+  }
+
+  a {
+    color: inherit;
+  }
+
+  .brief-body a {
+    text-decoration: underline;
+  }
 }
