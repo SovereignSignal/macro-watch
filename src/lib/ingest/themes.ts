@@ -38,40 +38,44 @@ function statusFor(direction: ThemeEventPayload['direction']): string {
  *   never regresses it (CASE compares against the pre-update last_event_at).
  */
 export async function upsertThemeEvents(db: Db, events: ThemeEventPayload[]): Promise<number> {
-  for (const e of events) {
-    const status = statusFor(e.direction);
-    await db
-      .insert(themes)
-      .values({
-        slug: e.theme_slug,
-        name: e.theme_name,
-        status,
-        firstSeen: e.date,
-        lastEventAt: e.date,
-      })
-      .onConflictDoUpdate({
-        target: themes.slug,
-        set: {
+  await db.transaction(async (tx) => {
+    for (const e of events) {
+      const status = statusFor(e.direction);
+      await tx
+        .insert(themes)
+        .values({
+          slug: e.theme_slug,
           name: e.theme_name,
-          firstSeen: sql`least(${themes.firstSeen}, ${e.date})`,
-          status: sql`case when ${e.date} >= ${themes.lastEventAt} then ${status} else ${themes.status} end`,
-          lastEventAt: sql`greatest(${themes.lastEventAt}, ${e.date})`,
-        },
-      });
-    const eventRow = {
-      date: e.date,
-      themeSlug: e.theme_slug,
-      direction: e.direction,
-      evidence: e.evidence,
-      triggerState: e.trigger_state ?? null,
-      nextCheck: e.next_check ?? null,
-      source: e.source,
-    };
-    await db
-      .insert(themeEvents)
-      .values({ eventId: e.event_id, ...eventRow })
-      .onConflictDoUpdate({ target: themeEvents.eventId, set: eventRow });
-  }
+          status,
+          firstSeen: e.date,
+          lastEventAt: e.date,
+        })
+        .onConflictDoUpdate({
+          target: themes.slug,
+          set: {
+            // Same date guard as status: an older backfilled event must not
+            // overwrite a newer event's name either.
+            name: sql`case when ${e.date} >= ${themes.lastEventAt} then ${e.theme_name} else ${themes.name} end`,
+            firstSeen: sql`least(${themes.firstSeen}, ${e.date})`,
+            status: sql`case when ${e.date} >= ${themes.lastEventAt} then ${status} else ${themes.status} end`,
+            lastEventAt: sql`greatest(${themes.lastEventAt}, ${e.date})`,
+          },
+        });
+      const eventRow = {
+        date: e.date,
+        themeSlug: e.theme_slug,
+        direction: e.direction,
+        evidence: e.evidence,
+        triggerState: e.trigger_state ?? null,
+        nextCheck: e.next_check ?? null,
+        source: e.source,
+      };
+      await tx
+        .insert(themeEvents)
+        .values({ eventId: e.event_id, ...eventRow })
+        .onConflictDoUpdate({ target: themeEvents.eventId, set: eventRow });
+    }
+  });
   return events.length;
 }
 

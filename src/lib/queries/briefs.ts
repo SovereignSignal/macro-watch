@@ -1,4 +1,5 @@
 import { desc, eq } from 'drizzle-orm';
+import { cache } from 'react';
 import type { Db } from '@/db/client';
 import { briefs } from '@/db/schema';
 
@@ -17,10 +18,14 @@ export async function getLatestBrief(db: Db): Promise<BriefRow | null> {
   return rows[0] ?? null;
 }
 
-export async function getBriefByDate(db: Db, date: string): Promise<BriefRow | null> {
-  const rows = await db.select().from(briefs).where(eq(briefs.date, date)).limit(1);
-  return rows[0] ?? null;
-}
+// cache() dedupes generateMetadata + the page component's fetch into one
+// query per request (Next.js request-scoped memoization).
+export const getBriefByDate = cache(
+  async (db: Db, date: string): Promise<BriefRow | null> => {
+    const rows = await db.select().from(briefs).where(eq(briefs.date, date)).limit(1);
+    return rows[0] ?? null;
+  },
+);
 
 export async function listBriefs(db: Db): Promise<BriefListItem[]> {
   return db

@@ -107,6 +107,31 @@ it('does not regress status when an older event backfills later', async () => {
   expect(t.lastEventAt).toBe('2026-07-08');
 });
 
+it('does not overwrite name when an older event with a different name backfills later', async () => {
+  await postEvents(
+    post('theme-events', {
+      ...EVENT,
+      event_id: 'te-name-new',
+      date: '2026-07-08',
+      direction: 'raise',
+      theme_name: 'Rate-path repricing v2',
+    }),
+  );
+  await postEvents(
+    post('theme-events', {
+      ...EVENT,
+      event_id: 'te-name-old',
+      date: '2026-06-20',
+      direction: 'candidate',
+      theme_name: 'Some stale name',
+    }),
+  );
+  const [t] = await db.select().from(themes).where(eq(themes.slug, 'rate-path-repricing'));
+  expect(t.name).toBe('Rate-path repricing v2'); // older event's name never lands
+  expect(t.firstSeen).toBe('2026-06-20');
+  expect(t.lastEventAt).toBe('2026-07-08');
+});
+
 it('retire flips the theme to retired', async () => {
   await postEvents(post('theme-events', EVENT));
   await postEvents(post('theme-events', { ...EVENT, event_id: 'te-r', date: '2026-07-05', direction: 'retire' }));

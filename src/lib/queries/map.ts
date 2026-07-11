@@ -1,4 +1,5 @@
 import { asc, desc, eq, inArray, sql } from 'drizzle-orm';
+import { cache } from 'react';
 import type { Db } from '@/db/client';
 import { briefs, claims, themeEvents, themes, themeState } from '@/db/schema';
 import type { ThemeStateCard } from '@/lib/ingest/themes';
@@ -129,7 +130,9 @@ export async function getConvictionSeries(db: Db, slug: string): Promise<Convict
   return out;
 }
 
-export async function getThemeDetail(db: Db, slug: string): Promise<ThemeDetail | null> {
+// cache() dedupes generateMetadata + the page component's fetch into one
+// query per request (Next.js request-scoped memoization).
+export const getThemeDetail = cache(async (db: Db, slug: string): Promise<ThemeDetail | null> => {
   const themeRows = await db.select().from(themes).where(eq(themes.slug, slug)).limit(1);
   const themeRow = themeRows[0] ?? null;
   const { cards } = await getThemeMapCards(db);
@@ -180,4 +183,4 @@ export async function getThemeDetail(db: Db, slug: string): Promise<ThemeDetail 
     conviction: await getConvictionSeries(db, slug),
     briefDates,
   };
-}
+});

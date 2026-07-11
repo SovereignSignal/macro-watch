@@ -114,7 +114,7 @@ export default async function ThemePage({ params }: { params: Promise<{ theme: s
                   <td>{c.openedAt}</td>
                   <td>{c.predicate}</td>
                   <td className={`status-${c.status}`}>
-                    {c.status.replaceAll('_', ' ').replaceAll('-', ' ')}
+                    {c.status.replaceAll('-', ' ')}
                   </td>
                 </tr>
               ))}

@@ -79,7 +79,7 @@ export async function searchAll(db: Db, q: string): Promise<SearchResult[]> {
         type: 'claim',
         title: typeof predicate === 'string' ? predicate : c.claimId,
         href: '/accountability',
-        snippet: `status: ${c.status.replaceAll('_', ' ')}`,
+        snippet: `status: ${c.status.replaceAll('-', ' ')}`,
         date: c.openedAt,
       };
     }),

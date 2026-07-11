@@ -36,8 +36,9 @@ export function createIngestHandler<S extends z.ZodTypeAny>(opts: {
     for (const t of targets) {
       try {
         revalidatePath(t.path, t.type ?? 'page');
-      } catch {
+      } catch (err) {
         // revalidatePath is unavailable outside the Next request scope (unit tests).
+        console.warn('[macro.watch] revalidate failed for', t.path, err);
       }
     }
     return Response.json({ ok: true, upserted, revalidated: targets.map((t) => t.path) });
