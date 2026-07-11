@@ -12,7 +12,7 @@ export function BriefArticle(props: {
   return (
     <article className="brief">
       <p className="brief-meta">
-        {formatDate(brief.date)}{' '}
+        <span className="date">{formatDate(brief.date)}</span>
         {brief.kind === 'weekend' ? <span className="badge badge-weekend">Weekend review</span> : null}
       </p>
       <h1>{brief.subject}</h1>

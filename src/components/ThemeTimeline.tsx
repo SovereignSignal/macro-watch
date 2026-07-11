@@ -33,9 +33,11 @@ export function ThemeTimeline({
         <li key={e.eventId}>
           <span className={`dir dir-${e.direction}`}>{e.direction}</span>{' '}
           {hasBrief.has(e.date) ? (
-            <Link href={`/briefs/${e.date}`}>{formatDate(e.date)}</Link>
+            <Link className="date" href={`/briefs/${e.date}`}>
+              {formatDate(e.date)}
+            </Link>
           ) : (
-            <span>{formatDate(e.date)}</span>
+            <span className="date">{formatDate(e.date)}</span>
           )}
           <p className="evidence">{e.evidence}</p>
           <p className="meta">

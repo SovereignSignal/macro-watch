@@ -1,25 +1,29 @@
 import { ThemeGrid } from '@/components/ThemeGrid';
 import { UpdatedAgo } from '@/components/UpdatedAgo';
 import { getDb } from '@/db/client';
-import { getThemeMapCards } from '@/lib/queries/map';
+import { getConvictionSparks, getThemeMapCards } from '@/lib/queries/map';
 import { safeQuery } from '@/lib/safe';
 
 export const revalidate = 900;
-export const metadata = { title: 'Living Theme Map' };
+export const metadata = { title: 'Living theme map' };
 
 export default async function MapPage() {
-  const { takenAt, cards } = await safeQuery(() => getThemeMapCards(getDb()), {
+  const db = getDb();
+  const { takenAt, cards } = await safeQuery(() => getThemeMapCards(db), {
     takenAt: null,
     cards: [],
   });
+  const sparks = await safeQuery(() => getConvictionSparks(db), {});
   return (
     <main className="container-wide">
-      <h1>Living Theme Map</h1>
-      <p className="brief-meta">
-        Every theme the system is tracking — conviction, current read, live triggers, lifecycle.{' '}
+      <div className="page-head">
+        <h1>Living theme map</h1>
         {takenAt ? <UpdatedAgo takenAt={takenAt.toISOString()} /> : null}
+      </div>
+      <p className="brief-meta">
+        Every theme the system is tracking — conviction, current read, live triggers, lifecycle.
       </p>
-      <ThemeGrid cards={cards} />
+      <ThemeGrid cards={cards} sparks={sparks} />
     </main>
   );
 }

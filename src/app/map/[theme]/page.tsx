@@ -1,8 +1,11 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ConvictionChart } from '@/components/ConvictionChart';
+import { ConvictionScale } from '@/components/ConvictionScale';
 import { EmptyState } from '@/components/EmptyState';
+import { Sparkline } from '@/components/Sparkline';
 import { ThemeTimeline } from '@/components/ThemeTimeline';
+import { TriggerList } from '@/components/TriggerList';
 import { getDb } from '@/db/client';
 import { formatDate } from '@/lib/format';
 import { getThemeDetail } from '@/lib/queries/map';
@@ -29,29 +32,39 @@ export default async function ThemePage({ params }: { params: Promise<{ theme: s
   const detail = await getThemeDetail(getDb(), theme);
   if (!detail) notFound();
   const card = detail.card;
+  const sparkLevels = detail.conviction.map((p) => p.level);
   return (
     <main className="container">
-      <p className="brief-meta">
+      <p className="crumb">
         <Link href="/map">← Theme map</Link>
       </p>
-      <h1>{detail.name}</h1>
-      <p>
-        <span className={`badge badge-${detail.status}`}>{detail.status}</span>{' '}
-        {card?.conviction ? (
-          <span className={`conv conv-${card.conviction}`}>conviction: {card.conviction}</span>
-        ) : null}{' '}
-        {detail.firstSeen ? (
-          <span className="brief-meta">on the map since {formatDate(detail.firstSeen)}</span>
-        ) : null}
-      </p>
-      {card?.read ? <p className="read">{card.read}</p> : null}
+      <header className={detail.status === 'retired' ? 'dossier-head is-retired' : 'dossier-head'}>
+        <div className="theme-card-head">
+          <h1>{detail.name}</h1>
+          <ConvictionScale
+            conviction={card?.conviction ?? null}
+            hollow={detail.status === 'candidate'}
+          />
+        </div>
+        <div className="theme-card-gauge">
+          <span className={card?.conviction ? `conv conv-${card.conviction}` : 'conv'}>
+            {card?.conviction ?? 'unrated'}
+          </span>
+          <span className={`badge badge-${detail.status}`}>{detail.status}</span>
+          {detail.firstSeen ? (
+            <span className="since">on the map since {formatDate(detail.firstSeen)}</span>
+          ) : null}
+          <Sparkline levels={sparkLevels} />
+        </div>
+        {card?.read ? <p className="read">{card.read}</p> : null}
+      </header>
 
       {card && card.raiseConditions.length + card.lowerConditions.length > 0 ? (
         <section>
           <h2>What would move it</h2>
           {card.raiseConditions.length > 0 ? (
             <>
-              <h3>Raise</h3>
+              <h3 className="cond cond-raise">▲ Raise</h3>
               <ul>
                 {card.raiseConditions.map((c) => (
                   <li key={c}>{c}</li>
@@ -61,7 +74,7 @@ export default async function ThemePage({ params }: { params: Promise<{ theme: s
           ) : null}
           {card.lowerConditions.length > 0 ? (
             <>
-              <h3>Lower</h3>
+              <h3 className="cond cond-lower">▼ Lower</h3>
               <ul>
                 {card.lowerConditions.map((c) => (
                   <li key={c}>{c}</li>
@@ -75,13 +88,7 @@ export default async function ThemePage({ params }: { params: Promise<{ theme: s
       {card && card.triggers.length > 0 ? (
         <section>
           <h2>Live triggers</h2>
-          <ul className="trigger-list">
-            {card.triggers.map((t) => (
-              <li key={t.name}>
-                {t.name}: {t.state}
-              </li>
-            ))}
-          </ul>
+          <TriggerList triggers={card.triggers} />
         </section>
       ) : null}
 
@@ -100,26 +107,28 @@ export default async function ThemePage({ params }: { params: Promise<{ theme: s
         {detail.relatedClaims.length === 0 ? (
           <EmptyState>No claims reference this theme yet.</EmptyState>
         ) : (
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Opened</th>
-                <th>Predicate</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {detail.relatedClaims.map((c) => (
-                <tr key={c.claimId}>
-                  <td>{c.openedAt}</td>
-                  <td>{c.predicate}</td>
-                  <td className={`status-${c.status}`}>
-                    {c.status.replaceAll('-', ' ')}
-                  </td>
+          <div className="table-scroll">
+            <table className="data-table data-table--compact">
+              <thead>
+                <tr>
+                  <th>Opened</th>
+                  <th>Predicate</th>
+                  <th>Status</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {detail.relatedClaims.map((c) => (
+                  <tr key={c.claimId}>
+                    <td className="cell-mono">{c.openedAt}</td>
+                    <td>{c.predicate}</td>
+                    <td className={`cell-mono status-${c.status}`}>
+                      {c.status.replaceAll('-', ' ')}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </section>
     </main>

@@ -10,6 +10,7 @@ export function HomeView(props: {
   brief: BriefRow | null;
   panel: { takenAt: string; rows: PanelRowItem[] } | null;
   cards: ThemeCard[];
+  sparks?: Record<string, number[]>;
 }) {
   return (
     <main className="container">
@@ -30,7 +31,7 @@ export function HomeView(props: {
       </section>
       <section aria-label="Theme map">
         <h2>Theme map</h2>
-        <ThemeStrip cards={props.cards} />
+        <ThemeStrip cards={props.cards} sparks={props.sparks} />
       </section>
       <p className="home-footer-links">
         <a href="/briefs">Brief archive</a> · <a href="/feed.xml">RSS</a>

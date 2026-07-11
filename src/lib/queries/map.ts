@@ -130,6 +130,31 @@ export async function getConvictionSeries(db: Db, slug: string): Promise<Convict
   return out;
 }
 
+/**
+ * Conviction levels per theme across the most recent snapshots (oldest →
+ * newest) for the instrument-card sparklines. Presentation-only read,
+ * bounded to the last `limit` snapshots so it stays cheap as history grows.
+ */
+export async function getConvictionSparks(
+  db: Db,
+  limit = 32,
+): Promise<Record<string, number[]>> {
+  const snaps = await db
+    .select({ payload: themeState.payload })
+    .from(themeState)
+    .orderBy(desc(themeState.takenAt))
+    .limit(limit);
+  snaps.reverse();
+  const out: Record<string, number[]> = {};
+  for (const s of snaps) {
+    for (const [slug, card] of stateCardsOf(s.payload)) {
+      const level = card.conviction ? CONVICTION_LEVEL[card.conviction] : undefined;
+      if (level) (out[slug] ??= []).push(level);
+    }
+  }
+  return out;
+}
+
 // cache() dedupes generateMetadata + the page component's fetch into one
 // query per request (Next.js request-scoped memoization).
 export const getThemeDetail = cache(async (db: Db, slug: string): Promise<ThemeDetail | null> => {

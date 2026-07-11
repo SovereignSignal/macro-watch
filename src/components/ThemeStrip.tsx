@@ -1,9 +1,17 @@
 import Link from 'next/link';
 import type { ThemeCard } from '@/lib/queries/map';
+import { ConvictionScale } from './ConvictionScale';
 import { EmptyState } from './EmptyState';
+import { Sparkline } from './Sparkline';
 
-/** Compact theme-map strip for the home page (spec §5 /). */
-export function ThemeStrip({ cards }: { cards: ThemeCard[] }) {
+/** Compact theme-map strip for the home page (spec §5 /) — the same instruments, smaller. */
+export function ThemeStrip({
+  cards,
+  sparks,
+}: {
+  cards: ThemeCard[];
+  sparks?: Record<string, number[]>;
+}) {
   const live = cards.filter((c) => c.status !== 'retired');
   if (live.length === 0) {
     return <EmptyState>No themes on the map yet. Themes appear as the system surfaces and grades them.</EmptyState>;
@@ -13,13 +21,19 @@ export function ThemeStrip({ cards }: { cards: ThemeCard[] }) {
       <ul className="theme-strip">
         {live.map((c) => (
           <li key={c.slug}>
-            <Link href={`/map/${c.slug}`}>{c.name}</Link>{' '}
-            {c.conviction ? <span className={`conv conv-${c.conviction}`}>{c.conviction}</span> : null}{' '}
-            <span className={`badge badge-${c.status}`}>{c.status}</span>
+            <Link href={`/map/${c.slug}`} className="strip-name">
+              {c.name}
+            </Link>
+            <span className="strip-gauge">
+              <ConvictionScale conviction={c.conviction} hollow={c.status === 'candidate'} />
+              {c.conviction ? <span className={`conv conv-${c.conviction}`}>{c.conviction}</span> : null}
+              <span className={`badge badge-${c.status}`}>{c.status}</span>
+              {sparks?.[c.slug] ? <Sparkline levels={sparks[c.slug]} width={56} height={16} /> : null}
+            </span>
           </li>
         ))}
       </ul>
-      <p>
+      <p className="map-link">
         <Link href="/map">Full theme map →</Link>
       </p>
     </>

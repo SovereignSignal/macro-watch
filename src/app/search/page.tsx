@@ -32,7 +32,9 @@ export default async function SearchPage({
       {q.trim() === '' ? (
         <p className="brief-meta">Full-text search across every brief, theme event, and claim.</p>
       ) : results.length === 0 ? (
-        <EmptyState>Nothing matched “{q}”.</EmptyState>
+        <EmptyState>
+          Nothing matched “{q}”. Try a ticker, a theme name, or a phrase from a brief.
+        </EmptyState>
       ) : (
         <ul className="archive-list">
           {results.map((r, i) => (

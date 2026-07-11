@@ -49,14 +49,16 @@ it('/map renders the grid grouped by lifecycle with a freshness badge', async ()
   const db = await createTestDb();
   await seedAll(db);
   const markup = renderToStaticMarkup(await MapPage());
-  expect(markup).toContain('Living Theme Map');
+  expect(markup).toContain('Living theme map');
   expect(markup).toContain('Rate-path repricing');
   expect(markup).toContain('Dollar downtrend');
   expect(markup).toContain('Retired'); // section for china-reflation
   expect(markup).toContain('China reflation');
   expect(markup).toContain('conv-high');
   expect(markup).toContain('updated —');
-  expect(markup).toContain('2y auction demand: live'); // trigger states on cards
+  // Trigger rows on cards: name + freshness chip (instrument-panel layout).
+  expect(markup).toContain('2y auction demand');
+  expect(markup).toContain('chip-live');
 });
 
 it('/map renders an empty state with no data', async () => {

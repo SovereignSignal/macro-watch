@@ -72,7 +72,8 @@ export function ClaimsTable(props: {
       {props.claims.length === 0 ? (
         <EmptyState>No claims match these filters.</EmptyState>
       ) : (
-        <table className="data-table">
+        <div className="table-scroll">
+          <table className="data-table data-table--claims">
           <thead>
             <tr>
               <th>Opened</th>
@@ -88,18 +89,18 @@ export function ClaimsTable(props: {
           <tbody>
             {props.claims.map((c) => (
               <tr key={c.claimId}>
-                <td>{c.openedAt}</td>
+                <td className="cell-mono">{c.openedAt}</td>
                 <td>
                   {payloadStr(c.payload, 'predicate') || c.claimId}
                   {payloadStr(c.payload, 'data_anchor') ? (
                     <span className="panel-note"> — anchor: {payloadStr(c.payload, 'data_anchor')}</span>
                   ) : null}
                 </td>
-                <td>{c.kind.replaceAll('_', ' ')}</td>
-                <td>{c.themes.join(', ')}</td>
-                <td>{qualityClass(c.payload)}</td>
-                <td>{c.expiresAt ?? '—'}</td>
-                <td className={`status-${c.status}`}>{c.status.replaceAll('-', ' ')}</td>
+                <td className="cell-mono">{c.kind.replaceAll('_', ' ')}</td>
+                <td className="cell-mono">{c.themes.join(', ')}</td>
+                <td className="cell-mono">{qualityClass(c.payload)}</td>
+                <td className="cell-mono">{c.expiresAt ?? '—'}</td>
+                <td className={`cell-mono status-${c.status}`}>{c.status.replaceAll('-', ' ')}</td>
                 <td>
                   {c.resolvedAt
                     ? `${c.resolvedAt}${
@@ -112,7 +113,8 @@ export function ClaimsTable(props: {
               </tr>
             ))}
           </tbody>
-        </table>
+          </table>
+        </div>
       )}
     </>
   );
