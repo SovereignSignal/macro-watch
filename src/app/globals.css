@@ -18,6 +18,17 @@
   --up: #1e7f4f;
   --down: #b3362c;
   --hold: #8a8578;
+  /* Status-mark tokens (accountability book/chips). Validated as a set with
+     the dataviz six checks on this surface (#fafaf7): worst all-pairs CVD
+     ΔE 14.4, all marks >= 3:1 except --mark-faint (2.60) — the deliberately
+     receded expired/void state, relieved by glyph + tooltip + ledger. */
+  --mark-hit: #1e7f4f;
+  --mark-miss: #b3362c;
+  --mark-partial: #a66b00;
+  --mark-pending: #8a8578;
+  --mark-judgment: #6b6e76;
+  --mark-faint: #9a9da4;
+  --bar-amber: #94743a; /* horizon bars: amber-neutral, 4.17:1 on bone */
   --maxw: 44rem;
   --maxw-wide: 70rem;
 }
@@ -34,6 +45,16 @@
     --up: #4da37a;
     --down: #d46a5a;
     --hold: #7a766b;
+    /* Dark marks re-validated on #101215: miss and partial are snapped
+       shades (house hues, stepped into the dark lightness band) — worst
+       all-pairs CVD ΔE 17.4, all four chromatic marks >= 3:1. */
+    --mark-hit: #4da37a;
+    --mark-miss: #c95a49;
+    --mark-partial: #bd852c;
+    --mark-pending: #7a766b;
+    --mark-judgment: #9b978c;
+    --mark-faint: #6b675e;
+    --bar-amber: #a58a4e; /* 5.67:1 on charcoal */
   }
 }
 
@@ -823,6 +844,22 @@ figure {
   min-width: 58rem;
 }
 
+/* The detail ledger reads tighter than the general table default. */
+.data-table--claims td {
+  padding: 0.42rem 0.7rem 0.42rem 0;
+}
+
+/* Give the predicate column real room so it doesn't wrap word-by-word, and
+   let the themes list wrap instead of forcing the table wide. */
+.data-table--claims td:nth-child(2),
+.data-table--claims th:nth-child(2) {
+  min-width: 14rem;
+}
+
+.data-table--claims tbody td.cell-mono:nth-child(4) {
+  white-space: normal;
+}
+
 .data-table--compact {
   min-width: 30rem;
 }
@@ -971,53 +1008,343 @@ figure {
   font-size: 0.95rem;
 }
 
-/* --- scoreboards ----------------------------------------------------------------------- */
+/* --- accountability: the book ------------------------------------------------------------ */
+/* One SVG cell per claim. Status is always glyph + color together — the
+   glyph is the CVD/print second channel, so no state reads by hue alone. */
 
-.boards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
-  gap: 1rem;
-  margin: 1.25rem 0;
+.status-mark {
+  display: block;
 }
 
-.board {
+.mk-hit {
+  fill: var(--mark-hit);
+}
+
+.mk-miss {
+  stroke: var(--mark-miss);
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  fill: none;
+}
+
+.mk-pending {
+  stroke: var(--mark-pending);
+  stroke-width: 1.6;
+  fill: none;
+}
+
+.mk-partial-fill {
+  fill: var(--mark-partial);
+}
+
+.mk-partial-ring {
+  stroke: var(--mark-partial);
+  stroke-width: 1.4;
+  fill: none;
+}
+
+.mk-expired {
+  stroke: var(--mark-faint);
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  fill: none;
+}
+
+.mk-judgment {
+  fill: var(--mark-judgment);
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.mk-void {
+  stroke: var(--mark-faint);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  fill: none;
+}
+
+.book {
   border: 1px solid var(--rule);
   border-radius: 3px;
   background: var(--card);
-  padding: 0.9rem 1rem;
+  padding: 1.1rem 1.25rem 1.25rem;
+  margin: 1.25rem 0 0.5rem;
 }
 
-.board h3 {
-  margin: 0 0 0.5rem;
-  font-size: 0.98rem;
-}
-
-.board dl {
-  margin: 0;
-  display: grid;
-  grid-template-columns: auto auto;
-  gap: 0.18rem 1rem;
-  font-size: 0.88rem;
-}
-
-.board dt {
+.book-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.15rem;
+  margin: 0 0 1rem;
+  padding-bottom: 0.9rem;
+  border-bottom: 1px solid var(--rule);
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
   color: var(--muted);
 }
 
-.board dd {
-  margin: 0;
-  text-align: right;
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
-  font-size: 0.8rem;
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  white-space: nowrap;
+}
+
+.legend-count {
+  color: var(--ink);
   font-variant-numeric: tabular-nums;
 }
 
-.hit-rate {
+.legend-zero,
+.legend-zero .legend-count {
+  color: var(--faint);
+}
+
+.book-tracks {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+  gap: 1.15rem 2.5rem;
+}
+
+.book-eyebrow {
+  display: flex;
+  align-items: baseline;
+  gap: 0.7em;
+  margin: 0 0 0.55rem;
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 0.64rem;
+  font-weight: 400;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.book-count {
+  color: var(--faint);
+  letter-spacing: 0.04em;
+}
+
+.book-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  /* Cap the row length so each track reads as a unit block, not a bead
+     string — the grid grows downward as the book grows. */
+  max-width: 22rem;
+}
+
+/* --- accountability: grading unlock meters ------------------------------------------------ */
+/* Locked: a segmented meter counting resolved claims toward the grading
+   floor. Unlocked: the same card leads with the batting average. */
+
+.grade-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13.5rem), 1fr));
+  gap: 1rem;
+  margin: 1.25rem 0 1.75rem;
+}
+
+.grade {
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  background: var(--card);
+  padding: 1rem 1.1rem 1.05rem;
+}
+
+.grade h3 {
+  margin: 0;
+  font-size: 0.98rem;
+}
+
+.meter {
+  display: flex;
+  gap: 2px;
+  height: 8px;
+}
+
+.grade .meter {
+  margin: 1.05rem 0 0.6rem;
+}
+
+.meter span {
+  flex: 1;
+  border-radius: 1px;
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.meter .m-fill {
+  background: var(--accent);
+}
+
+.grade-note {
+  margin: 0;
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 0.7rem;
+  letter-spacing: 0.03em;
+  color: var(--muted);
+}
+
+.grade-hero {
+  margin: 0.35rem 0 0;
+  font-family: var(--font-display, Georgia, serif);
+  font-weight: 700;
+  font-size: 2.7rem;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+.grade-sub {
+  margin: 0.05rem 0 0.6rem;
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 0.64rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.grade-record {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  margin: 0;
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 0.76rem;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.grade-record .status-mark {
+  flex: none;
+}
+
+/* Per-theme / per-class: the same two states as quiet ledger rows. */
+.grade-rows {
+  list-style: none;
+  padding: 0;
+  margin: 0.75rem 0 1.5rem;
+}
+
+.grade-rows li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem 1.1rem;
+  padding: 0.48rem 0;
+  border-top: 1px solid var(--rule);
+}
+
+.grade-rows li:last-child {
+  border-bottom: 1px solid var(--rule);
+}
+
+.grade-row-name {
+  flex: 1 1 11rem;
+  min-width: 0;
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 0.76rem;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.grade-rows .meter {
+  flex: 0 0 5.5rem;
+  height: 6px;
+}
+
+.grade-rows .grade-note {
+  font-size: 0.66rem;
+}
+
+.grade-row-rate {
   font-family: var(--font-mono, ui-monospace, Menlo, monospace);
   font-weight: 500;
-  font-size: 1.55rem;
-  letter-spacing: -0.01em;
-  margin: 0.2rem 0;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- accountability: the horizon ----------------------------------------------------------- */
+
+.horizon {
+  margin: 1.25rem 0 0.5rem;
+}
+
+.horizon-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.horizon-scroll svg {
+  display: block;
+}
+
+.horizon-bar {
+  fill: var(--bar-amber);
+}
+
+.horizon-slot {
+  fill: transparent;
+}
+
+.horizon-base {
+  stroke: var(--rule);
+  stroke-width: 1;
+}
+
+.horizon-label {
+  fill: var(--muted);
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 8.5px;
+  letter-spacing: 0.08em;
+}
+
+.horizon-year {
+  fill: var(--faint);
+}
+
+.horizon-count {
+  fill: var(--muted);
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 10px;
+}
+
+.horizon figcaption {
+  margin-top: 0.4rem;
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  color: var(--faint);
+  font-size: 0.7rem;
+  letter-spacing: 0.02em;
+}
+
+/* --- accountability: ledger status chips ----------------------------------------------------- */
+/* Text stays in text tokens; the glyph mark carries the status color. */
+
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 0.68rem;
+  letter-spacing: 0.07em;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 0.12rem 0.5rem 0.12rem 0.4rem;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.status-chip .status-mark {
+  flex: none;
+}
+
+.status-chip--expired,
+.status-chip--void {
+  color: var(--faint);
 }
 
 /* --- catalysts ---------------------------------------------------------------------------- */

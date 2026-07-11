@@ -33,34 +33,38 @@ it('renders scoreboards from the seeded ledger, honestly suppressed below sample
   expect(markup).toContain('rates'); // market_type class board
   expect(markup).toContain('2y UST closes above 4.40%'); // claims table row
   // 5 seeded claims -> 2 resolved overall (1 hit, 1 miss). That's well below
-  // the 8-resolved floor, so the honest empty state renders instead of a
+  // the 8-resolved floor, so the honest locked state renders instead of a
   // bare "50%" that would overstate confidence on two claims.
-  expect(markup).toContain('2 resolved — not enough to grade yet.');
+  expect(markup).toContain('2 resolved — grading unlocks at 8');
   expect(markup).not.toContain('batting average');
 });
 
 it('honest empty state with zero claims', async () => {
   await createTestDb();
   const markup = renderToStaticMarkup(await page());
-  expect(markup).toContain('0 resolved — not enough to grade yet.');
+  expect(markup).toContain('0 resolved — grading unlocks at 8');
 });
 
 it('filters narrow the table but never the scoreboards', async () => {
   const db = await createTestDb();
   await seedAll(db);
   const markup = renderToStaticMarkup(await page({ status: 'miss' }));
-  expect(markup).toContain('LME copper closes above'); // the one miss claim
-  expect(markup).not.toContain('EURUSD trades 1.14'); // expired claim filtered out of table
+  // The book above the ledger always shows every claim (no memory-holing), so
+  // scope the narrowing assertions to the ledger table itself.
+  const ledger = markup.slice(markup.indexOf('The ledger'));
+  expect(ledger).toContain('LME copper closes above'); // the one miss claim
+  expect(ledger).not.toContain('EURUSD trades 1.14'); // expired claim filtered out of table
   // Scoreboards are still computed from the full ledger, filter or no.
-  expect(markup).toContain('2 resolved — not enough to grade yet.');
+  expect(markup).toContain('2 resolved — grading unlocks at 8');
 });
 
 it('the quality class filter narrows the table by market_type', async () => {
   const db = await createTestDb();
   await seedAll(db);
   const markup = renderToStaticMarkup(await page({ class: 'commodities' }));
-  expect(markup).toContain('LME copper closes above'); // the one commodities claim
-  expect(markup).not.toContain('2y UST closes above 4.40%'); // a rates claim, filtered out
+  const ledger = markup.slice(markup.indexOf('The ledger'));
+  expect(ledger).toContain('LME copper closes above'); // the one commodities claim
+  expect(ledger).not.toContain('2y UST closes above 4.40%'); // a rates claim, filtered out
 });
 
 it('crossing the sample threshold flips a board from suppressed to a numeric batting average', async () => {

@@ -1,6 +1,7 @@
 import type { ClaimFilters, ClaimRecord } from '@/lib/queries/accountability';
 import { qualityClass } from '@/lib/scoring';
 import { EmptyState } from './EmptyState';
+import { StatusMark } from './StatusMark';
 
 const KINDS = ['smart_money', 'map'];
 // Pipeline vocabulary (schema.ts / ingest/claims.ts) — not the site-plan
@@ -100,7 +101,12 @@ export function ClaimsTable(props: {
                 <td className="cell-mono">{c.themes.join(', ')}</td>
                 <td className="cell-mono">{qualityClass(c.payload)}</td>
                 <td className="cell-mono">{c.expiresAt ?? '—'}</td>
-                <td className={`cell-mono status-${c.status}`}>{c.status.replaceAll('-', ' ')}</td>
+                <td>
+                  <span className={`status-chip status-chip--${c.status}`}>
+                    <StatusMark status={c.status} size={12} decorative />
+                    {c.status.replaceAll('-', ' ')}
+                  </span>
+                </td>
                 <td>
                   {c.resolvedAt
                     ? `${c.resolvedAt}${
