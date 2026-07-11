@@ -1,6 +1,6 @@
-import { desc } from 'drizzle-orm';
+import { asc, desc, eq, inArray, sql } from 'drizzle-orm';
 import type { Db } from '@/db/client';
-import { themes, themeState } from '@/db/schema';
+import { briefs, claims, themeEvents, themes, themeState } from '@/db/schema';
 import type { ThemeStateCard } from '@/lib/ingest/themes';
 
 export type ThemeCard = {
@@ -88,4 +88,96 @@ export async function getThemeMapCards(
       (b.lastEventAt ?? '').localeCompare(a.lastEventAt ?? ''),
   );
   return { takenAt: snap?.takenAt ?? null, cards };
+}
+
+// ----------------------------------------------------- per-theme dossier ---
+
+export type ThemeEventRow = typeof themeEvents.$inferSelect;
+export type ConvictionPoint = { takenAt: string; level: 1 | 2 | 3 };
+export type RelatedClaim = { claimId: string; openedAt: string; predicate: string; status: string };
+
+export type ThemeDetail = {
+  slug: string;
+  name: string;
+  status: string;
+  firstSeen: string | null;
+  lastEventAt: string | null;
+  card: ThemeCard | null;
+  events: ThemeEventRow[];
+  relatedClaims: RelatedClaim[];
+  conviction: ConvictionPoint[];
+  // Event dates (subset of `events[].date`) that have a matching published
+  // brief — most theme events land on days without one, so the timeline
+  // only links the ones that resolve to a real permalink (spec §5).
+  briefDates: string[];
+};
+
+const CONVICTION_LEVEL: Record<string, 1 | 2 | 3> = { low: 1, medium: 2, high: 3 };
+
+/** Conviction-over-time from theme_state history (spec §5 /map/[theme]). */
+export async function getConvictionSeries(db: Db, slug: string): Promise<ConvictionPoint[]> {
+  const snaps = await db
+    .select({ takenAt: themeState.takenAt, payload: themeState.payload })
+    .from(themeState)
+    .orderBy(asc(themeState.takenAt));
+  const out: ConvictionPoint[] = [];
+  for (const s of snaps) {
+    const card = stateCardsOf(s.payload).get(slug);
+    const level = card?.conviction ? CONVICTION_LEVEL[card.conviction] : undefined;
+    if (level) out.push({ takenAt: s.takenAt.toISOString(), level });
+  }
+  return out;
+}
+
+export async function getThemeDetail(db: Db, slug: string): Promise<ThemeDetail | null> {
+  const themeRows = await db.select().from(themes).where(eq(themes.slug, slug)).limit(1);
+  const themeRow = themeRows[0] ?? null;
+  const { cards } = await getThemeMapCards(db);
+  const card = cards.find((c) => c.slug === slug) ?? null;
+  if (!themeRow && !card) return null;
+
+  const events = await db
+    .select()
+    .from(themeEvents)
+    .where(eq(themeEvents.themeSlug, slug))
+    .orderBy(desc(themeEvents.date), desc(themeEvents.eventId));
+
+  const eventDates = [...new Set(events.map((e) => e.date))];
+  const briefRows = eventDates.length
+    ? await db.select({ date: briefs.date }).from(briefs).where(inArray(briefs.date, eventDates))
+    : [];
+  const briefDates = briefRows.map((b) => b.date);
+
+  const claimRows = await db
+    .select({
+      claimId: claims.claimId,
+      openedAt: claims.openedAt,
+      payload: claims.payload,
+      status: claims.status,
+    })
+    .from(claims)
+    .where(sql`${slug} = any(${claims.themes})`)
+    .orderBy(desc(claims.openedAt));
+  const relatedClaims: RelatedClaim[] = claimRows.map((c) => {
+    const predicate = (c.payload as Record<string, unknown>).predicate;
+    return {
+      claimId: c.claimId,
+      openedAt: c.openedAt,
+      status: c.status,
+      predicate: typeof predicate === 'string' ? predicate : c.claimId,
+    };
+  });
+
+  return {
+    slug,
+    name: themeRow?.name ?? card?.name ?? slug,
+    status: themeRow?.status ?? card?.status ?? 'active',
+    firstSeen: themeRow?.firstSeen ?? null,
+    lastEventAt: themeRow?.lastEventAt ?? null,
+    card,
+    events,
+    relatedClaims,
+    conviction: await getConvictionSeries(db, slug),
+    briefDates,
+  };
 }

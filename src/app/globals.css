@@ -467,20 +467,30 @@ figure {
   vertical-align: top;
 }
 
-.status-open {
+/* Pipeline vocabulary (spec/db: pending|hit|miss|partial|expired|
+   judgment-required|void) — not the site-plan draft's open/resolved_*. */
+.status-pending {
   color: var(--hold);
 }
 
-.status-resolved_correct {
+.status-hit {
   color: var(--up);
 }
 
-.status-resolved_incorrect {
+.status-miss {
   color: var(--down);
 }
 
+.status-partial {
+  color: var(--hold);
+}
+
+.status-judgment-required {
+  color: var(--accent);
+}
+
 .status-expired,
-.status-invalidated {
+.status-void {
   color: var(--faint);
 }
 
