@@ -123,8 +123,11 @@ listings — see `docs/architecture.md`).
 
 ## Contributing
 
-Trunk-based: work lands on `main`. Branch protection isn't turned on yet, but PRs are
-welcome in the meantime — treat `main` as the thing that's always deployable. Before
+**Read [`OWNERS.md`](./OWNERS.md) first** — it's the collaboration model (who owns what,
+the ingest-contract rule, how a change lands). Trunk-based: work lands on `main`. The repo
+is private on the free tier, so branch protection isn't available — PR-and-review is by
+agreement between the maintainers, and the safety net is that push ≠ deploy (deploys are a
+manual `railway up`). Treat `main` as the thing that's always deployable. Before
 merging anything, `npm run typecheck`, `npm test`, and `npm run build` must all pass (this
 is also CI, see `.github/workflows/ci.yml`). `.superpowers/` is orchestration scratch
 (agent task briefs, review diffs, progress notes) — it's checked in for provenance but is
