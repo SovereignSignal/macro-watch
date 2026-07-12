@@ -21,6 +21,13 @@ replays) and never duplicate a row.
 | `claims` | `claim_id` | `kind`: `smart_money \| map`. `themes` is a `text[]` (a claim can tag more than one theme). `payload` jsonb carries predicate, data_anchor, and quality fields. `search` is a generated `tsvector` over `payload->>'predicate'` + `payload->>'data_anchor'`. |
 | `forward_events` | `event_id` | `resolution` is `null` until the event is reconciled. |
 
+**`forward_events` resolution contract.** `forwardEventSchema` (`src/lib/ingest/claims.ts`)
+allows `resolution` to be absent or `null`, but if it's present, `resolution.outcome` —
+a non-empty string — is required (`resolved_at` and `note` are optional passthrough).
+The pipeline's publisher is responsible for deriving `outcome` before it POSTs a resolved
+event; a resolution object with no `outcome` fails schema validation (422), same as any
+other malformed payload.
+
 **`theme_events` also maintains `themes`.** `upsertThemeEvents` (`src/lib/ingest/themes.ts`)
 runs each batch in a transaction; for every event it upserts the parent `themes` row with:
 
@@ -67,6 +74,14 @@ Revalidation targets by endpoint:
 | `claims` | `/accountability`, `/map` (layout — claims surface as "related claims" on theme pages) |
 | `forward-events` | `/catalysts` |
 
+## Health endpoint
+
+`GET /api/health` (`src/app/api/health/route.ts`) is a dependency-free liveness check —
+`force-dynamic` (never cached), no database read, just `{ok: true, service: 'macro-watch'}`.
+It's Railway's `healthcheckPath` (`railway.json`, added `f778bd3`, replacing the previous
+`/`): a deploy's health gate no longer depends on Postgres being reachable or any page
+successfully rendering, only on the process being up.
+
 ## Honest-denominator scoring rules
 
 `src/lib/scoring.ts` implements the accountability math. The pipeline's claim
@@ -95,6 +110,28 @@ language; do not reintroduce that vocabulary.
 - **`groupBoards()`** builds one `ScoreBoard` per key from a `keysOf` selector; a claim
   contributes to every key it carries (e.g. every theme in its `themes[]` array), so a
   multi-theme claim is graded once per theme it touches, not just once overall.
+
+### Accountability page structure
+
+`src/app/accountability/page.tsx` renders four sections; the first three are always
+computed off the **whole** ledger (`getClaims(db)`, no filters) — only the fourth is
+narrowed by query-string filters, so filtering the table never changes the math above it:
+
+- **"The book"** (`src/components/ClaimsBook.tsx`) — the whole ledger as a unit grid, one
+  cell per claim, oldest first, split into `Smart money` / `Map calls` tracks. No claim is
+  ever dropped from the grid regardless of status (no memory-holing).
+- **"Grading"** (`src/components/GradeMeter.tsx`) — the honest-denominator math above,
+  rendered as a two-state meter: **locked** (`resolved < floor`) shows a segmented
+  unlock meter and "`N` resolved — grading unlocks at `floor`"; **unlocked** shows the
+  batting average as the hero number. Overall/kind boards use `OVERALL_MIN_SAMPLE`;
+  per-theme and per-quality-class rows use `GROUP_MIN_SAMPLE`.
+- **"The horizon"** (`src/components/ExpiryHorizon.tsx`) — open claims (`pending` and
+  `judgment-required`) bucketed by expiry month across the next 12 months, plus a `12+`
+  bucket for anything further out and an implicit no-expiry bucket; already-overdue open
+  claims count in the current month rather than disappearing.
+- **"The ledger"** (`src/components/ClaimsTable.tsx`) — the filterable claims table
+  (`kind`, `status`, `theme`, `class` query params); the only section the URL's filters
+  affect.
 
 ## Field-map position semantics
 

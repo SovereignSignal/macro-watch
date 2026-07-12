@@ -109,6 +109,12 @@ Full contract, payload shapes, and schema: `docs/specs/2026-07-11-macro-watch-de
 - **Status glyphs:** claim status is always glyph + color together, never color alone —
   `pending ○ · hit ◆ · miss ✕ · partial ◐ · expired — · judgment-required ? · void ∅`
   (`src/components/StatusMark.tsx`).
+- **Mark:** the favicon and masthead lockup are a geometric scorpion, not a text
+  placeholder (`src/app/icon.svg`, `src/app/apple-icon.png`, `src/components/Mark.tsx`).
+  Its raised tail is a chain of the site's ◆ conviction diamonds ending in one lit-amber
+  stinger; the body renders via `currentColor` so it flips with the theme. `Mark.tsx` is
+  a server component, `aria-hidden`; the accessible name lives on the home link that
+  wraps it (`src/app/layout.tsx`).
 
 ## Deploy
 
@@ -116,7 +122,11 @@ Railway project `macro-watch`: one Next.js web service + Railway Postgres. Deplo
 push-to-main triggered on Railway's side; to push a build manually, use the Railway CLI
 (`railway up`) per house practice — not the Railway MCP tools, which are unreliable here.
 `npm run start` runs `db:migrate` before `next start`, so every deploy migrates the
-database on boot. After a deploy, `node scripts/smoke.mjs <url>` runs read-only checks
+database on boot. Railway's own healthcheck hits `GET /api/health`
+(`src/app/api/health/route.ts`, `railway.json`'s `healthcheckPath`) — a dependency-free
+liveness check (`{ok: true, service: 'macro-watch'}`, `force-dynamic`) that doesn't touch
+Postgres, so a deploy isn't gated on the database being reachable. After a deploy,
+`node scripts/smoke.mjs <url>` runs read-only checks
 against the live site (add `--with-write` against staging only, to verify the ingest
 round-trip with a clearly-marked sentinel brief that is excluded from all public
 listings — see `docs/architecture.md`).
