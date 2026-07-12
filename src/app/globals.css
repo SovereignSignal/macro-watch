@@ -143,12 +143,27 @@ h3 {
 }
 
 .site-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
   font-family: var(--font-display, Georgia, serif);
   font-weight: 700;
   font-size: 1.7rem;
   letter-spacing: -0.02em;
   color: var(--ink);
   text-decoration: none;
+}
+
+/* The scorpion mark: body inherits ink via currentColor; the amber stinger is
+   the one spent color (set inside the component from --accent). It sits a hair
+   low so its visual mass lines up with the wordmark's baseline weight. */
+.site-mark {
+  flex: none;
+  transform: translateY(1px);
+}
+
+.site-wordmark {
+  display: inline-block;
 }
 
 .site-name-tld {

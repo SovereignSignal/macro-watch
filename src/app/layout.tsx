@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Fraunces, IBM_Plex_Mono } from 'next/font/google';
 import Link from 'next/link';
 import { Suspense } from 'react';
+import { Mark } from '@/components/Mark';
 import { MastheadUpdated } from '@/components/MastheadUpdated';
 import './globals.css';
 
@@ -37,8 +38,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <header className="site-header">
           <div className="masthead">
             <div>
-              <Link href="/" className="site-name">
-                macro<span className="site-name-tld">.watch</span>
+              <Link href="/" className="site-name" aria-label="macro.watch — home">
+                <Mark className="site-mark" size={26} />
+                <span className="site-wordmark">
+                  macro<span className="site-name-tld">.watch</span>
+                </span>
               </Link>
               <p className="byline">SovsClaw — a Sovereign Signal system</p>
             </div>
