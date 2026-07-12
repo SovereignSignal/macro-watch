@@ -109,12 +109,11 @@ Full contract, payload shapes, and schema: `docs/specs/2026-07-11-macro-watch-de
 - **Status glyphs:** claim status is always glyph + color together, never color alone —
   `pending ○ · hit ◆ · miss ✕ · partial ◐ · expired — · judgment-required ? · void ∅`
   (`src/components/StatusMark.tsx`).
-- **Mark:** the favicon and masthead lockup are a geometric scorpion, not a text
-  placeholder (`src/app/icon.svg`, `src/app/apple-icon.png`, `src/components/Mark.tsx`).
-  Its raised tail is a chain of the site's ◆ conviction diamonds ending in one lit-amber
-  stinger; the body renders via `currentColor` so it flips with the theme. `Mark.tsx` is
-  a server component, `aria-hidden`; the accessible name lives on the home link that
-  wraps it (`src/app/layout.tsx`).
+- **Mark:** the 🦂 scorpion emoji — the SovsClaw signature — in the masthead lockup
+  (`src/components/Mark.tsx`) and as the favicon (`src/app/icon.svg`, an emoji SVG). A
+  hand-drawn scorpion was tried and dropped (it read as a blob at small sizes); the emoji
+  is cleaner and unmistakable. `Mark.tsx` is a server component, `aria-hidden`; the
+  accessible name lives on the home link that wraps it (`src/app/layout.tsx`).
 
 ## Deploy
 
