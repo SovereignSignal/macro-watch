@@ -57,10 +57,18 @@ auth (bearer, timing-safe) → JSON.parse → zod schema.safeParse → upsert(db
 - **Auth failure → 401.** **Schema failure → 422** with the zod `issues` array in the
   body — the publisher logs and alerts on 422s but never blindly retries one, since a
   malformed payload will fail again.
-- **Revalidation** uses Next.js on-demand `revalidatePath`; a `'layout'`-typed target
-  busts every nested route in one call (used for `/map`, so a single theme-events POST
-  invalidates `/map` and every `/map/[theme]` page together). Outside a Next.js request
-  scope (unit tests), `revalidatePath` throws — the handler catches that and logs a
+- **Rendering** — the data pages (`/`, `/briefs`, `/map`, `/catalysts`, `/feed.xml`, plus
+  `/accountability` and `/search`) are `export const dynamic = 'force-dynamic'`: server-
+  rendered per request, always current with Postgres. They are deliberately **not** ISR-
+  cached — the site is a live projection, and static-with-revalidation prerendered them
+  empty at build (no database reachable during `next build`), which showed blank data in
+  the window after each deploy until an ingest revalidated them. Dynamic rendering removes
+  that class of staleness entirely. Only `/about` and `/icon.svg` are static.
+- **Revalidation** — the ingest handlers still call Next.js on-demand `revalidatePath`
+  (a `'layout'`-typed target busts every nested route in one call — e.g. a theme-events
+  POST invalidates `/map` and every `/map/[theme]`). With the pages now force-dynamic this
+  is belt-and-suspenders rather than the primary freshness mechanism. Outside a Next.js
+  request scope (unit tests), `revalidatePath` throws — the handler catches it and logs a
   warning rather than failing the request.
 
 Revalidation targets by endpoint:

@@ -5,7 +5,7 @@ import { formatDate } from '@/lib/format';
 import { listBriefs } from '@/lib/queries/briefs';
 import { safeQuery } from '@/lib/safe';
 
-export const revalidate = 900;
+export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Brief archive' };
 
 export default async function BriefsPage() {

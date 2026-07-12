@@ -3,7 +3,7 @@ import { listBriefs } from '@/lib/queries/briefs';
 import { buildFeed } from '@/lib/rss';
 import { safeQuery } from '@/lib/safe';
 
-export const revalidate = 900;
+export const dynamic = 'force-dynamic';
 
 export async function GET(): Promise<Response> {
   const items = await safeQuery(() => listBriefs(getDb()), []);

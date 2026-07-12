@@ -8,7 +8,7 @@ import { safeQuery } from '@/lib/safe';
 
 // ISR fallback: pages keep serving if Postgres blips; ingest revalidates
 // on-demand the moment a publish lands (spec §6).
-export const revalidate = 900;
+export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
   const db = getDb();

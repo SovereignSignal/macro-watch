@@ -18,7 +18,7 @@ Railway never reaches back into the pipeline host — the arrow only goes one wa
 ```
 sovsclaw (pipeline host)                       Railway project: macro-watch
 ┌───────────────────────────────┐             ┌────────────────────────────────┐
-│ run_email_cron_job.py         │   HTTPS     │  Next.js app (SSR + ISR)        │
+│ run_email_cron_job.py         │   HTTPS     │  Next.js app (dynamic SSR)      │
 │  └─ post-Sent-verification ───┼──POST──────▶│   /api/ingest/* (bearer auth)   │
 │ site_publish.py (15-min cron) │             │   pages render from Postgres    │
 │  └─ panels/ledgers/events ────┼──POST──────▶│   revalidatePath() on ingest    │

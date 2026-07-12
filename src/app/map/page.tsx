@@ -5,7 +5,7 @@ import { getDb } from '@/db/client';
 import { getConvictionSparks, getRecentThemeEvents, getThemeMapCards } from '@/lib/queries/map';
 import { safeQuery } from '@/lib/safe';
 
-export const revalidate = 900;
+export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Living theme map' };
 
 export default async function MapPage() {

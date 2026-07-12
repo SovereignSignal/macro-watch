@@ -3,7 +3,7 @@ import { getDb } from '@/db/client';
 import { getForwardEvents } from '@/lib/queries/catalysts';
 import { safeQuery } from '@/lib/safe';
 
-export const revalidate = 900;
+export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Catalysts' };
 
 export default async function CatalystsPage() {
