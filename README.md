@@ -118,9 +118,11 @@ Full contract, payload shapes, and schema: `docs/specs/2026-07-11-macro-watch-de
 
 ## Deploy
 
-Railway project `macro-watch`: one Next.js web service + Railway Postgres. Deploy is
-push-to-main triggered on Railway's side; to push a build manually, use the Railway CLI
-(`railway up`) per house practice — not the Railway MCP tools, which are unreliable here.
+Railway project `macro-watch`: one Next.js web service + Railway Postgres. **Deploy is not
+automatic** — the GitHub repo is not wired to Railway, so a push to `main` does **not**
+deploy. Deploys are explicit: `railway up` per house practice (not the Railway MCP tools,
+which are unreliable here). This is deliberate fail-closed discipline — merge ≠ deploy, so
+`main` can move freely and nothing reaches visitors until someone runs a verified deploy.
 `npm run start` runs `db:migrate` before `next start`, so every deploy migrates the
 database on boot. Railway's own healthcheck hits `GET /api/health`
 (`src/app/api/health/route.ts`, `railway.json`'s `healthcheckPath`) — a dependency-free
