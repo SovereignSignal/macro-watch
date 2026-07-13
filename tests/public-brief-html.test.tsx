@@ -169,6 +169,27 @@ describe('sanitizePublicBriefHtml', () => {
     expect(clean).toContain('link local');
   });
 
+  it('drops private or malformed ol/time attributes while retaining public semantics', () => {
+    const clean = sanitizePublicBriefHtml(`
+      <ol start="file:///home/ubuntu/private/ledger" reversed="analyst@example.com"><li>Private attrs</li></ol>
+      <ol start="3" reversed><li>Public attrs</li></ol>
+      <time datetime="analyst@example.com">Bad date</time>
+      <time datetime="2026-07-13T08:30:00-04:00">CPI</time>
+    `);
+    expect(clean).toContain('<ol><li>Private attrs</li></ol>');
+    expect(clean).toContain('<ol start="3" reversed><li>Public attrs</li></ol>');
+    expect(clean).toContain('<time>Bad date</time>');
+    expect(clean).toContain('<time datetime="2026-07-13T08:30:00-04:00">CPI</time>');
+    expect(clean).not.toMatch(/analyst@example|file:\/\/|\/home\/ubuntu/i);
+  });
+
+  it('canonicalizes deeply nested entities to a stable privacy-clean fixed point', () => {
+    const dirty = '<p>Contact analyst&amp;amp;amp;#64;example&amp;amp;amp;#46;com at &amp;amp;amp;#47;home&amp;amp;amp;#47;ubuntu&amp;amp;amp;#47;private.</p>';
+    const clean = sanitizePublicBriefHtml(dirty);
+    expect(clean).not.toMatch(/analyst|example|\/home|&amp;#|&#/i);
+    expect(sanitizePublicBriefHtml(clean)).toBe(clean);
+  });
+
   it('drops embedded h1 titles because the page owns the article heading', () => {
     const out = sanitizePublicBriefHtml('<h1>Duplicate brief title</h1><p>Body survives.</p>');
     expect(out).not.toContain('Duplicate brief title');
