@@ -18,14 +18,15 @@ export async function generateMetadata({
   if (!DATE_RE.test(date)) return { title: 'Brief' };
   const brief = await getBriefByDate(getDb(), date);
   if (!brief) return { title: 'Brief' };
-  const description = sanitizePublicBriefText(brief.ping).slice(0, 220) || brief.subject;
+  const publicSubject = sanitizePublicBriefText(brief.subject) || 'Brief';
+  const description = sanitizePublicBriefText(brief.ping).slice(0, 220) || publicSubject;
   return {
-    title: brief.subject,
+    title: publicSubject,
     description,
     alternates: { canonical: `/briefs/${date}` },
     openGraph: {
       type: 'article',
-      title: brief.subject,
+      title: publicSubject,
       description,
       url: `/briefs/${date}`,
       publishedTime: brief.sentVerifiedAt.toISOString(),

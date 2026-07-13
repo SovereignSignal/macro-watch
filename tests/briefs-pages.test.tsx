@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { expect, it } from 'vitest';
 import { seedAll } from '@/lib/seed';
+import { briefs } from '@/db/schema';
 import { createTestDb } from './helpers/db';
 
 const { default: BriefsPage } = await import('@/app/briefs/page');
@@ -46,6 +47,23 @@ it('brief metadata exposes canonical, description, and article publication time'
   expect(metadata.alternates?.canonical).toBe('/briefs/2026-07-08');
   expect(metadata.description).toContain('Two-year yields');
   expect(metadata.openGraph).toMatchObject({ type: 'article' });
+});
+
+it('sanitizes directly inserted legacy subject and ping on archive and metadata paths', async () => {
+  const db = await createTestDb();
+  await db.insert(briefs).values({
+    date: '2026-08-01',
+    kind: 'daily',
+    subject: 'Legacy analyst&#64;example&#46;com /home/ubuntu/private',
+    ping: 'Read https://team.notion.so/Secret',
+    html: '<p>Public body</p>',
+    sentVerifiedAt: new Date('2026-08-01T14:00:00Z'),
+  });
+  const archive = renderToStaticMarkup(await BriefsPage({}));
+  const metadata = await generateMetadata({ params: Promise.resolve({ date: '2026-08-01' }) });
+  const combined = `${archive} ${metadata.title} ${metadata.description} ${JSON.stringify(metadata.openGraph)}`;
+  expect(combined).not.toMatch(/analyst@example|\/home\/ubuntu|notion\.so/i);
+  expect(combined).toContain('[redacted email]');
 });
 
 it('archive shows an empty state with no briefs', async () => {

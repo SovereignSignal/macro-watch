@@ -110,6 +110,23 @@ describe('sanitizePublicBriefHtml', () => {
     expect(clean).toContain('[redacted');
   });
 
+  it('scrubs entity-encoded privacy text and private wrapper blocks after canonical decoding', () => {
+    const clean = sanitizePublicBriefHtml(`
+      <p>Contact analyst&#64;example&#46;com.</p>
+      <section>📄 View this brief in Notion</section>
+      <div>📋 SovsClaw Macro Brief Log — all briefs</div>
+      <blockquote>Research log: /home/ubuntu/private/research.md</blockquote>
+      <p><a href="https://%6eotion.so/private">encoded workspace</a></p>
+      <p><a href="https://example.com/u/a%40example.com">encoded email</a></p>
+      <p><a href="https://169.254.169.254/latest/meta-data/">link local</a></p>
+    `);
+    expect(clean).not.toMatch(/analyst@example|notion|Macro Brief Log|Research log|\/home\/ubuntu/i);
+    expect(clean).not.toMatch(/href="[^"]*(?:%6eotion|%40example|169\.254)/i);
+    expect(clean).toContain('encoded workspace');
+    expect(clean).toContain('encoded email');
+    expect(clean).toContain('link local');
+  });
+
   it('drops embedded h1 titles because the page owns the article heading', () => {
     const out = sanitizePublicBriefHtml('<h1>Duplicate brief title</h1><p>Body survives.</p>');
     expect(out).not.toContain('Duplicate brief title');
@@ -132,6 +149,7 @@ describe('sanitizePublicBriefHtml', () => {
       'Alert [redacted email] at [redacted path]',
     );
     expect(sanitizePublicBriefText('📄 View this brief in Notion')).toBe('');
+    expect(sanitizePublicBriefText('Contact analyst&#64;example&#46;com')).toBe('Contact [redacted email]');
   });
 });
 

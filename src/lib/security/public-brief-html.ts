@@ -83,6 +83,7 @@ const PRIVATE_BLOCK_RE = /(?:file:\/\/\/|\/(?:home|Users|root|tmp|private|opt|sr
 
 function scrubPrivateText(text: string): string {
   return text
+    .replace(PRIVATE_FOOTER_RE, '')
     .replace(NOTION_URL_RE, '[redacted workspace link]')
     .replace(PRIVATE_URL_RE, '[redacted internal URL]')
     .replace(FILE_URL_RE, '[redacted path]')
@@ -92,11 +93,36 @@ function scrubPrivateText(text: string): string {
     .replace(EMAIL_RE, '[redacted email]');
 }
 
+function decodeTextEntities(text: string): string {
+  const named: Record<string, string> = {
+    amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ',
+  };
+  let out = text;
+  for (let pass = 0; pass < 3; pass += 1) {
+    const decoded = out.replace(/&(#x[0-9a-f]+|#\d+|amp|lt|gt|quot|apos|nbsp);/gi, (_, token: string) => {
+      const lower = token.toLowerCase();
+      const codePoint = lower.startsWith('#x')
+        ? Number.parseInt(lower.slice(2), 16)
+        : lower.startsWith('#')
+          ? Number.parseInt(lower.slice(1), 10)
+          : null;
+      if (codePoint !== null) {
+        return Number.isInteger(codePoint) && codePoint >= 0 && codePoint <= 0x10ffff && !(codePoint >= 0xd800 && codePoint <= 0xdfff)
+          ? String.fromCodePoint(codePoint)
+          : '';
+      }
+      return named[lower] ?? '';
+    });
+    if (decoded === out) break;
+    out = decoded;
+  }
+  return out;
+}
+
 export function sanitizePublicBriefText(text: string): string {
-  return scrubPrivateText(text)
-    .replace(PRIVATE_FOOTER_RE, '')
-    .replace(/\s+/g, ' ')
-    .trim();
+  const canonical = decodeTextEntities(text);
+  const stripped = sanitizeHtml(canonical, { allowedTags: [], allowedAttributes: {} });
+  return scrubPrivateText(decodeTextEntities(stripped)).replace(/\s+/g, ' ').trim();
 }
 
 function isPrivateHostname(rawHostname: string): boolean {
@@ -112,7 +138,11 @@ function isPrivateHostname(rawHostname: string): boolean {
     return true;
   }
 
-  if (hostname === 'notion.so' || hostname.endsWith('.notion.so') || hostname === 'notion.site' || hostname.endsWith('.notion.site')) {
+  if (
+    hostname === 'notion.so' || hostname.endsWith('.notion.so') ||
+    hostname === 'notion.site' || hostname.endsWith('.notion.site') ||
+    hostname === 'notion.com' || hostname.endsWith('.notion.com')
+  ) {
     return true;
   }
 
@@ -173,6 +203,13 @@ function normalizePublicUrl(rawValue: string | undefined, allowImagePath = false
     return null;
   }
   if (parsed.protocol !== 'https:' || parsed.username || parsed.password || isPrivateHostname(parsed.hostname)) return null;
+  let decodedUrl: string;
+  try {
+    decodedUrl = decodeURIComponent(parsed.toString());
+  } catch {
+    return null;
+  }
+  if (scrubPrivateText(decodedUrl) !== decodedUrl) return null;
   return parsed.toString();
 }
 
@@ -269,7 +306,10 @@ const options: IOptions = {
   },
   exclusiveFilter: (frame) => {
     if (frame.tag === 'h1') return true;
-    if (['p', 'li', 'tr'].includes(frame.tag) && (PRIVATE_FOOTER_RE.test(frame.text) || PRIVATE_BLOCK_RE.test(frame.text))) {
+    if (
+      ['section', 'p', 'li', 'blockquote', 'figure', 'figcaption', 'table', 'thead', 'tbody', 'tfoot', 'tr'].includes(frame.tag) &&
+      (PRIVATE_FOOTER_RE.test(frame.text) || PRIVATE_BLOCK_RE.test(frame.text))
+    ) {
       return true;
     }
     if (frame.tag === 'a' && !frame.attribs.href) return 'excludeTag';
@@ -286,5 +326,7 @@ const options: IOptions = {
  * publication boundary, not a client-side substitute for it.
  */
 export function sanitizePublicBriefHtml(dirtyHtml: string): string {
-  return sanitizeHtml(dirtyHtml, options).trim();
+  // Two passes are intentional: sanitize-html decodes entities while parsing;
+  // the second pass applies privacy filters to the canonical decoded text.
+  return sanitizeHtml(sanitizeHtml(dirtyHtml, options), options).trim();
 }

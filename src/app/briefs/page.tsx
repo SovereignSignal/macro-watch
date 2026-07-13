@@ -4,6 +4,7 @@ import { getDb } from '@/db/client';
 import { formatDate } from '@/lib/format';
 import { listBriefs } from '@/lib/queries/briefs';
 import { safeQuery } from '@/lib/safe';
+import { sanitizePublicBriefText } from '@/lib/security/public-brief-html';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Brief archive' };
@@ -43,9 +44,9 @@ export default async function BriefsPage({
               <span className="date">{formatDate(b.date)}</span>
               {b.kind === 'weekend' ? <span className="badge badge-weekend">Weekend review</span> : null}
               <div>
-                <Link href={`/briefs/${b.date}`}>{b.subject}</Link>
+                <Link href={`/briefs/${b.date}`}>{sanitizePublicBriefText(b.subject) || 'Brief'}</Link>
               </div>
-              <p className="excerpt">{b.ping}</p>
+              <p className="excerpt">{sanitizePublicBriefText(b.ping)}</p>
             </li>
           ))}
         </ul>
