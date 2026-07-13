@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { expect, it } from 'vitest';
+import { forwardEventsBodySchema, upsertForwardEvents } from '@/lib/ingest/claims';
 import { getForwardEvents } from '@/lib/queries/catalysts';
 import { seedAll } from '@/lib/seed';
 import { createTestDb } from './helpers/db';
@@ -25,6 +26,29 @@ it('renders upcoming with surprise framing and resolved as expectation vs outcom
   expect(markup).toContain('Outcome');
   expect(markup).toContain('+147k with upward revisions');
   expect(markup).toContain('resolved July 5, 2026');
+});
+
+it('renders safe catalyst provenance', async () => {
+  const db = await createTestDb();
+  await upsertForwardEvents(
+    db,
+    forwardEventsBodySchema.parse({
+      events: [{
+        event_id: 'official-cpi',
+        date: '2026-07-15',
+        event: 'Official CPI',
+        expectation: 'Watch core services.',
+        surprise: 'A broad downside miss.',
+        source_title: 'Bureau of Labor Statistics',
+        source_url: 'https://www.bls.gov/cpi/',
+      }],
+      replace: true,
+    }),
+  );
+  const markup = renderToStaticMarkup(await CatalystsPage());
+  expect(markup).toContain('Bureau of Labor Statistics');
+  expect(markup).toContain('href="https://www.bls.gov/cpi/"');
+  expect(markup).toContain('rel="noopener noreferrer"');
 });
 
 it('renders empty states with no events', async () => {

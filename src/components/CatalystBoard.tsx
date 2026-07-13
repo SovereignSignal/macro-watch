@@ -6,6 +6,22 @@ import {
 } from '@/lib/queries/catalysts';
 import { EmptyState } from './EmptyState';
 
+function Provenance({ title, url }: { title: string; url: string | null }) {
+  if (!title && !url) return null;
+  return (
+    <p className="panel-note">
+      Source:{' '}
+      {url ? (
+        <a href={url} target="_blank" rel="noopener noreferrer">
+          {title || url}
+        </a>
+      ) : (
+        title
+      )}
+    </p>
+  );
+}
+
 function Upcoming({ rows }: { rows: ForwardEventRow[] }) {
   if (rows.length === 0) return <EmptyState>No upcoming catalysts on the board.</EmptyState>;
   return (
@@ -26,6 +42,7 @@ function Upcoming({ rows }: { rows: ForwardEventRow[] }) {
                 <p>{f.surprise || '—'}</p>
               </div>
             </div>
+            <Provenance title={f.sourceTitle} url={f.sourceUrl} />
           </div>
         );
       })}
@@ -60,6 +77,7 @@ function Resolved({ rows }: { rows: ForwardEventRow[] }) {
                 </p>
               </div>
             </div>
+            <Provenance title={f.sourceTitle} url={f.sourceUrl} />
           </div>
         );
       })}
