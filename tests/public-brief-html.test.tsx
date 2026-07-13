@@ -109,6 +109,13 @@ describe('sanitizePublicBriefHtml', () => {
     expect(clean).not.toContain('data-notion-id');
     expect(clean).toContain('[redacted');
   });
+
+  it('drops embedded h1 titles because the page owns the article heading', () => {
+    const out = sanitizePublicBriefHtml('<h1>Duplicate brief title</h1><p>Body survives.</p>');
+    expect(out).not.toContain('Duplicate brief title');
+    expect(out).toContain('<p>Body survives.</p>');
+  });
+
   it('drops complete legacy footer and research-log blocks', () => {
     const clean = sanitizePublicBriefHtml(`
       <p>Public analysis survives.</p>

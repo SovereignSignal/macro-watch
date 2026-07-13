@@ -192,6 +192,12 @@ h3 {
 .site-nav a {
   color: var(--muted);
   text-decoration: none;
+  padding: 0.25rem 0;
+}
+
+a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
 }
 
 .site-nav a:hover {
@@ -360,14 +366,26 @@ h3 {
 
 /* --- the brief ------------------------------------------------------------- */
 
+.brief-body {
+  overflow-wrap: anywhere;
+}
+
+.brief-body a {
+  word-break: break-word;
+}
+
 .brief-body p {
   margin: 0.9rem 0;
 }
 
 .brief-body table {
   border-collapse: collapse;
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
   width: 100%;
   font-size: 0.95rem;
+  -webkit-overflow-scrolling: touch;
 }
 
 .brief-body td,
@@ -1129,6 +1147,15 @@ figure {
   font-size: 0.95rem;
 }
 
+.archive-pagination {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 1.5rem 0;
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 0.78rem;
+}
+
 /* --- accountability: the book ------------------------------------------------------------ */
 /* One SVG cell per claim. Status is always glyph + color together — the
    glyph is the CVD/print second channel, so no state reads by hue alone. */
@@ -1490,6 +1517,25 @@ figure {
 }
 
 @media (max-width: 40rem) {
+  .site-header {
+    padding-top: 1.25rem;
+  }
+
+  .site-nav {
+    gap: 0.25rem 1rem;
+    line-height: 1.55;
+  }
+
+  .masthead .chip {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .brief-body table {
+    font-size: 0.84rem;
+  }
+
   .vs {
     grid-template-columns: 1fr;
   }

@@ -21,10 +21,21 @@ const plexMono = IBM_Plex_Mono({
   display: 'swap',
 });
 
+const siteOrigin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://web-production-cb2e81.up.railway.app';
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteOrigin),
   title: { default: 'macro.watch', template: '%s · macro.watch' },
   description:
     'AI-composed macro intelligence — deterministically validated, self-graded, published daily. SovsClaw, a Sovereign Signal system.',
+  alternates: { canonical: '/' },
+  openGraph: {
+    type: 'website',
+    siteName: 'macro.watch',
+    title: 'macro.watch',
+    description: 'AI-composed macro intelligence, deterministically validated and self-graded.',
+    url: '/',
+  },
 };
 
 export const viewport: Viewport = {

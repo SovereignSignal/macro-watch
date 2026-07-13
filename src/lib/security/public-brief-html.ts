@@ -8,6 +8,7 @@ const ALLOWED_TAGS = [
   'p',
   'br',
   'hr',
+  'h1',
   'h2',
   'h3',
   'h4',
@@ -267,6 +268,7 @@ const options: IOptions = {
     },
   },
   exclusiveFilter: (frame) => {
+    if (frame.tag === 'h1') return true;
     if (['p', 'li', 'tr'].includes(frame.tag) && (PRIVATE_FOOTER_RE.test(frame.text) || PRIVATE_BLOCK_RE.test(frame.text))) {
       return true;
     }

@@ -4,12 +4,12 @@ import { seedAll } from '@/lib/seed';
 import { createTestDb } from './helpers/db';
 
 const { default: BriefsPage } = await import('@/app/briefs/page');
-const { default: BriefPage } = await import('@/app/briefs/[date]/page');
+const { default: BriefPage, generateMetadata } = await import('@/app/briefs/[date]/page');
 
 it('archive lists every brief newest-first with weekend labels', async () => {
   const db = await createTestDb();
   await seedAll(db);
-  const markup = renderToStaticMarkup(await BriefsPage());
+  const markup = renderToStaticMarkup(await BriefsPage({}));
   expect(markup).toContain('href="/briefs/2026-07-11"');
   expect(markup).toContain('href="/briefs/2026-07-09"');
   expect(markup).toContain('href="/briefs/2026-07-08"');
@@ -17,9 +17,40 @@ it('archive lists every brief newest-first with weekend labels', async () => {
   expect(markup.indexOf('2026-07-11')).toBeLessThan(markup.indexOf('2026-07-08')); // newest first
 });
 
+it('archive paginates bounded reads with next and previous links', async () => {
+  const db = await createTestDb();
+  const { upsertBrief } = await import('@/lib/ingest/briefs');
+  for (let day = 1; day <= 27; day += 1) {
+    const date = `2026-06-${String(day).padStart(2, '0')}`;
+    await upsertBrief(db, {
+      date,
+      kind: 'daily',
+      subject: `Brief ${date}`,
+      telegram_ping: `Ping ${date}`,
+      html: `<p>Body ${date}</p>`,
+      sent_verified_at: `${date}T14:00:00Z`,
+    });
+  }
+  const first = renderToStaticMarkup(await BriefsPage({}));
+  expect(first).toContain('href="/briefs?page=2"');
+  expect(first).not.toContain('Brief 2026-06-01');
+  const second = renderToStaticMarkup(await BriefsPage({ searchParams: Promise.resolve({ page: '2' }) }));
+  expect(second).toContain('Brief 2026-06-01');
+  expect(second).toContain('href="/briefs?page=1"');
+});
+
+it('brief metadata exposes canonical, description, and article publication time', async () => {
+  const db = await createTestDb();
+  await seedAll(db);
+  const metadata = await generateMetadata({ params: Promise.resolve({ date: '2026-07-08' }) });
+  expect(metadata.alternates?.canonical).toBe('/briefs/2026-07-08');
+  expect(metadata.description).toContain('Two-year yields');
+  expect(metadata.openGraph).toMatchObject({ type: 'article' });
+});
+
 it('archive shows an empty state with no briefs', async () => {
   await createTestDb(); // no seed
-  const markup = renderToStaticMarkup(await BriefsPage());
+  const markup = renderToStaticMarkup(await BriefsPage({}));
   expect(markup).toContain('No briefs yet');
 });
 
@@ -29,6 +60,7 @@ it('permalink renders the brief in full', async () => {
   const markup = renderToStaticMarkup(await BriefPage({ params: Promise.resolve({ date: '2026-07-08' }) }));
   expect(markup).toContain('Front-end repricing meets a heavy auction week');
   expect(markup).toContain('Term premium models'); // deep research section of the html
+  expect((markup.match(/<h1/g) ?? [])).toHaveLength(1);
 });
 
 it('permalink 404s for a missing or malformed date', async () => {
