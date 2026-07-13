@@ -5,6 +5,8 @@ import sanitizeHtml, { type Attributes, type IOptions } from 'sanitize-html';
 
 const ALLOWED_TAGS = [
   'section',
+  'div',
+  'span',
   'p',
   'br',
   'hr',
@@ -39,6 +41,20 @@ const ALLOWED_TAGS = [
   'th',
   'td',
 ] as const;
+
+const ALLOWED_CLASSES: Record<string, ReadonlySet<string>> = {
+  div: new Set([
+    'section', 'insight', 'disagreement', 'sources', 'delta-block',
+    'decision', 'forward-event', 'event-resolution',
+  ]),
+  p: new Set([
+    'date', 'signal', 'small', 'insight-title', 'delta-summary',
+    'delta-title', 'delta-evidence', 'delta-next', 'event-title',
+    'event-baseline', 'event-expectation', 'event-resolve', 'event-actual',
+    'event-surprise', 'event-theme-impact', 'event-source',
+  ]),
+  span: new Set(['event-theme', 'open']),
+};
 
 const NON_TEXT_TAGS = [
   'script',
@@ -222,6 +238,13 @@ function cleanId(attribs: Attributes): Attributes {
   return attribs.id && SAFE_ID_RE.test(attribs.id) ? { id: attribs.id } : {};
 }
 
+function cleanClass(tag: string, attribs: Attributes): Attributes {
+  const allowed = ALLOWED_CLASSES[tag];
+  if (!allowed || !attribs.class) return {};
+  const classes = [...new Set(attribs.class.split(/\s+/).filter((token) => allowed.has(token)))];
+  return classes.length > 0 ? { class: classes.join(' ') } : {};
+}
+
 function cleanSpan(value: string | undefined): string | undefined {
   if (!value || !/^\d{1,2}$/.test(value)) return undefined;
   const span = Number(value);
@@ -232,10 +255,13 @@ const options: IOptions = {
   allowedTags: [...ALLOWED_TAGS],
   allowedAttributes: {
     section: ['id'],
+    div: ['class'],
     h2: ['id'],
     h3: ['id'],
     h4: ['id'],
     li: ['id'],
+    p: ['class'],
+    span: ['class'],
     a: ['href', 'title', 'rel'],
     blockquote: ['cite'],
     ol: ['start', 'reversed'],
@@ -254,10 +280,13 @@ const options: IOptions = {
   parseStyleAttributes: false,
   transformTags: {
     section: (tagName, attribs) => ({ tagName, attribs: cleanId(attribs) }),
+    div: (tagName, attribs) => ({ tagName, attribs: cleanClass(tagName, attribs) }),
     h2: (tagName, attribs) => ({ tagName, attribs: cleanId(attribs) }),
     h3: (tagName, attribs) => ({ tagName, attribs: cleanId(attribs) }),
     h4: (tagName, attribs) => ({ tagName, attribs: cleanId(attribs) }),
     li: (tagName, attribs) => ({ tagName, attribs: cleanId(attribs) }),
+    p: (tagName, attribs) => ({ tagName, attribs: cleanClass(tagName, attribs) }),
+    span: (tagName, attribs) => ({ tagName, attribs: cleanClass(tagName, attribs) }),
     a: (tagName, attribs) => {
       const href = normalizePublicUrl(attribs.href);
       if (!href) return { tagName, attribs: {} };
@@ -311,6 +340,7 @@ const options: IOptions = {
   },
   exclusiveFilter: (frame) => {
     if (frame.tag === 'h1') return true;
+    if (frame.tag === 'div' && hasPrivateFooter(frame.text)) return true;
     if (
       ['section', 'p', 'li', 'blockquote', 'figure', 'figcaption', 'table', 'thead', 'tbody', 'tfoot', 'tr'].includes(frame.tag) &&
       (hasPrivateFooter(frame.text) || PRIVATE_BLOCK_RE.test(frame.text))
@@ -318,6 +348,7 @@ const options: IOptions = {
       return true;
     }
     if (frame.tag === 'a' && !frame.attribs.href) return 'excludeTag';
+    if (['div', 'span'].includes(frame.tag) && !frame.attribs.class) return 'excludeTag';
     if (frame.tag === 'img' && !frame.attribs.src) return true;
     return false;
   },

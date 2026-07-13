@@ -406,6 +406,63 @@ a:focus-visible {
   max-width: 100%;
 }
 
+/* Preserve the semantic rhythm of the email without importing its layout CSS. */
+.brief-body .section {
+  margin: 1.75rem 0;
+}
+
+.brief-body .insight,
+.brief-body .delta-block,
+.brief-body .forward-event,
+.brief-body .event-resolution,
+.brief-body .decision,
+.brief-body .disagreement {
+  border-left: 2px solid var(--rule);
+  margin: 1rem 0;
+  padding: 0.2rem 0 0.2rem 1rem;
+}
+
+.brief-body .forward-event,
+.brief-body .event-resolution {
+  border-left-color: var(--accent);
+}
+
+.brief-body .insight > p,
+.brief-body .delta-block > p,
+.brief-body .forward-event > p,
+.brief-body .event-resolution > p,
+.brief-body .decision > p,
+.brief-body .disagreement > p {
+  margin: 0.38rem 0;
+}
+
+.brief-body .insight-title,
+.brief-body .delta-title,
+.brief-body .event-title {
+  font-weight: 700;
+}
+
+.brief-body .small,
+.brief-body .event-theme,
+.brief-body .open {
+  color: var(--muted);
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+}
+
+.brief-body .event-theme,
+.brief-body .open {
+  display: inline-block;
+  margin: 0 0 0.25rem;
+}
+
+.brief-body .sources {
+  border-top: 1px solid var(--rule);
+  margin-top: 1.25rem;
+  padding-top: 0.45rem;
+}
+
 /* --- panels (dashboard, odds lens) ------------------------------------------- */
 
 .panel {
