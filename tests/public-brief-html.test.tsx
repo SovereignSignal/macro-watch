@@ -113,6 +113,9 @@ describe('sanitizePublicBriefHtml', () => {
   it('scrubs entity-encoded privacy text and private wrapper blocks after canonical decoding', () => {
     const clean = sanitizePublicBriefHtml(`
       <p>Contact analyst&#64;example&#46;com.</p>
+      <p>Nested contact analyst&amp;#64;example&amp;#46;com.</p>
+      <p>Nested workspace https://team&amp;#46;notion&amp;#46;so/Secret.</p>
+      <p>Nested path &amp;#47;home&amp;#47;ubuntu&amp;#47;private.</p>
       <section>📄 View this brief in Notion</section>
       <div>📋 SovsClaw Macro Brief Log — all briefs</div>
       <blockquote>Research log: /home/ubuntu/private/research.md</blockquote>
@@ -150,6 +153,8 @@ describe('sanitizePublicBriefHtml', () => {
     );
     expect(sanitizePublicBriefText('📄 View this brief in Notion')).toBe('');
     expect(sanitizePublicBriefText('Contact analyst&#64;example&#46;com')).toBe('Contact [redacted email]');
+    expect(sanitizePublicBriefText('Contact analyst&amp;#64;example&amp;#46;com')).toBe('Contact [redacted email]');
+    expect(sanitizePublicBriefText('📄 View this brief in Notion | 📋 SovsClaw Macro Brief Log — all briefs')).toBe('|');
   });
 });
 

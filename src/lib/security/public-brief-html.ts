@@ -78,7 +78,12 @@ const POSIX_PATH_RE = /\/(?:home|Users|root|tmp|private|opt|srv|var\/(?:lib|log|
 const WINDOWS_PATH_RE = /\b[A-Z]:\\(?:Users|Windows|Program Files|tmp)(?:\\[^\s<>'"]*)*/gi;
 const PRIVATE_ENDPOINT_RE = /\/(?:api\/(?:ingest|admin|internal|private|debug|webhooks?)|admin|internal|private)(?:\/[^\s<>'"]*)?/gi;
 const SAFE_ID_RE = /^[A-Za-z][A-Za-z0-9_:.-]{0,127}$/;
-const PRIVATE_FOOTER_RE = /(?:📄\s*)?View this brief in Notion|(?:📋\s*)?SovsClaw Macro Brief Log\s*[—-]\s*all briefs/i;
+const PRIVATE_FOOTER_RE = /(?:📄\s*)?View this brief in Notion|(?:📋\s*)?SovsClaw Macro Brief Log\s*[—-]\s*all briefs/gi;
+
+function hasPrivateFooter(text: string): boolean {
+  PRIVATE_FOOTER_RE.lastIndex = 0;
+  return PRIVATE_FOOTER_RE.test(text);
+}
 const PRIVATE_BLOCK_RE = /(?:file:\/\/\/|\/(?:home|Users|root|tmp|private|opt|srv|var\/(?:lib|log|run))(?:\/[^\s<>'"]*)?|\b[A-Z]:\\(?:Users|Windows|Program Files|tmp))/i;
 
 function scrubPrivateText(text: string): string {
@@ -308,7 +313,7 @@ const options: IOptions = {
     if (frame.tag === 'h1') return true;
     if (
       ['section', 'p', 'li', 'blockquote', 'figure', 'figcaption', 'table', 'thead', 'tbody', 'tfoot', 'tr'].includes(frame.tag) &&
-      (PRIVATE_FOOTER_RE.test(frame.text) || PRIVATE_BLOCK_RE.test(frame.text))
+      (hasPrivateFooter(frame.text) || PRIVATE_BLOCK_RE.test(frame.text))
     ) {
       return true;
     }
@@ -326,7 +331,8 @@ const options: IOptions = {
  * publication boundary, not a client-side substitute for it.
  */
 export function sanitizePublicBriefHtml(dirtyHtml: string): string {
-  // Two passes are intentional: sanitize-html decodes entities while parsing;
-  // the second pass applies privacy filters to the canonical decoded text.
-  return sanitizeHtml(sanitizeHtml(dirtyHtml, options), options).trim();
+  // Canonicalize nested entities before parsing so double-encoded markup and
+  // private text cannot survive as recoverable entities in stored HTML.
+  const canonical = decodeTextEntities(dirtyHtml);
+  return sanitizeHtml(sanitizeHtml(canonical, options), options).trim();
 }

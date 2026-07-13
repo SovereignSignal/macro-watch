@@ -54,8 +54,8 @@ it('sanitizes directly inserted legacy subject and ping on archive and metadata 
   await db.insert(briefs).values({
     date: '2026-08-01',
     kind: 'daily',
-    subject: 'Legacy analyst&#64;example&#46;com /home/ubuntu/private',
-    ping: 'Read https://team.notion.so/Secret',
+    subject: 'Legacy analyst&amp;#64;example&amp;#46;com /home/ubuntu/private',
+    ping: '📄 View this brief in Notion | 📋 SovsClaw Macro Brief Log — all briefs https://team.notion.so/Secret',
     html: '<p>Public body</p>',
     sentVerifiedAt: new Date('2026-08-01T14:00:00Z'),
   });
