@@ -45,7 +45,10 @@ const ALLOWED_TAGS = [
 const ALLOWED_CLASSES: Record<string, ReadonlySet<string>> = {
   div: new Set([
     'section', 'insight', 'disagreement', 'sources', 'delta-block',
-    'decision', 'forward-event', 'event-resolution',
+    'decision', 'forward-event', 'event-resolution', 'prediction-lens',
+    'prediction-strip', 'prediction-strip-title', 'prediction-odds-row',
+    'prediction-card', 'prediction-card-title', 'prediction-card-stats',
+    'prediction-card-quality', 'prediction-card-read', 'prediction-lens-read',
   ]),
   p: new Set([
     'date', 'signal', 'small', 'insight-title', 'delta-summary',

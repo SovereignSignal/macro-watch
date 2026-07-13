@@ -78,6 +78,27 @@ describe('sanitizePublicBriefHtml', () => {
     expect(clean).toContain('<span class="event-theme">Rates</span>');
   });
 
+  it('preserves deterministic prediction-lens grouping', () => {
+    const clean = sanitizePublicBriefHtml(`
+      <div class="prediction-lens tracking">
+        <div class="prediction-strip"><div class="prediction-strip-title">Curated odds board</div>
+          <div class="prediction-odds-row">Market A · YES 42%</div></div>
+        <div class="prediction-card"><div class="prediction-card-title">Market B</div>
+          <div class="prediction-card-stats">$2.5M tracked</div>
+          <div class="prediction-card-quality">observable 55/100</div>
+          <div class="prediction-card-read">Mixed anchor</div></div>
+        <div class="prediction-lens-read">Lens read</div>
+      </div>
+    `);
+    for (const className of [
+      'prediction-lens', 'prediction-strip', 'prediction-strip-title',
+      'prediction-odds-row', 'prediction-card', 'prediction-card-title',
+      'prediction-card-stats', 'prediction-card-quality',
+      'prediction-card-read', 'prediction-lens-read',
+    ]) expect(clean).toContain(`class="${className}"`);
+    expect(clean).not.toContain('tracking');
+  });
+
   it('unwraps unsafe, private, Notion, and malformed anchors while retaining their labels', () => {
     const clean = sanitizePublicBriefHtml(`
       <p>
