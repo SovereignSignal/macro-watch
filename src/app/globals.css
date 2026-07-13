@@ -453,8 +453,16 @@ a:focus-visible {
 
 .brief-body .event-theme,
 .brief-body .open {
-  display: inline-block;
   margin: 0 0 0.25rem;
+}
+
+.brief-body .event-theme {
+  display: block;
+  margin-top: 0.2rem;
+}
+
+.brief-body .open {
+  display: inline-block;
 }
 
 .brief-body .sources {

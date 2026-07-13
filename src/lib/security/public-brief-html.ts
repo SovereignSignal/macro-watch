@@ -122,7 +122,7 @@ function decodeTextEntities(text: string): string {
     amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ',
   };
   let out = text;
-  for (let pass = 0; pass < 3; pass += 1) {
+  for (let pass = 0; pass < 32; pass += 1) {
     const decoded = out.replace(/&(#x[0-9a-f]+|#\d+|amp|lt|gt|quot|apos|nbsp);/gi, (_, token: string) => {
       const lower = token.toLowerCase();
       const codePoint = lower.startsWith('#x')
@@ -137,10 +137,11 @@ function decodeTextEntities(text: string): string {
       }
       return named[lower] ?? '';
     });
-    if (decoded === out) break;
+    if (decoded === out) return out;
     out = decoded;
   }
-  return out;
+  // Deeply recoverable entities are safer dropped than partially decoded.
+  return '';
 }
 
 export function sanitizePublicBriefText(text: string): string {
@@ -254,6 +255,20 @@ function cleanSpan(value: string | undefined): string | undefined {
   return span >= 1 && span <= 20 ? String(span) : undefined;
 }
 
+function cleanOrderedList(attribs: Attributes): Attributes {
+  const clean: Attributes = {};
+  if (/^-?\d{1,7}$/.test(attribs.start ?? '')) clean.start = attribs.start;
+  if (attribs.reversed === '' || attribs.reversed?.toLowerCase() === 'reversed') clean.reversed = '';
+  return clean;
+}
+
+function cleanDateTime(value: string | undefined): string | undefined {
+  if (!value || !/^\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}(?::\d{2}(?:\.\d{1,6})?)?(?:Z|[+-]\d{2}:\d{2}))?$/.test(value)) {
+    return undefined;
+  }
+  return Number.isNaN(Date.parse(value)) ? undefined : value;
+}
+
 const options: IOptions = {
   allowedTags: [...ALLOWED_TAGS],
   allowedAttributes: {
@@ -290,6 +305,13 @@ const options: IOptions = {
     li: (tagName, attribs) => ({ tagName, attribs: cleanId(attribs) }),
     p: (tagName, attribs) => ({ tagName, attribs: cleanClass(tagName, attribs) }),
     span: (tagName, attribs) => ({ tagName, attribs: cleanClass(tagName, attribs) }),
+    ol: (tagName, attribs) => ({ tagName, attribs: cleanOrderedList(attribs) }),
+    time: (tagName, attribs) => {
+      const clean: Attributes = {};
+      const datetime = cleanDateTime(attribs.datetime);
+      if (datetime) clean.datetime = datetime;
+      return { tagName, attribs: clean };
+    },
     a: (tagName, attribs) => {
       const href = normalizePublicUrl(attribs.href);
       if (!href) return { tagName, attribs: {} };
