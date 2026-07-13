@@ -39,7 +39,12 @@ export const getBriefByDate = cache(
   },
 );
 
-export async function listBriefs(db: Db): Promise<BriefListItem[]> {
+export async function listBriefs(
+  db: Db,
+  options: { limit?: number; offset?: number } = {},
+): Promise<BriefListItem[]> {
+  const limit = Math.min(100, Math.max(1, Math.trunc(options.limit ?? 50)));
+  const offset = Math.max(0, Math.trunc(options.offset ?? 0));
   return db
     .select({
       date: briefs.date,
@@ -50,5 +55,7 @@ export async function listBriefs(db: Db): Promise<BriefListItem[]> {
     })
     .from(briefs)
     .where(gte(briefs.date, PUBLIC_BRIEF_MIN_DATE))
-    .orderBy(desc(briefs.date));
+    .orderBy(desc(briefs.date))
+    .limit(limit)
+    .offset(offset);
 }

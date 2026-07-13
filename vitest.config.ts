@@ -6,8 +6,9 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),
-      // next/font is a build-time compiler transform; stub its shape in tests.
+      // Build-only modules are replaced with inert Node test stubs.
       'next/font/google': path.resolve(__dirname, 'tests', 'helpers', 'next-font-stub.ts'),
+      'server-only': path.resolve(__dirname, 'tests', 'helpers', 'server-only-stub.ts'),
     },
   },
   test: {

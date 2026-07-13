@@ -121,3 +121,17 @@ it('forward events accept arrays', async () => {
   );
   expect((await res.json()).upserted).toBe(2);
 });
+
+it('forward event authoritative snapshots delete rows absent from the projection', async () => {
+  const stale = { ...FORWARD, event_id: 'stale-filler', event: 'Newsletter filler' };
+  await postForward(post('forward-events', [FORWARD, stale]));
+  expect(await db.select().from(forwardEvents)).toHaveLength(2);
+
+  const res = await postForward(post('forward-events', { events: [FORWARD], replace: true }));
+  expect(res.status).toBe(200);
+  expect((await res.json()).upserted).toBe(1);
+  expect((await db.select().from(forwardEvents)).map((row) => row.eventId)).toEqual([FORWARD.event_id]);
+
+  await postForward(post('forward-events', { events: [], replace: true }));
+  expect(await db.select().from(forwardEvents)).toHaveLength(0);
+});

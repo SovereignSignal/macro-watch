@@ -1,3 +1,4 @@
+import { notInArray } from 'drizzle-orm';
 import { z } from 'zod';
 import type { Db } from '@/db/client';
 import { claims, forwardEvents } from '@/db/schema';
@@ -91,24 +92,45 @@ export const forwardEventSchema = z
 
 export type ForwardEventPayload = z.infer<typeof forwardEventSchema>;
 
+const forwardEventSnapshotSchema = z.object({
+  events: z.array(forwardEventSchema),
+  replace: z.literal(true),
+});
+
 export const forwardEventsBodySchema = z.union([
-  z.array(forwardEventSchema).min(1),
-  forwardEventSchema.transform((f) => [f]),
+  forwardEventSnapshotSchema,
+  z.array(forwardEventSchema).min(1).transform((events) => ({ events, replace: false as const })),
+  forwardEventSchema.transform((event) => ({ events: [event], replace: false as const })),
 ]);
 
-/** Idempotent upsert on event_id; resolution lives in its own column. */
-export async function upsertForwardEvents(db: Db, list: ForwardEventPayload[]): Promise<number> {
-  for (const f of list) {
-    const { resolution, event_id, date, ...payload } = f;
-    const row = {
-      eventDate: date,
-      payload: { event_id, date, ...payload } as Record<string, unknown>,
-      resolution: (resolution ?? null) as Record<string, unknown> | null,
-    };
-    await db
-      .insert(forwardEvents)
-      .values({ eventId: event_id, ...row })
-      .onConflictDoUpdate({ target: forwardEvents.eventId, set: row });
-  }
-  return list.length;
+export type ForwardEventsBody = z.infer<typeof forwardEventsBodySchema>;
+
+/**
+ * Idempotent upsert on event_id. Authoritative snapshots also remove rows that
+ * are no longer in the public projection; incremental legacy posts never do.
+ */
+export async function upsertForwardEvents(db: Db, body: ForwardEventsBody): Promise<number> {
+  await db.transaction(async (tx) => {
+    for (const f of body.events) {
+      const { resolution, event_id, date, ...payload } = f;
+      const row = {
+        eventDate: date,
+        payload: { event_id, date, ...payload } as Record<string, unknown>,
+        resolution: (resolution ?? null) as Record<string, unknown> | null,
+      };
+      await tx
+        .insert(forwardEvents)
+        .values({ eventId: event_id, ...row })
+        .onConflictDoUpdate({ target: forwardEvents.eventId, set: row });
+    }
+    if (body.replace) {
+      const ids = body.events.map((event) => event.event_id);
+      if (ids.length > 0) {
+        await tx.delete(forwardEvents).where(notInArray(forwardEvents.eventId, ids));
+      } else {
+        await tx.delete(forwardEvents);
+      }
+    }
+  });
+  return body.events.length;
 }

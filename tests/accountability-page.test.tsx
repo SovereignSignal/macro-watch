@@ -67,6 +67,27 @@ it('the quality class filter narrows the table by market_type', async () => {
   expect(ledger).not.toContain('2y UST closes above 4.40%'); // a rates claim, filtered out
 });
 
+it('renders judgment-only flip conditions with human predicate and subtype', async () => {
+  const db = await createTestDb();
+  await upsertClaims(
+    db,
+    claimsBodySchema.parse({
+      claim_id: 'map:flip:1',
+      kind: 'map',
+      themes: ['credit-private-markets'],
+      predicate: 'Lower if losses broaden into public credit.',
+      opened_at: '2026-07-11',
+      status: 'judgment-required',
+      claim_kind: 'flip-condition',
+      checkable: false,
+    }),
+  );
+  const markup = renderToStaticMarkup(await page());
+  expect(markup).toContain('Lower if losses broaden into public credit.');
+  expect(markup).toContain('map · flip condition');
+  expect(markup).not.toContain('map:flip:1</td>');
+});
+
 it('crossing the sample threshold flips a board from suppressed to a numeric batting average', async () => {
   const db = await createTestDb();
   await seedAll(db);

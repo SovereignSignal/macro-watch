@@ -14,6 +14,12 @@ function payloadStr(payload: unknown, key: string): string {
   return typeof v === 'string' ? v : '';
 }
 
+function claimType(c: ClaimRecord): string {
+  const subtype = payloadStr(c.payload, 'claim_kind');
+  const ledger = c.kind.replaceAll('_', ' ');
+  return subtype ? `${ledger} · ${subtype.replaceAll('-', ' ')}` : ledger;
+}
+
 /** Filterable claims ledger. Plain GET form — no client JS, house restraint. */
 export function ClaimsTable(props: {
   claims: ClaimRecord[];
@@ -79,7 +85,7 @@ export function ClaimsTable(props: {
             <tr>
               <th>Opened</th>
               <th>Predicate</th>
-              <th>Kind</th>
+              <th>Ledger / type</th>
               <th>Themes</th>
               <th>Class</th>
               <th>Expires</th>
@@ -97,7 +103,7 @@ export function ClaimsTable(props: {
                     <span className="panel-note"> — anchor: {payloadStr(c.payload, 'data_anchor')}</span>
                   ) : null}
                 </td>
-                <td className="cell-mono">{c.kind.replaceAll('_', ' ')}</td>
+                <td className="cell-mono">{claimType(c)}</td>
                 <td className="cell-mono">{c.themes.join(', ')}</td>
                 <td className="cell-mono">{qualityClass(c.payload)}</td>
                 <td className="cell-mono">{c.expiresAt ?? '—'}</td>

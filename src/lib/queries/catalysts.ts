@@ -18,13 +18,31 @@ function str(v: unknown): string {
   return typeof v === 'string' ? v : '';
 }
 
+function safeHttpsUrl(v: unknown): string | null {
+  if (typeof v !== 'string') return null;
+  try {
+    const url = new URL(v);
+    return url.protocol === 'https:' && !url.username && !url.password ? url.toString() : null;
+  } catch {
+    return null;
+  }
+}
+
 export function catalystFields(payload: unknown): {
   event: string;
   expectation: string;
   surprise: string;
+  sourceTitle: string;
+  sourceUrl: string | null;
 } {
   const p = (typeof payload === 'object' && payload !== null ? payload : {}) as Record<string, unknown>;
-  return { event: str(p.event), expectation: str(p.expectation), surprise: str(p.surprise) };
+  return {
+    event: str(p.event),
+    expectation: str(p.expectation),
+    surprise: str(p.surprise),
+    sourceTitle: str(p.source_title),
+    sourceUrl: safeHttpsUrl(p.source_url),
+  };
 }
 
 export function resolutionFields(res: unknown): {
