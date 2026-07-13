@@ -463,6 +463,63 @@ a:focus-visible {
   padding-top: 0.45rem;
 }
 
+.brief-body .prediction-lens {
+  margin-top: 2rem;
+}
+
+.brief-body .prediction-strip {
+  border-bottom: 1px solid var(--rule);
+  margin: 0.75rem 0 1rem;
+  padding-bottom: 0.65rem;
+}
+
+.brief-body .prediction-strip-title {
+  color: var(--muted);
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  margin-bottom: 0.35rem;
+  text-transform: uppercase;
+}
+
+.brief-body .prediction-odds-row {
+  margin: 0.25rem 0;
+}
+
+.brief-body .prediction-card {
+  border-left: 2px solid var(--accent);
+  margin: 1rem 0;
+  padding: 0.2rem 0 0.2rem 1rem;
+}
+
+.brief-body .prediction-card-title {
+  font-weight: 700;
+  margin-bottom: 0.3rem;
+}
+
+.brief-body .prediction-card-stats,
+.brief-body .prediction-card-quality,
+.brief-body .prediction-card-read {
+  margin: 0.28rem 0;
+}
+
+.brief-body .prediction-card-quality,
+.brief-body .prediction-card-read,
+.brief-body .prediction-lens-read {
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.brief-body .prediction-card-read {
+  font-style: italic;
+}
+
+.brief-body .prediction-lens-read {
+  border-top: 1px solid var(--rule);
+  margin-top: 1rem;
+  padding-top: 0.65rem;
+}
+
 /* --- panels (dashboard, odds lens) ------------------------------------------- */
 
 .panel {
