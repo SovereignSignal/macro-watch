@@ -60,6 +60,24 @@ describe('sanitizePublicBriefHtml', () => {
     expect(clean).not.toContain('arbitrary');
   });
 
+  it('preserves only allowlisted brief grouping classes', () => {
+    const clean = sanitizePublicBriefHtml(`
+      <div class="container">
+        <div class="insight tracking"><p class="insight-title tracking">Cross-asset move</p><p>Detail.</p></div>
+        <div class="delta-block"><p class="delta-title">Rates — hold</p><p class="delta-evidence">Evidence.</p></div>
+        <div class="forward-event"><p class="event-title">CPI</p><span class="event-theme tracking">Rates</span></div>
+      </div>
+    `);
+
+    expect(clean).not.toContain('container');
+    expect(clean).not.toContain('tracking');
+    expect(clean).toContain('<div class="insight"><p class="insight-title">');
+    expect(clean).toContain('<div class="delta-block"><p class="delta-title">');
+    expect(clean).toContain('<p class="delta-evidence">Evidence.</p>');
+    expect(clean).toContain('<div class="forward-event"><p class="event-title">CPI</p>');
+    expect(clean).toContain('<span class="event-theme">Rates</span>');
+  });
+
   it('unwraps unsafe, private, Notion, and malformed anchors while retaining their labels', () => {
     const clean = sanitizePublicBriefHtml(`
       <p>
