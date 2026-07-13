@@ -74,6 +74,26 @@ it('upserts and reports revalidated paths', async () => {
   });
 });
 
+it('sanitizes HTML before persistence', async () => {
+  const res = await POST(
+    post({
+      ...VALID,
+      html: '<h2 onclick="steal()">Rates</h2><script>window.__pwned = true</script><p>analyst@example.com</p>',
+    }),
+  );
+  expect(res.status).toBe(200);
+
+  const rows = await db.select().from(briefs);
+  expect(rows[0].html).toContain('<h2>Rates</h2>');
+  expect(rows[0].html).toContain('[redacted email]');
+  expect(rows[0].html).not.toMatch(/script|onclick|analyst@example\.com|__pwned|steal\(\)/i);
+});
+
+it('rejects HTML with no public content after sanitization', async () => {
+  const res = await POST(post({ ...VALID, html: '<script>window.__pwned = true</script>' }));
+  expect(res.status).toBe(422);
+});
+
 it('re-POST updates in place (idempotent on date)', async () => {
   await POST(post(VALID));
   await POST(post({ ...VALID, subject: 'Front-end repricing (revised)' }));

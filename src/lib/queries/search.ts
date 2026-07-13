@@ -2,6 +2,7 @@ import { desc, sql } from 'drizzle-orm';
 import type { Db } from '@/db/client';
 import { briefs, claims, themeEvents } from '@/db/schema';
 import { PUBLIC_BRIEF_MIN_DATE } from '@/lib/queries/briefs';
+import { sanitizePublicBriefText } from '@/lib/security/public-brief-html';
 
 export type SearchResult = {
   type: 'brief' | 'theme-event' | 'claim';
@@ -59,9 +60,9 @@ export async function searchAll(db: Db, q: string): Promise<SearchResult[]> {
     ...briefHits.map(
       (b): SearchResult => ({
         type: 'brief',
-        title: b.subject,
+        title: sanitizePublicBriefText(b.subject),
         href: `/briefs/${b.date}`,
-        snippet: b.ping,
+        snippet: sanitizePublicBriefText(b.ping),
         date: b.date,
       }),
     ),

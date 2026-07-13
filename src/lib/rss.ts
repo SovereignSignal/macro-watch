@@ -1,5 +1,6 @@
 import { xmlEscape } from './format';
 import type { BriefListItem } from './queries/briefs';
+import { sanitizePublicBriefText } from './security/public-brief-html';
 
 export function siteUrl(): string {
   return (process.env.SITE_URL ?? 'https://macro.watch').replace(/\/$/, '');
@@ -13,11 +14,11 @@ export function buildFeed(items: BriefListItem[]): string {
       const link = `${base}/briefs/${b.date}`;
       return [
         '    <item>',
-        `      <title>${xmlEscape(b.subject)}</title>`,
+        `      <title>${xmlEscape(sanitizePublicBriefText(b.subject))}</title>`,
         `      <link>${link}</link>`,
         `      <guid isPermaLink="true">${link}</guid>`,
         `      <pubDate>${b.sentVerifiedAt.toUTCString()}</pubDate>`,
-        `      <description>${xmlEscape(`${b.ping}\n\n${link}`)}</description>`,
+        `      <description>${xmlEscape(`${sanitizePublicBriefText(b.ping)}\n\n${link}`)}</description>`,
         '    </item>',
       ].join('\n');
     })
