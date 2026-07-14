@@ -1,9 +1,9 @@
 /* ------------------------------------------------------------------------- */
-/* macro.watch — the house sheet.                                             */
+/* macro.watch: the house sheet.                                             */
 /* A printed market note holding live instruments: Georgia body, Fraunces     */
 /* display, IBM Plex Mono for everything that is data. Bone & ink, venom      */
 /* amber accent. Direction colors (up/down/hold) are reserved for direction   */
-/* and grading semantics — never decoration. Light + dark (spec §8).          */
+/* and grading semantics, never decoration. Light + dark (spec §8).          */
 /* ------------------------------------------------------------------------- */
 
 :root {
@@ -20,7 +20,7 @@
   --hold: #8a8578;
   /* Status-mark tokens (accountability book/chips). Validated as a set with
      the dataviz six checks on this surface (#fafaf7): worst all-pairs CVD
-     ΔE 14.4, all marks >= 3:1 except --mark-faint (2.60) — the deliberately
+     ΔE 14.4, all marks >= 3:1 except --mark-faint (2.60), the deliberately
      receded expired/void state, relieved by glyph + tooltip + ledger. */
   --mark-hit: #1e7f4f;
   --mark-miss: #b3362c;
@@ -46,7 +46,7 @@
     --down: #d46a5a;
     --hold: #7a766b;
     /* Dark marks re-validated on #101215: miss and partial are snapped
-       shades (house hues, stepped into the dark lightness band) — worst
+       shades (house hues, stepped into the dark lightness band), worst
        all-pairs CVD ΔE 17.4, all four chromatic marks >= 3:1. */
     --mark-hit: #4da37a;
     --mark-miss: #c95a49;
@@ -550,6 +550,12 @@ a:focus-visible {
   font-size: 1.05rem;
 }
 
+.panel-table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .panel-table {
   width: 100%;
   border-collapse: collapse;
@@ -587,7 +593,7 @@ a:focus-visible {
   font-size: 0.85rem;
 }
 
-/* --- instrument cards (theme map, strip, dossier) — the signature ------------- */
+/* --- instrument cards (theme map, strip, dossier): the signature ------------- */
 
 .theme-grid {
   display: grid;
@@ -718,6 +724,13 @@ a:focus-visible {
   font-size: 0.98rem;
 }
 
+.theme-description {
+  margin: 0.45rem 0 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
 /* Trigger rows: state glyph, name, freshness chip. */
 .trigger-list {
   list-style: none;
@@ -813,6 +826,13 @@ a:focus-visible {
   text-decoration: underline;
 }
 
+.strip-description {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
 .strip-gauge {
   display: flex;
   align-items: center;
@@ -866,7 +886,7 @@ a:focus-visible {
   color: var(--faint);
 }
 
-/* Raise/lower condition headings — direction semantics, so direction color. */
+/* Raise/lower condition headings use direction semantics and color. */
 .cond {
   font-family: var(--font-mono, ui-monospace, Menlo, monospace);
   font-weight: 400;
@@ -942,7 +962,7 @@ a:focus-visible {
 
 /* --- the field (map hero) -------------------------------------------------- */
 /* Position is the encoding: conviction band (y) × 30-day pressure (x).
-   Marks reuse the validated house tokens — amber lit diamonds, faint off
+   Marks reuse the validated house tokens: amber lit diamonds, faint off
    states, hairline rules; the halo is the standard ~10% accent wash. */
 
 .field {
@@ -1007,7 +1027,7 @@ a:focus-visible {
   stroke-width: 1;
 }
 
-/* A candidate's gauge is not yet earned — the house dashed treatment,
+/* A candidate's gauge is not yet earned. The house dashed treatment,
    so unrated candidates still read distinct from unrated actives. */
 .field-node.is-candidate .fn-cand,
 .field-node.is-candidate .fn-off {
@@ -1102,7 +1122,7 @@ figure {
 }
 
 .data-table--claims {
-  min-width: 58rem;
+  min-width: 72rem;
 }
 
 /* The detail ledger reads tighter than the general table default. */
@@ -1114,6 +1134,21 @@ figure {
    let the themes list wrap instead of forcing the table wide. */
 .data-table--claims td:nth-child(2),
 .data-table--claims th:nth-child(2) {
+  min-width: 16rem;
+}
+
+.data-table--claims td:nth-child(3),
+.data-table--claims th:nth-child(3) {
+  min-width: 9.5rem;
+}
+
+.data-table--claims td:nth-child(7),
+.data-table--claims th:nth-child(7) {
+  min-width: 8.5rem;
+}
+
+.data-table--claims td:nth-child(8),
+.data-table--claims th:nth-child(8) {
   min-width: 14rem;
 }
 
@@ -1152,7 +1187,7 @@ figure {
 }
 
 /* Pipeline vocabulary (spec/db: pending|hit|miss|partial|expired|
-   judgment-required|void). hit/miss/partial are grading (PnL) semantics —
+   judgment-required|void). hit/miss/partial are grading (PnL) semantics;
    direction colors apply; the rest are neutral states. */
 .status-pending {
   color: var(--muted);
@@ -1240,6 +1275,13 @@ figure {
   color: var(--accent);
 }
 
+.filters > a {
+  align-self: center;
+  margin-top: 1rem;
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 0.72rem;
+}
+
 .search-form {
   display: flex;
   gap: 0.6rem;
@@ -1278,8 +1320,126 @@ figure {
   font-size: 0.78rem;
 }
 
+/* --- accountability: orientation ---------------------------------------------------------- */
+
+.accountability-lede {
+  max-width: 49rem;
+  margin: 0.4rem 0 2rem;
+  color: var(--muted);
+  font-size: 1.08rem;
+  line-height: 1.55;
+}
+
+.accountability-summary {
+  margin: 1.5rem 0 2.5rem;
+  padding: 1.25rem 0 1.35rem;
+  border-top: 1px solid var(--ink);
+  border-bottom: 1px solid var(--rule);
+}
+
+.accountability-phase,
+.method-number {
+  margin: 0;
+  color: var(--accent);
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.accountability-summary h2 {
+  max-width: 46rem;
+  margin: 0.35rem 0 1.4rem;
+  font-size: clamp(1.35rem, 3vw, 2rem);
+}
+
+.accountability-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.accountability-stats div {
+  min-width: 0;
+  padding-left: 0.75rem;
+  border-left: 2px solid var(--rule);
+}
+
+.accountability-stats dt {
+  color: var(--muted);
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 0.62rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.accountability-stats dd {
+  margin: 0.15rem 0 0;
+  font-family: var(--font-display, Georgia, serif);
+  font-size: 1.7rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.accountability-method {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.accountability-method article {
+  padding: 0.95rem 1rem;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  background: var(--card);
+}
+
+.accountability-method h3 {
+  margin: 0.25rem 0 0.4rem;
+  font-size: 1rem;
+}
+
+.accountability-method article > p:last-child {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.coverage-note,
+.qualitative-note {
+  margin: 1rem 0 2.5rem;
+  padding: 0.8rem 1rem;
+  border-left: 3px solid var(--accent);
+  background: color-mix(in srgb, var(--accent) 5%, var(--card));
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.coverage-note strong {
+  color: var(--ink);
+}
+
+.qualitative-note h2 {
+  margin: 0 0 0.3rem;
+  color: var(--ink);
+  font-size: 1.1rem;
+}
+
+.qualitative-note p {
+  margin: 0;
+}
+
+@media (max-width: 720px) {
+  .accountability-method {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* --- accountability: the book ------------------------------------------------------------ */
-/* One SVG cell per claim. Status is always glyph + color together — the
+/* One SVG cell per claim. Status is always glyph + color together. The
    glyph is the CVD/print second channel, so no state reads by hue alone. */
 
 .status-mark {
@@ -1401,7 +1561,7 @@ figure {
   flex-wrap: wrap;
   gap: 3px;
   /* Cap the row length so each track reads as a unit block, not a bead
-     string — the grid grows downward as the book grows. */
+     string. The grid grows downward as the book grows. */
   max-width: 22rem;
 }
 
@@ -1426,6 +1586,14 @@ figure {
 .grade h3 {
   margin: 0;
   font-size: 0.98rem;
+}
+
+.grade-description {
+  min-height: 2.7em;
+  margin: 0.35rem 0 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.4;
 }
 
 .meter {
@@ -1488,6 +1656,25 @@ figure {
 
 .grade-record .status-mark {
   flex: none;
+}
+
+.grade .grade-record {
+  margin-top: 0.7rem;
+}
+
+.grade-context,
+.grade-benchmark {
+  margin: 0.45rem 0 0;
+  color: var(--faint);
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 0.66rem;
+  line-height: 1.45;
+}
+
+.grade-benchmark {
+  padding-top: 0.45rem;
+  border-top: 1px solid var(--rule);
+  color: var(--muted);
 }
 
 /* Per-theme / per-class: the same two states as quiet ledger rows. */
@@ -1615,6 +1802,25 @@ figure {
 .status-chip--expired,
 .status-chip--void {
   color: var(--faint);
+}
+
+.claim-predicate {
+  display: block;
+  line-height: 1.42;
+}
+
+.claim-meta-line {
+  display: block;
+  margin-top: 0.22rem;
+  color: var(--faint);
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 0.68rem;
+  line-height: 1.4;
+}
+
+.claim-themes {
+  font-size: 0.82rem;
+  line-height: 1.4;
 }
 
 /* --- catalysts ---------------------------------------------------------------------------- */

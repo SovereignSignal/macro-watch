@@ -6,14 +6,14 @@ import {
 } from '@/lib/field-map';
 import { EmptyState } from './EmptyState';
 
-/** Rotated-square diamond path — the house conviction glyph, drawn crisp. */
+/** Rotated-square diamond path, the house conviction glyph. */
 function diamond(cx: number, cy: number, r: number): string {
   return `M ${cx} ${cy - r} L ${cx + r} ${cy} L ${cx} ${cy + r} L ${cx - r} ${cy} Z`;
 }
 
 function nodeTitle(n: FieldNode): string {
   const parts = [
-    `${n.name} — ${n.status}`,
+    `${n.name}: ${n.status}`,
     `conviction ${n.conviction ?? 'unrated'}`,
   ];
   if (!n.shelf) {
@@ -24,11 +24,11 @@ function nodeTitle(n: FieldNode): string {
     );
   }
   if (n.lastEventAt) parts.push(`last event ${n.lastEventAt}`);
-  return parts.join(' · ');
+  return parts.join(', ');
 }
 
 /** The ◆◆◇ gauge as a field marker: lit positions amber (hollow while a
- *  candidate), unlit positions faint — same vocabulary as the cards below. */
+ *  candidate), unlit positions faint, matching the cards below. */
 function Cluster({ n }: { n: FieldNode }) {
   if (n.shelf) {
     return <path d={diamond(n.x, n.y, 4)} className="fn-off" />;
@@ -46,7 +46,7 @@ function Cluster({ n }: { n: FieldNode }) {
 }
 
 /**
- * The field — the /map hero. A server-rendered SVG map of every theme:
+ * The /map hero. A server-rendered SVG map of every theme:
  * conviction band (y) × 30-day directional pressure (x), lifecycle in the
  * mark (filled active / hollow candidate / faint retired shelf), 30-day
  * event count as a soft halo. Every node links to its dossier and carries
@@ -58,8 +58,7 @@ export function FieldMap({ themes, asOf }: { themes: FieldThemeInput[]; asOf: st
   if (layout.plottable < 2) {
     return (
       <EmptyState>
-        The field draws once two live themes are on the map — the instruments below carry
-        everything until then.
+        The position map appears once two themes are active.
       </EmptyState>
     );
   }
@@ -91,7 +90,7 @@ export function FieldMap({ themes, asOf }: { themes: FieldThemeInput[]; asOf: st
               </text>
             </g>
           ))}
-          {/* quadrant whispers — two annotations, no grid */}
+          {/* quadrant whispers: two annotations, no grid */}
           <text x={layout.width - 16} y={layout.bands[0].top + 17} textAnchor="end" className="field-quad">
             the front
           </text>
@@ -142,8 +141,8 @@ export function FieldMap({ themes, asOf }: { themes: FieldThemeInput[]; asOf: st
         </svg>
       </div>
       <figcaption>
-        diamond gauge = conviction · dashed hollow = candidate · shelf: retired · halo = events
-        in the last 30 days · hover a theme for its record, click through for the dossier
+        Diamonds show conviction. Hollow marks candidates. Halos show recent activity. Select a
+        theme for its record.
       </figcaption>
     </figure>
   );

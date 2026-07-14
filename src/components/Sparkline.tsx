@@ -1,5 +1,5 @@
 /**
- * Micro step-trace of a conviction series (ordinal levels 1–3) — the
+ * Micro step-trace of a conviction series (ordinal levels 1–3), the
  * instrument-panel counterpart of the dossier's full step chart. Index-scaled
  * (one step per snapshot), not time-scaled: it is a trend glyph, not an axis.
  */

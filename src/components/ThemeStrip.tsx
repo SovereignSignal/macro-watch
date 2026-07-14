@@ -4,7 +4,7 @@ import { ConvictionScale } from './ConvictionScale';
 import { EmptyState } from './EmptyState';
 import { Sparkline } from './Sparkline';
 
-/** Compact theme-map strip for the home page (spec §5 /) — the same instruments, smaller. */
+/** Compact theme-map strip for the home page (spec §5 /), with smaller instruments. */
 export function ThemeStrip({
   cards,
   sparks,
@@ -14,7 +14,7 @@ export function ThemeStrip({
 }) {
   const live = cards.filter((c) => c.status !== 'retired');
   if (live.length === 0) {
-    return <EmptyState>No themes on the map yet. Themes appear as the system surfaces and grades them.</EmptyState>;
+    return <EmptyState>No themes yet.</EmptyState>;
   }
   return (
     <>
@@ -24,6 +24,7 @@ export function ThemeStrip({
             <Link href={`/map/${c.slug}`} className="strip-name">
               {c.name}
             </Link>
+            <p className="strip-description">{c.description}</p>
             <span className="strip-gauge">
               <ConvictionScale conviction={c.conviction} hollow={c.status === 'candidate'} />
               {c.conviction ? <span className={`conv conv-${c.conviction}`}>{c.conviction}</span> : null}

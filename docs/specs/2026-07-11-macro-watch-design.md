@@ -78,11 +78,12 @@ re-publishing from pipeline state.
   states, lifecycle badge). Per-theme page: current card + **full event timeline** (every
   raise/lower/candidate/retire since birth, each linked to its source brief) + related
   claims + a conviction-over-time visual.
-- `/accountability` — scoreboards (overall, per-theme, per-quality-class) + filterable
-  claims table. Honest empty states are a feature: "0 resolved — not enough to grade yet."
+- `/accountability` — coverage and method orientation, separate smart-money and map-derived
+  scoreboards, upcoming decisions, qualitative review, claim history, and a source-linked
+  public ledger. Headline rates stay hidden until each track has eight final decisions.
 - `/catalysts` — upcoming forward events with what-would-surprise framing; resolved events
   shown expectation-vs-outcome.
-- `/about` — what this is, how it works (pipeline → validation → self-grading), Sovereign
+- `/about` — what this is, how it works (pipeline → validation → external outcome grading), Sovereign
   Signal identity, disclaimer.
 - `/search` — Postgres full-text across briefs, theme events, claims.
 - `/feed.xml` — RSS of briefs (title = subject, body = ping + link).

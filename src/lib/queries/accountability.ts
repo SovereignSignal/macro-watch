@@ -1,6 +1,7 @@
 import { and, desc, eq, sql, type SQL } from 'drizzle-orm';
 import type { Db } from '@/db/client';
-import { claims } from '@/db/schema';
+import { claims, themes } from '@/db/schema';
+import { publicText } from '@/lib/public-copy';
 
 export type ClaimRecord = typeof claims.$inferSelect;
 
@@ -30,4 +31,9 @@ export async function getClaims(db: Db, f: ClaimFilters = {}): Promise<ClaimReco
     .from(claims)
     .where(conds.length > 0 ? and(...conds) : undefined)
     .orderBy(desc(claims.openedAt));
+}
+
+export async function getThemeNames(db: Db): Promise<Record<string, string>> {
+  const rows = await db.select({ slug: themes.slug, name: themes.name }).from(themes);
+  return Object.fromEntries(rows.map((row) => [row.slug, publicText(row.name)]));
 }

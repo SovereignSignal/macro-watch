@@ -1,3 +1,5 @@
+import { publicText } from '@/lib/public-copy';
+
 export type PanelRowItem = {
   label: string;
   value: string;
@@ -8,7 +10,7 @@ export type PanelRowItem = {
 /**
  * Panel payloads are a jsonb passthrough of the pipeline's cache shapes
  * (spec §3). The rendering contract with the publisher: payload.rows is an
- * array of { label, value, change?, note? }. Anything malformed is skipped —
+ * array of { label, value, change?, note? }. Anything malformed is skipped;
  * a bad payload renders as an empty panel, never a broken page.
  */
 export function panelRows(payload: unknown): PanelRowItem[] {
@@ -21,10 +23,10 @@ export function panelRows(payload: unknown): PanelRowItem[] {
     const { label, value, change, note } = r as Record<string, unknown>;
     if (typeof label !== 'string' || label.length === 0) continue;
     out.push({
-      label,
-      value: typeof value === 'string' ? value : typeof value === 'number' ? String(value) : '—',
-      change: typeof change === 'string' ? change : null,
-      note: typeof note === 'string' ? note : null,
+      label: publicText(label),
+      value: typeof value === 'string' ? publicText(value) : typeof value === 'number' ? String(value) : 'n/a',
+      change: typeof change === 'string' ? publicText(change) : null,
+      note: typeof note === 'string' ? publicText(note) : null,
     });
   }
   return out;

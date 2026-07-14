@@ -2,6 +2,7 @@ import 'server-only';
 
 import { isIP } from 'node:net';
 import sanitizeHtml, { type Attributes, type IOptions } from 'sanitize-html';
+import { publicText } from '@/lib/public-copy';
 
 const ALLOWED_TAGS = [
   'section',
@@ -97,7 +98,7 @@ const POSIX_PATH_RE = /\/(?:home|Users|root|tmp|private|opt|srv|var\/(?:lib|log|
 const WINDOWS_PATH_RE = /\b[A-Z]:\\(?:Users|Windows|Program Files|tmp)(?:\\[^\s<>'"]*)*/gi;
 const PRIVATE_ENDPOINT_RE = /\/(?:api\/(?:ingest|admin|internal|private|debug|webhooks?)|admin|internal|private)(?:\/[^\s<>'"]*)?/gi;
 const SAFE_ID_RE = /^[A-Za-z][A-Za-z0-9_:.-]{0,127}$/;
-const PRIVATE_FOOTER_RE = /(?:📄\s*)?View this brief in Notion|(?:📋\s*)?SovsClaw Macro Brief Log\s*[—-]\s*all briefs/gi;
+const PRIVATE_FOOTER_RE = /(?:📄\s*)?View this brief in Notion|(?:📋\s*)?SovsClaw Macro Brief Log\s*[\u2014-]\s*all briefs/gi;
 
 function hasPrivateFooter(text: string): boolean {
   PRIVATE_FOOTER_RE.lastIndex = 0;
@@ -106,8 +107,7 @@ function hasPrivateFooter(text: string): boolean {
 const PRIVATE_BLOCK_RE = /(?:file:\/\/\/|\/(?:home|Users|root|tmp|private|opt|srv|var\/(?:lib|log|run))(?:\/[^\s<>'"]*)?|\b[A-Z]:\\(?:Users|Windows|Program Files|tmp))/i;
 
 function scrubPrivateText(text: string): string {
-  return text
-    .replace(PRIVATE_FOOTER_RE, '')
+  return publicText(text.replace(PRIVATE_FOOTER_RE, ''))
     .replace(NOTION_URL_RE, '[redacted workspace link]')
     .replace(PRIVATE_URL_RE, '[redacted internal URL]')
     .replace(FILE_URL_RE, '[redacted path]')
@@ -147,7 +147,7 @@ function decodeTextEntities(text: string): string {
 export function sanitizePublicBriefText(text: string): string {
   const canonical = decodeTextEntities(text);
   const stripped = sanitizeHtml(canonical, { allowedTags: [], allowedAttributes: {} });
-  return scrubPrivateText(decodeTextEntities(stripped)).replace(/\s+/g, ' ').trim();
+  return publicText(scrubPrivateText(decodeTextEntities(stripped))).replace(/\s+/g, ' ').trim();
 }
 
 function isPrivateHostname(rawHostname: string): boolean {
@@ -390,5 +390,5 @@ export function sanitizePublicBriefHtml(dirtyHtml: string): string {
   // Canonicalize nested entities before parsing so double-encoded markup and
   // private text cannot survive as recoverable entities in stored HTML.
   const canonical = decodeTextEntities(dirtyHtml);
-  return sanitizeHtml(sanitizeHtml(canonical, options), options).trim();
+  return publicText(sanitizeHtml(sanitizeHtml(canonical, options), options)).trim();
 }

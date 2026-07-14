@@ -4,6 +4,7 @@ import {
   OVERALL_MIN_SAMPLE,
   battingAverage,
   groupBoards,
+  openingProbability,
   qualityClass,
   scoreClaims,
 } from '@/lib/scoring';
@@ -24,7 +25,33 @@ it('zero resolved means hitRate null (not enough to grade)', () => {
     judgmentRequired: 0,
     void: 0,
     hitRate: null,
+    probabilitySample: 0,
+    meanImpliedProbability: null,
+    brierScore: null,
+    liftVsImplied: null,
   });
+});
+
+it('reads the recorded-side opening probability from both claim tracks', () => {
+  expect(openingProbability({ opening_probability: 0.64 })).toBe(0.64);
+  expect(openingProbability({ creation_snapshot: { current_price: 0.81 } })).toBe(0.81);
+  expect(
+    openingProbability({
+      creation_snapshot: { odds_yes_pct: 18 },
+      predicate_detail: { threshold: 'NO' },
+    }),
+  ).toBeCloseTo(0.82);
+});
+
+it('reports calibration against the opening market baseline', () => {
+  const board = scoreClaims([
+    { status: 'hit', payload: { opening_probability: 0.7 } },
+    { status: 'miss', payload: { opening_probability: 0.8 } },
+  ]);
+  expect(board.probabilitySample).toBe(2);
+  expect(board.meanImpliedProbability).toBeCloseTo(0.75);
+  expect(board.brierScore).toBeCloseTo((0.3 ** 2 + 0.8 ** 2) / 2);
+  expect(board.liftVsImplied).toBeCloseTo(-0.25);
 });
 
 it('computes hit rate over hits+misses only — every other status is tallied but never enters the denominator', () => {

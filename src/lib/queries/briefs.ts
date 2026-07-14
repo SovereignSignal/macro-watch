@@ -6,7 +6,7 @@ import { briefs } from '@/db/schema';
 export type BriefRow = typeof briefs.$inferSelect;
 
 // Smoke sentinels are written with pre-2000 dates (see scripts/smoke.mjs).
-// They must NEVER surface on public listings — only their direct permalink
+// They must NEVER surface on public listings. Only their direct permalink
 // renders (which is how the smoke round-trip verifies without polluting the
 // site). Every listing/latest/RSS/search query filters through this bound.
 export const PUBLIC_BRIEF_MIN_DATE = '2000-01-01';

@@ -16,22 +16,24 @@ export function PanelTable(props: { title: string; rows: PanelRowItem[]; takenAt
         {props.takenAt ? <UpdatedAgo takenAt={props.takenAt} /> : null}
       </div>
       {props.rows.length === 0 ? (
-        <EmptyState>No data yet — the pipeline publishes this panel every 15 minutes.</EmptyState>
+        <EmptyState>Waiting for data.</EmptyState>
       ) : (
-        <table className="panel-table">
-          <tbody>
-            {props.rows.map((r) => (
-              <tr key={r.label}>
-                <td>
-                  {r.label}
-                  {r.note ? <span className="panel-note"> — {r.note}</span> : null}
-                </td>
-                <td className="num">{r.value}</td>
-                <td className={r.change ? changeClass(r.change) : 'num'}>{r.change ?? ''}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="panel-table-scroll">
+          <table className="panel-table">
+            <tbody>
+              {props.rows.map((r) => (
+                <tr key={r.label}>
+                  <td>
+                    {r.label}
+                    {r.note ? <span className="panel-note">, {r.note}</span> : null}
+                  </td>
+                  <td className="num">{r.value}</td>
+                  <td className={r.change ? changeClass(r.change) : 'num'}>{r.change ?? ''}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

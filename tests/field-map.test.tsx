@@ -221,7 +221,7 @@ it('FieldMap renders nodes as dossier links with tooltips', () => {
     />,
   );
   expect(markup).toContain('href="/map/rate-path"');
-  expect(markup).toContain('Rate path — active · conviction high · 2 events in 30d, net +2 · last event 2026-07-08');
+  expect(markup).toContain('Rate path: active, conviction high, 2 events in 30d, net +2, last event 2026-07-08');
   expect(markup).toContain('fn-cand'); // hollow candidate diamonds
   expect(markup).toContain('RETIRED'); // the shelf label
   expect(markup).toContain('← easing · pressure · building →');

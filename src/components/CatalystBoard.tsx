@@ -35,11 +35,11 @@ function Upcoming({ rows }: { rows: ForwardEventRow[] }) {
             <div className="vs">
               <div>
                 <h4>Expected</h4>
-                <p>{f.expectation || '—'}</p>
+                <p>{f.expectation || 'Not recorded.'}</p>
               </div>
               <div>
-                <h4>What would surprise</h4>
-                <p>{f.surprise || '—'}</p>
+                <h4>Surprise</h4>
+                <p>{f.surprise || 'Not recorded.'}</p>
               </div>
             </div>
             <Provenance title={f.sourceTitle} url={f.sourceUrl} />
@@ -61,19 +61,19 @@ function Resolved({ rows }: { rows: ForwardEventRow[] }) {
           <div key={r.eventId} className="catalyst">
             <p className="date">
               {formatDate(r.eventDate)}
-              {res.resolvedAt ? ` · resolved ${formatDate(res.resolvedAt)}` : ''}
+              {res.resolvedAt ? `, resolved ${formatDate(res.resolvedAt)}` : ''}
             </p>
             <h3>{f.event || r.eventId}</h3>
             <div className="vs">
               <div>
                 <h4>Expectation</h4>
-                <p>{f.expectation || '—'}</p>
+                <p>{f.expectation || 'Not recorded.'}</p>
               </div>
               <div>
                 <h4>Outcome</h4>
                 <p>
-                  {res.outcome || '—'}
-                  {res.note ? <span className="panel-note"> — {res.note}</span> : null}
+                  {res.outcome || 'Not recorded.'}
+                  {res.note ? <span className="panel-note"> {res.note}</span> : null}
                 </p>
               </div>
             </div>

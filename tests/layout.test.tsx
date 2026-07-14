@@ -9,11 +9,11 @@ const markup = renderToStaticMarkup(
 );
 
 it('carries the Sovereign Signal byline', () => {
-  expect(markup).toContain('SovsClaw — a Sovereign Signal system');
+  expect(markup).toContain('SovsClaw by Sovereign Signal');
 });
 
 it('carries the not-investment-advice footer', () => {
-  expect(markup).toContain('Not investment advice');
+  expect(markup).toContain('Research only. No buy or sell recommendations.');
 });
 
 it('links every surface from the nav', () => {

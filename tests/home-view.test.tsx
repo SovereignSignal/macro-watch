@@ -39,14 +39,15 @@ it('renders panel rows with change coloring', () => {
   expect(markup).toContain('ES');
   expect(markup).toContain('change-up');
   expect(markup).toContain('change-down');
-  expect(markup).toContain('updated —'); // UpdatedAgo pre-hydration placeholder
+  expect(markup).toContain('panel-table-scroll');
+  expect(markup).toContain('updating'); // UpdatedAgo pre-hydration placeholder
 });
 
 it('renders explicit empty states when nothing is published', () => {
   const markup = renderToStaticMarkup(<HomeView brief={null} panel={null} cards={[]} />);
-  expect(markup).toContain('No brief published yet');
-  expect(markup).toContain('No data yet');
-  expect(markup).toContain('No themes on the map yet');
+  expect(markup).toContain('No brief yet');
+  expect(markup).toContain('Waiting for data.');
+  expect(markup).toContain('No themes yet.');
 });
 
 it('links theme strip entries to their theme pages', () => {
@@ -58,6 +59,7 @@ it('links theme strip entries to their theme pages', () => {
         {
           slug: 'rate-path-repricing',
           name: 'Rate-path repricing',
+          description: 'Tracks how incoming data changes the expected path of policy rates.',
           status: 'active',
           firstSeen: '2026-06-20',
           lastEventAt: '2026-07-08',
@@ -71,5 +73,6 @@ it('links theme strip entries to their theme pages', () => {
     />,
   );
   expect(markup).toContain('href="/map/rate-path-repricing"');
+  expect(markup).toContain('expected path of policy rates');
   expect(markup).toContain('conv-high');
 });

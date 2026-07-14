@@ -1,8 +1,8 @@
 /**
- * The macro.watch mark — the 🦂 scorpion emoji, the SovsClaw signature.
+ * The macro.watch mark: the 🦂 scorpion emoji, the SovsClaw signature.
  *
  * Rendered as the emoji glyph rather than a custom drawing (Sov's call,
- * 2026-07-12 — the hand-drawn scorpion read as a blob at small sizes). The
+ * 2026-07-12: the hand-drawn scorpion read as a blob at small sizes). The
  * emoji is aria-hidden; the accessible name lives on the home link that wraps
  * it (see layout.tsx).
  */

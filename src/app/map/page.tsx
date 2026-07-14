@@ -3,10 +3,15 @@ import { ThemeGrid } from '@/components/ThemeGrid';
 import { UpdatedAgo } from '@/components/UpdatedAgo';
 import { getDb } from '@/db/client';
 import { getConvictionSparks, getRecentThemeEvents, getThemeMapCards } from '@/lib/queries/map';
+import { pageMetadata } from '@/lib/metadata';
 import { safeQuery } from '@/lib/safe';
 
 export const dynamic = 'force-dynamic';
-export const metadata = { title: 'Living theme map' };
+export const metadata = pageMetadata({
+  title: 'Theme map',
+  description: 'Macro themes tracked by conviction, directional pressure, triggers, and lifecycle.',
+  path: '/map',
+});
 
 export default async function MapPage() {
   const db = getDb();
@@ -28,18 +33,17 @@ export default async function MapPage() {
   return (
     <main className="container-wide">
       <div className="page-head">
-        <h1>Living theme map</h1>
+        <h1>Theme map</h1>
         {takenAt ? <UpdatedAgo takenAt={takenAt.toISOString()} /> : null}
       </div>
       <p className="brief-meta">
-        Every theme the system is tracking — conviction, current read, live triggers, lifecycle.
+        Themes tracked by conviction, current read, triggers, and lifecycle.
       </p>
       {cards.length > 0 ? (
         <section aria-labelledby="the-field">
-          <h2 id="the-field">The field</h2>
+          <h2 id="the-field">Position map</h2>
           <p className="brief-meta">
-            Where each theme sits: conviction as the band, the last 30 days of events as the
-            pressure that moves it left or right.
+            Conviction sets the row. Events from the last 30 days move themes left or right.
           </p>
           <FieldMap themes={fieldThemes} asOf={asOf} />
         </section>

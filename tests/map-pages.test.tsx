@@ -6,7 +6,7 @@ import { seedAll } from '@/lib/seed';
 import { createTestDb } from './helpers/db';
 
 const { default: MapPage } = await import('@/app/map/page');
-const { default: ThemePage } = await import('@/app/map/[theme]/page');
+const { default: ThemePage, generateMetadata } = await import('@/app/map/[theme]/page');
 
 it('getThemeDetail assembles card, timeline, related claims, conviction series', async () => {
   const db = await createTestDb();
@@ -49,13 +49,14 @@ it('/map renders the grid grouped by lifecycle with a freshness badge', async ()
   const db = await createTestDb();
   await seedAll(db);
   const markup = renderToStaticMarkup(await MapPage());
-  expect(markup).toContain('Living theme map');
+  expect(markup).toContain('Theme map');
   expect(markup).toContain('Rate-path repricing');
+  expect(markup).toContain('expected path of policy rates');
   expect(markup).toContain('Dollar downtrend');
   expect(markup).toContain('Retired'); // section for china-reflation
   expect(markup).toContain('China reflation');
   expect(markup).toContain('conv-high');
-  expect(markup).toContain('updated —');
+  expect(markup).toContain('updating');
   // Trigger rows on cards: name + freshness chip (instrument-panel layout).
   expect(markup).toContain('2y auction demand');
   expect(markup).toContain('chip-live');
@@ -64,7 +65,7 @@ it('/map renders the grid grouped by lifecycle with a freshness badge', async ()
 it('/map renders an empty state with no data', async () => {
   await createTestDb();
   const markup = renderToStaticMarkup(await MapPage());
-  expect(markup).toContain('No themes on the map yet');
+  expect(markup).toContain('No themes yet.');
   expect(markup).not.toContain('The field'); // no broken hero either
 });
 
@@ -72,7 +73,7 @@ it('/map renders the field hero above the grid, nodes linked to dossiers', async
   const db = await createTestDb();
   await seedAll(db);
   const markup = renderToStaticMarkup(await MapPage());
-  expect(markup).toContain('The field');
+  expect(markup).toContain('Position map');
   expect(markup).toContain('← easing · pressure · building →');
   expect(markup).toContain('field-node');
   expect(markup).toContain('href="/map/rate-path-repricing"'); // SVG node link
@@ -87,13 +88,24 @@ it('/map/[theme] renders the full dossier with brief-linked timeline', async () 
     await ThemePage({ params: Promise.resolve({ theme: 'rate-path-repricing' }) }),
   );
   expect(markup).toContain('Rate-path repricing');
+  expect(markup).toContain('expected path of policy rates');
   expect(markup).toContain('underpricing how slow the cutting cycle gets');
   expect(markup).toContain('Core CPI re-accelerates above 0.3% m/m'); // raise condition
   expect(markup).toContain('href="/briefs/2026-07-08"'); // event linked to source brief
   expect(markup).toContain('dir-raise');
   expect(markup).toContain('dir-candidate');
   expect(markup).toContain('2y UST closes above 4.40%'); // related claim
-  expect(markup).toContain('Not enough history to chart conviction yet'); // 1 snapshot only
+  expect(markup).toContain('Two snapshots are needed.'); // 1 snapshot only
+});
+
+it('/map/[theme] publishes its own canonical and Open Graph URL', async () => {
+  const db = await createTestDb();
+  await seedAll(db);
+  const metadata = await generateMetadata({
+    params: Promise.resolve({ theme: 'rate-path-repricing' }),
+  });
+  expect(metadata.alternates?.canonical).toBe('/map/rate-path-repricing');
+  expect(metadata.openGraph?.url).toBe('/map/rate-path-repricing');
 });
 
 it('/map/[theme] 404s for an unknown slug', async () => {

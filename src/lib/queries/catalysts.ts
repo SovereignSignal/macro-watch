@@ -1,6 +1,7 @@
 import { asc } from 'drizzle-orm';
 import type { Db } from '@/db/client';
 import { forwardEvents } from '@/db/schema';
+import { publicText } from '@/lib/public-copy';
 
 export type ForwardEventRow = typeof forwardEvents.$inferSelect;
 
@@ -15,7 +16,7 @@ export async function getForwardEvents(
 }
 
 function str(v: unknown): string {
-  return typeof v === 'string' ? v : '';
+  return typeof v === 'string' ? publicText(v) : '';
 }
 
 function safeHttpsUrl(v: unknown): string | null {
@@ -54,6 +55,6 @@ export function resolutionFields(res: unknown): {
   return {
     outcome: str(r.outcome),
     resolvedAt: typeof r.resolved_at === 'string' ? r.resolved_at : null,
-    note: typeof r.note === 'string' ? r.note : null,
+    note: typeof r.note === 'string' ? publicText(r.note) : null,
   };
 }

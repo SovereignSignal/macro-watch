@@ -1,9 +1,9 @@
 /**
- * The field — position math for the /map hero (spec §5 /map).
+ * Position math for the /map hero (spec §5 /map).
  *
  * A theme's place on the field is meaning, not decoration:
- *   y — conviction band (high / medium / low; unrated reads low),
- *   x — 30-day directional pressure: the sum of its recent theme-event
+ *   y: conviction band (high / medium / low; unrated reads low),
+ *   x: 30-day directional pressure, the sum of its recent theme-event
  *       directions (raise +1, lower −1, candidate +0.5, invalidate −0.5,
  *       hold 0, retire −1), clamped to [−3, +3].
  * Retired themes are not plotted; they pin to a thin shelf below the bands.
@@ -143,15 +143,15 @@ export function xForPressure(p: number): number {
 /**
  * Field labels stay short: candidacy is already encoded (hollow diamonds),
  * so the boilerplate prefix drops, and anything longer than 28 characters
- * truncates — the tooltip and the grid below carry the full name.
+ * truncates. The tooltip and the grid below carry the full name.
  */
 export function fieldLabel(name: string): string {
-  const bare = name.replace(/^new theme candidate\s*[—–-]\s*/i, '');
+  const bare = name.replace(/^new theme candidate\s*[\u2014–-]\s*/i, '');
   if (bare.length <= LABEL_MAX) return bare;
   return `${bare.slice(0, LABEL_MAX - 1).trimEnd()}…`;
 }
 
-/** +2 / −1.5 / 0 — for tooltips and captions. */
+/** +2 / −1.5 / 0 for tooltips and captions. */
 export function formatPressure(p: number): string {
   if (p === 0) return '0';
   return p > 0 ? `+${p}` : `${p}`;

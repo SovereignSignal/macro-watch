@@ -48,6 +48,7 @@ it('getThemeMapCards merges themes rows with the latest state snapshot', async (
   const rate = cards[0];
   expect(rate.status).toBe('active');
   expect(rate.conviction).toBe('high');
+  expect(rate.description).toContain('expected path of policy rates');
   expect(rate.read).toContain('underpricing');
   expect(rate.triggers).toEqual([
     { name: '2y auction demand', state: 'live' },

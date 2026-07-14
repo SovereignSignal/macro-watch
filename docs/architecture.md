@@ -109,9 +109,13 @@ language; do not reintroduce that vocabulary.
   `OVERALL_MIN_SAMPLE = 8`, `GROUP_MIN_SAMPLE = 4`. `battingAverage(board, minSample)`
   returns `board.hitRate` only once `board.resolved >= minSample`; below the floor it
   returns `null` even if `hitRate` is technically computable, so a handful of early claims
-  can't produce a headline number that overstates confidence. The overall scoreboard uses
-  the 8-floor; per-theme and per-quality-class breakdowns use the 4-floor
+  can't produce a headline number that overstates confidence. Each track uses the 8-floor;
+  per-theme and per-evidence-type breakdowns use the 4-floor
   (`src/app/accountability/page.tsx`, `src/components/GradeMeter.tsx`).
+- **Prediction-market accuracy needs a market baseline.** `openingProbability()` reads the
+  probability assigned to the recorded side at admission. Once a track clears the display
+  floor, its card can show mean implied probability, accuracy lift versus that baseline,
+  and Brier score. A high raw hit rate alone does not establish forecasting edge.
 - **Quality class** (`qualityClass()`) is read straight off `payload.market_type`;
   claims with no `market_type` fall into an `'unclassified'` bucket rather than being
   dropped.
@@ -121,25 +125,26 @@ language; do not reintroduce that vocabulary.
 
 ### Accountability page structure
 
-`src/app/accountability/page.tsx` renders four sections; the first three are always
-computed off the **whole** ledger (`getClaims(db)`, no filters) — only the fourth is
-narrowed by query-string filters, so filtering the table never changes the math above it:
+`src/app/accountability/page.tsx` leads with orientation before statistics. Every section
+above the public ledger is computed from the **whole** record (`getClaims(db)`, no filters).
+Query-string filters only narrow the ledger table.
 
-- **"The book"** (`src/components/ClaimsBook.tsx`) — the whole ledger as a unit grid, one
-  cell per claim, oldest first, split into `Smart money` / `Map calls` tracks. No claim is
-  ever dropped from the grid regardless of status (no memory-holing).
-- **"Grading"** (`src/components/GradeMeter.tsx`) — the honest-denominator math above,
-  rendered as a two-state meter: **locked** (`resolved < floor`) shows a segmented
-  unlock meter and "`N` resolved — grading unlocks at `floor`"; **unlocked** shows the
-  batting average as the hero number. Overall/kind boards use `OVERALL_MIN_SAMPLE`;
-  per-theme and per-quality-class rows use `GROUP_MIN_SAMPLE`.
-- **"The horizon"** (`src/components/ExpiryHorizon.tsx`) — open claims (`pending` and
-  `judgment-required`) bucketed by expiry month across the next 12 months, plus a `12+`
-  bucket for anything further out and an implicit no-expiry bucket; already-overdue open
-  claims count in the current month rather than disappearing.
-- **"The ledger"** (`src/components/ClaimsTable.tsx`) — the filterable claims table
-  (`kind`, `status`, `theme`, `class` query params); the only section the URL's filters
-  affect.
+- **Record status** states whether the system is tracking, early, or ready to publish a
+  headline rate. It separates total rows, mechanically eligible claims, final decisions,
+  pending outcomes, and qualitative checks.
+- **Method and scope** explains admission, external verification, scoring, and the current
+  coverage boundary. Current automation covers smart-money Polymarket signals and weekly
+  map-derived market checks. Daily narrative is outside the claim record.
+- **Performance by track** (`src/components/GradeMeter.tsx`) keeps smart-money and map-derived
+  calls separate. Below the eight-decision floor it still shows correct and incorrect
+  counts. Theme and evidence-type breakdowns stay hidden until they have a final decision.
+- **Upcoming decisions** (`src/components/ExpiryHorizon.tsx`) includes only `pending`
+  mechanically eligible claims. Qualitative flip conditions never enter the expiry chart.
+- **Qualitative map review** names the human-review set and states that it never enters
+  performance statistics.
+- **Claim history** (`src/components/ClaimsBook.tsx`) shows one mark per mechanically eligible
+  claim. **Public ledger** (`src/components/ClaimsTable.tsx`) preserves every row with readable
+  labels, source links, opening probabilities, evidence types, and verified results.
 
 ## Field-map position semantics
 

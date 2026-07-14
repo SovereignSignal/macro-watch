@@ -2,6 +2,7 @@ import { sql } from 'drizzle-orm';
 import { z } from 'zod';
 import type { Db } from '@/db/client';
 import { themeEvents, themes, themeState } from '@/db/schema';
+import { publicValue } from '@/lib/public-copy';
 
 // ---------------------------------------------------------------- events ---
 
@@ -40,39 +41,40 @@ function statusFor(direction: ThemeEventPayload['direction']): string {
 export async function upsertThemeEvents(db: Db, events: ThemeEventPayload[]): Promise<number> {
   await db.transaction(async (tx) => {
     for (const e of events) {
-      const status = statusFor(e.direction);
+      const clean = publicValue(e);
+      const status = statusFor(clean.direction);
       await tx
         .insert(themes)
         .values({
-          slug: e.theme_slug,
-          name: e.theme_name,
+          slug: clean.theme_slug,
+          name: clean.theme_name,
           status,
-          firstSeen: e.date,
-          lastEventAt: e.date,
+          firstSeen: clean.date,
+          lastEventAt: clean.date,
         })
         .onConflictDoUpdate({
           target: themes.slug,
           set: {
             // Same date guard as status: an older backfilled event must not
             // overwrite a newer event's name either.
-            name: sql`case when ${e.date} >= ${themes.lastEventAt} then ${e.theme_name} else ${themes.name} end`,
-            firstSeen: sql`least(${themes.firstSeen}, ${e.date})`,
-            status: sql`case when ${e.date} >= ${themes.lastEventAt} then ${status} else ${themes.status} end`,
-            lastEventAt: sql`greatest(${themes.lastEventAt}, ${e.date})`,
+            name: sql`case when ${clean.date} >= ${themes.lastEventAt} then ${clean.theme_name} else ${themes.name} end`,
+            firstSeen: sql`least(${themes.firstSeen}, ${clean.date})`,
+            status: sql`case when ${clean.date} >= ${themes.lastEventAt} then ${status} else ${themes.status} end`,
+            lastEventAt: sql`greatest(${themes.lastEventAt}, ${clean.date})`,
           },
         });
       const eventRow = {
-        date: e.date,
-        themeSlug: e.theme_slug,
-        direction: e.direction,
-        evidence: e.evidence,
-        triggerState: e.trigger_state ?? null,
-        nextCheck: e.next_check ?? null,
-        source: e.source,
+        date: clean.date,
+        themeSlug: clean.theme_slug,
+        direction: clean.direction,
+        evidence: clean.evidence,
+        triggerState: clean.trigger_state ?? null,
+        nextCheck: clean.next_check ?? null,
+        source: clean.source,
       };
       await tx
         .insert(themeEvents)
-        .values({ eventId: e.event_id, ...eventRow })
+        .values({ eventId: clean.event_id, ...eventRow })
         .onConflictDoUpdate({ target: themeEvents.eventId, set: eventRow });
     }
   });
@@ -89,6 +91,7 @@ const themeStateCardSchema = z
   .object({
     slug: z.string().min(1),
     name: z.string().min(1),
+    description: z.string().min(1).nullish(),
     conviction: z.enum(['low', 'medium', 'high']).nullish(),
     current_read: z.string().nullish(),
     raise_conditions: z.union([z.string(), z.array(z.string())]).nullish(),
@@ -107,9 +110,10 @@ export type ThemeStateCard = z.infer<typeof themeStateCardSchema>;
 
 /** Idempotent snapshot upsert on taken_at; history rows accumulate. */
 export async function upsertThemeState(db: Db, p: ThemeStatePayload): Promise<number> {
+  const payload = publicValue(p.payload);
   await db
     .insert(themeState)
-    .values({ takenAt: new Date(p.taken_at), payload: p.payload })
-    .onConflictDoUpdate({ target: themeState.takenAt, set: { payload: p.payload } });
+    .values({ takenAt: new Date(p.taken_at), payload })
+    .onConflictDoUpdate({ target: themeState.takenAt, set: { payload } });
   return 1;
 }

@@ -3,7 +3,7 @@ const LEVEL: Record<string, number> = { low: 1, medium: 2, high: 3 };
 /**
  * The house conviction gauge: three diamonds, lit to the conviction level
  * (high ◆◆◆, medium ◆◆◇, low ◆◇◇). Candidate themes render their lit
- * positions hollow — a gauge not yet earned. Null conviction reads all-off.
+ * positions hollow. Null conviction reads all-off.
  */
 export function ConvictionScale({
   conviction,

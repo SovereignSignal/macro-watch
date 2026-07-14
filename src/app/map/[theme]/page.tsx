@@ -8,7 +8,9 @@ import { ThemeTimeline } from '@/components/ThemeTimeline';
 import { TriggerList } from '@/components/TriggerList';
 import { getDb } from '@/db/client';
 import { formatDate } from '@/lib/format';
+import { pageMetadata } from '@/lib/metadata';
 import { getThemeDetail } from '@/lib/queries/map';
+import { statusLabel } from '@/lib/claim-display';
 
 export const revalidate = 900;
 
@@ -19,15 +21,25 @@ const SLUG_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 export async function generateMetadata({ params }: { params: Promise<{ theme: string }> }) {
   const { theme } = await params;
-  if (!SLUG_RE.test(theme)) return { title: 'Theme' };
+  if (!SLUG_RE.test(theme)) {
+    return pageMetadata({
+      title: 'Theme',
+      description: 'A macro.watch theme dossier.',
+      path: '/map',
+    });
+  }
   const detail = await getThemeDetail(getDb(), theme);
-  return { title: detail ? detail.name : 'Theme' };
+  return pageMetadata({
+    title: detail ? detail.name : 'Theme',
+    description: detail?.card?.description ?? detail?.card?.read ?? 'A macro.watch theme dossier.',
+    path: `/map/${theme}`,
+  });
 }
 
 export default async function ThemePage({ params }: { params: Promise<{ theme: string }> }) {
   const { theme } = await params;
   if (!SLUG_RE.test(theme)) notFound();
-  // Deliberately NOT safeQuery: mirrors /briefs/[date] — a DB blip during
+  // Deliberately NOT safeQuery: mirrors /briefs/[date]. A DB blip during
   // background revalidation should keep serving the stale page, not 404 it.
   const detail = await getThemeDetail(getDb(), theme);
   if (!detail) notFound();
@@ -46,6 +58,7 @@ export default async function ThemePage({ params }: { params: Promise<{ theme: s
             hollow={detail.status === 'candidate'}
           />
         </div>
+        {card?.description ? <p className="theme-description">{card.description}</p> : null}
         <div className="theme-card-gauge">
           <span className={card?.conviction ? `conv conv-${card.conviction}` : 'conv'}>
             {card?.conviction ?? 'unrated'}
@@ -112,17 +125,17 @@ export default async function ThemePage({ params }: { params: Promise<{ theme: s
               <thead>
                 <tr>
                   <th>Opened</th>
-                  <th>Predicate</th>
+                  <th>Claim</th>
                   <th>Status</th>
                 </tr>
               </thead>
               <tbody>
                 {detail.relatedClaims.map((c) => (
                   <tr key={c.claimId}>
-                    <td className="cell-mono">{c.openedAt}</td>
+                    <td className="cell-mono">{formatDate(c.openedAt)}</td>
                     <td>{c.predicate}</td>
                     <td className={`cell-mono status-${c.status}`}>
-                      {c.status.replaceAll('-', ' ')}
+                      {statusLabel(c.status)}
                     </td>
                   </tr>
                 ))}

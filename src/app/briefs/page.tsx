@@ -2,12 +2,17 @@ import Link from 'next/link';
 import { EmptyState } from '@/components/EmptyState';
 import { getDb } from '@/db/client';
 import { formatDate } from '@/lib/format';
+import { pageMetadata } from '@/lib/metadata';
 import { listBriefs } from '@/lib/queries/briefs';
 import { safeQuery } from '@/lib/safe';
 import { sanitizePublicBriefText } from '@/lib/security/public-brief-html';
 
 export const dynamic = 'force-dynamic';
-export const metadata = { title: 'Brief archive' };
+export const metadata = pageMetadata({
+  title: 'Brief archive',
+  description: 'Daily macro briefs and weekend reviews published by SovsClaw.',
+  path: '/briefs',
+});
 
 const PAGE_SIZE = 25;
 
@@ -34,8 +39,8 @@ export default async function BriefsPage({
       <h1>Brief archive</h1>
       {items.length === 0 ? (
         <EmptyState>
-          No briefs yet. The archive grows from launch — daily at 14:00 UTC Monday–Friday, weekend
-          reviews Saturday.
+          No briefs yet. Daily briefs publish weekdays at 14:00 UTC. Weekend reviews publish
+          Saturday at 12:00 UTC.
         </EmptyState>
       ) : (
         <ul className="archive-list">
