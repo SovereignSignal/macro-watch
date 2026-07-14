@@ -92,11 +92,46 @@ it('claims: re-POST with a resolution updates in place', async () => {
 it('accepts the full pipeline status vocabulary', async () => {
   const statuses = ['pending', 'hit', 'miss', 'partial', 'expired', 'judgment-required', 'void'];
   for (const [i, status] of statuses.entries()) {
-    const res = await postClaims(post('claims', { ...CLAIM, claim_id: `cl-status-${i}`, status }));
+    const needsResolution = ['hit', 'miss', 'partial'].includes(status);
+    const res = await postClaims(
+      post('claims', {
+        ...CLAIM,
+        claim_id: `cl-status-${i}`,
+        status,
+        ...(needsResolution ? { resolved_at: '2026-07-20' } : {}),
+      }),
+    );
     expect(res.status).toBe(200);
   }
   const rows = await db.select().from(claims);
   expect(rows.map((r) => r.status).sort()).toEqual([...statuses].sort());
+});
+
+it('rejects mechanically decided claims without a resolution date', async () => {
+  const res = await postClaims(post('claims', { ...CLAIM, status: 'hit' }));
+  expect(res.status).toBe(422);
+});
+
+it('accepts source and opening-probability audit fields', async () => {
+  const res = await postClaims(
+    post('claims', {
+      ...CLAIM,
+      source_url: 'https://polymarket.com/event/example-market',
+      opening_probability: 0.72,
+      checkable: true,
+      claim_kind: 'prediction-market',
+    }),
+  );
+  expect(res.status).toBe(200);
+  const [row] = await db.select().from(claims);
+  expect((row.payload as Record<string, unknown>).opening_probability).toBe(0.72);
+});
+
+it('rejects unsafe or private claim source links', async () => {
+  for (const sourceUrl of ['http://example.com/source', 'https://localhost/source']) {
+    const res = await postClaims(post('claims', { ...CLAIM, source_url: sourceUrl }));
+    expect(res.status).toBe(422);
+  }
 });
 
 it('forward events: upcoming has null resolution; reconciled re-POST fills it', async () => {

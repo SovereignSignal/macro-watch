@@ -20,6 +20,7 @@ function Card({ card, spark, index }: { card: ThemeCard; spark?: number[]; index
         </h3>
         <ConvictionScale conviction={card.conviction} hollow={card.status === 'candidate'} />
       </div>
+      <p className="theme-description">{card.description}</p>
       <div className="theme-card-gauge">
         <span className={card.conviction ? `conv conv-${card.conviction}` : 'conv'}>
           {card.conviction ?? 'unrated'}
@@ -60,7 +61,7 @@ function Section({
 /** The living theme map grid, grouped by lifecycle (spec §5 /map). */
 export function ThemeGrid({ cards, sparks }: { cards: ThemeCard[]; sparks?: Sparks }) {
   if (cards.length === 0) {
-    return <EmptyState>No themes on the map yet. Themes appear as the system surfaces and grades them.</EmptyState>;
+    return <EmptyState>No themes yet.</EmptyState>;
   }
   const active = cards.filter((c) => c.status === 'active');
   const candidates = cards.filter((c) => c.status === 'candidate');

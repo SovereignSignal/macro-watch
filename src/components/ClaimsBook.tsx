@@ -1,12 +1,7 @@
 import type { ClaimRecord } from '@/lib/queries/accountability';
+import { payloadStr } from '@/lib/claim-display';
 import { EmptyState } from './EmptyState';
 import { STATUS_LABEL, STATUS_ORDER, StatusMark } from './StatusMark';
-
-function payloadStr(payload: unknown, key: string): string {
-  if (typeof payload !== 'object' || payload === null) return '';
-  const v = (payload as Record<string, unknown>)[key];
-  return typeof v === 'string' ? v : '';
-}
 
 function cellTitle(c: ClaimRecord): string {
   const predicate = payloadStr(c.payload, 'predicate') || c.claimId;
@@ -15,18 +10,18 @@ function cellTitle(c: ClaimRecord): string {
   if (c.resolvedAt) dates.push(`resolved ${c.resolvedAt}`);
   else if (c.expiresAt) dates.push(`expires ${c.expiresAt}`);
   else dates.push('open-ended');
-  return `${predicate} — ${label} · ${dates.join(' · ')}`;
+  return `${predicate}: ${label}, ${dates.join(', ')}`;
 }
 
 /**
- * "The book" — the whole claims ledger as a unit grid, one cell per claim
- * (spec §5: no memory-holing — every claim ever opened stays on the wall).
+ * "The book" is the whole claims ledger as a unit grid, one cell per claim
+ * (spec §5: no memory-holing; every claim ever opened stays on the wall).
  * Cells are chronological (oldest first), split by track, and each carries
  * a native SVG tooltip. Status = glyph + color, never color alone.
  */
 export function ClaimsBook({ claims }: { claims: ClaimRecord[] }) {
   if (claims.length === 0) {
-    return <EmptyState>No claims in the book yet — the first falsifiable claim opens it.</EmptyState>;
+    return <EmptyState>No claims yet.</EmptyState>;
   }
   const counts = new Map<string, number>(STATUS_ORDER.map((s) => [s, 0]));
   for (const c of claims) {
@@ -36,7 +31,7 @@ export function ClaimsBook({ claims }: { claims: ClaimRecord[] }) {
     (a, b) => a.openedAt.localeCompare(b.openedAt) || a.claimId.localeCompare(b.claimId),
   );
   const tracks: [string, ClaimRecord[]][] = [
-    ['Smart money', sorted.filter((c) => c.kind === 'smart_money')],
+    ['Wallet signals', sorted.filter((c) => c.kind === 'smart_money')],
     ['Map calls', sorted.filter((c) => c.kind === 'map')],
   ];
   return (
@@ -59,7 +54,7 @@ export function ClaimsBook({ claims }: { claims: ClaimRecord[] }) {
               {name} <span className="book-count">{list.length}</span>
             </p>
             {list.length === 0 ? (
-              <p className="panel-note">No claims on this track yet.</p>
+              <p className="panel-note">No claims yet.</p>
             ) : (
               <div className="book-grid">
                 {list.map((c) => (

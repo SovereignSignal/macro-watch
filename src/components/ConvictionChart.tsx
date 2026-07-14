@@ -5,11 +5,11 @@ const LABELS = ['low', 'med', 'high'];
 
 /**
  * Conviction-over-time as a hand-set step chart (spec §8: house charts, no
- * app-dashboard aesthetics — plain SVG, three ordinal levels).
+ * app-dashboard aesthetics, with plain SVG and three ordinal levels).
  */
 export function ConvictionChart({ points }: { points: ConvictionPoint[] }) {
   if (points.length < 2) {
-    return <EmptyState>Not enough history to chart conviction yet — it appears once two snapshots exist.</EmptyState>;
+    return <EmptyState>Two snapshots are needed.</EmptyState>;
   }
   const w = 560;
   const h = 120;
@@ -38,7 +38,7 @@ export function ConvictionChart({ points }: { points: ConvictionPoint[] }) {
         ))}
         <path d={d} className="chart-line" />
       </svg>
-      <figcaption>Conviction over time, from theme-state snapshots.</figcaption>
+      <figcaption>Conviction from theme snapshots.</figcaption>
     </figure>
   );
 }

@@ -5,7 +5,7 @@ import { UpdatedAgo } from './UpdatedAgo';
 
 /**
  * Masthead freshness chip: "updated Nm ago" from the latest dashboard
- * snapshot. Rendered behind <Suspense fallback={null}> in the root layout —
+ * snapshot. Rendered behind <Suspense fallback={null}> in the root layout.
  * no data (or a DB blip) means no chip, never a broken masthead.
  */
 export async function MastheadUpdated() {

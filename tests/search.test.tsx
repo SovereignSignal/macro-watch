@@ -61,13 +61,13 @@ it('search page renders a no-results state', async () => {
   const markup = renderToStaticMarkup(
     await SearchPage({ searchParams: Promise.resolve({ q: 'zzzznope' }) }),
   );
-  expect(markup).toContain('Nothing matched');
+  expect(markup).toContain('No results for');
 });
 
 it('about page explains the system and carries the disclaimer', () => {
   const markup = renderToStaticMarkup(<AboutPage />);
   expect(markup).toContain('Sovereign Signal');
-  expect(markup).toContain('deterministic');
-  expect(markup).toContain('Not investment advice');
+  expect(markup).toContain('Structure and data checks');
+  expect(markup).toContain('No investment advice');
   expect(markup).toContain('href="/accountability"');
 });

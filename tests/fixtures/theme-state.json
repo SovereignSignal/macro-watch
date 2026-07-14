@@ -6,6 +6,7 @@
       {
         "slug": "rate-path-repricing",
         "name": "Rate-path repricing",
+        "description": "Tracks how incoming data changes the expected path of policy rates and the market pricing around it.",
         "conviction": "high",
         "current_read": "The front end is still underpricing how slow the cutting cycle gets.",
         "raise_conditions": ["Core CPI re-accelerates above 0.3% m/m", "Another tailed 2y auction"],
@@ -18,6 +19,7 @@
       {
         "slug": "dollar-downtrend",
         "name": "Dollar downtrend",
+        "description": "Tracks whether rate differentials, capital flows, and price action support a sustained decline in the US dollar.",
         "conviction": "medium",
         "current_read": "Differentials are narrowing on schedule; the weekly closes keep confirming.",
         "raise_conditions": "ECB holds while the Fed blinks",
@@ -27,6 +29,7 @@
       {
         "slug": "china-reflation",
         "name": "China reflation",
+        "description": "Tracks whether Chinese stimulus is strong enough to revive domestic demand and commodity-sensitive growth.",
         "conviction": "low",
         "current_read": "Retired 2026-07-05: the stimulus impulse faded before commodities ever confirmed."
       }

@@ -6,7 +6,7 @@ import { Mark } from '@/components/Mark';
 import { MastheadUpdated } from '@/components/MastheadUpdated';
 import './globals.css';
 
-// Self-hosted at build time by next/font — no runtime requests leave the site.
+// Self-hosted at build time by next/font. No runtime requests leave the site.
 const fraunces = Fraunces({
   subsets: ['latin'],
   weight: ['500', '700'],
@@ -26,15 +26,12 @@ const siteOrigin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://web-production-c
 export const metadata: Metadata = {
   metadataBase: new URL(siteOrigin),
   title: { default: 'macro.watch', template: '%s · macro.watch' },
-  description:
-    'AI-composed macro intelligence — deterministically validated, self-graded, published daily. SovsClaw, a Sovereign Signal system.',
-  alternates: { canonical: '/' },
+  description: 'Daily macro briefs, live themes, catalysts, and a public claim record.',
   openGraph: {
     type: 'website',
     siteName: 'macro.watch',
     title: 'macro.watch',
-    description: 'AI-composed macro intelligence, deterministically validated and self-graded.',
-    url: '/',
+    description: 'Daily macro briefs, live themes, catalysts, and a public claim record.',
   },
 };
 
@@ -49,13 +46,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <header className="site-header">
           <div className="masthead">
             <div>
-              <Link href="/" className="site-name" aria-label="macro.watch — home">
+              <Link href="/" className="site-name" aria-label="macro.watch home">
                 <Mark className="site-mark" size={26} />
                 <span className="site-wordmark">
                   macro<span className="site-name-tld">.watch</span>
                 </span>
               </Link>
-              <p className="byline">SovsClaw — a Sovereign Signal system</p>
+              <p className="byline">SovsClaw by Sovereign Signal</p>
             </div>
             <Suspense fallback={null}>
               <MastheadUpdated />
@@ -77,12 +74,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <span className="footer-mark" aria-hidden="true">
               ◆
             </span>{' '}
-            SovsClaw — a Sovereign Signal system. AI-composed, deterministically validated,
-            self-graded.
+            SovsClaw by Sovereign Signal. AI composed. Data and structure checked.
           </p>
           <p>
-            Not investment advice. Nothing here is a recommendation to buy or sell any security or
-            asset.
+            Research only. No buy or sell recommendations.
           </p>
           <p className="footer-links">
             <a href="/feed.xml">RSS</a> · <Link href="/about">About</Link> ·{' '}

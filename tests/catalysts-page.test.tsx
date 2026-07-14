@@ -20,7 +20,7 @@ it('renders upcoming with surprise framing and resolved as expectation vs outcom
   await seedAll(db);
   const markup = renderToStaticMarkup(await CatalystsPage());
   expect(markup).toContain('US CPI (June)');
-  expect(markup).toContain('What would surprise');
+  expect(markup).toContain('Surprise');
   expect(markup).toContain('A 0.4%+ core print');
   expect(markup).toContain('US payrolls (June)');
   expect(markup).toContain('Outcome');

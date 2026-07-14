@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import type { Db } from '@/db/client';
 import { panelSnapshots } from '@/db/schema';
+import { publicValue } from '@/lib/public-copy';
 
 export type PanelKind = 'dashboard' | 'odds_lens' | 'scoreboard';
 
@@ -15,12 +16,13 @@ export type PanelPayload = z.infer<typeof panelSchema>;
 
 /** Idempotent on the natural key (kind, taken_at). */
 export async function upsertPanel(db: Db, p: PanelPayload): Promise<number> {
+  const payload = publicValue(p.payload);
   await db
     .insert(panelSnapshots)
-    .values({ kind: p.kind, takenAt: new Date(p.taken_at), payload: p.payload })
+    .values({ kind: p.kind, takenAt: new Date(p.taken_at), payload })
     .onConflictDoUpdate({
       target: [panelSnapshots.kind, panelSnapshots.takenAt],
-      set: { payload: p.payload },
+      set: { payload },
     });
   return 1;
 }

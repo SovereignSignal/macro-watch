@@ -5,10 +5,16 @@ import { getLatestBrief } from '@/lib/queries/briefs';
 import { getConvictionSparks, getThemeMapCards } from '@/lib/queries/map';
 import { getLatestPanel } from '@/lib/queries/panels';
 import { safeQuery } from '@/lib/safe';
+import { pageMetadata } from '@/lib/metadata';
 
 // ISR fallback: pages keep serving if Postgres blips; ingest revalidates
 // on-demand the moment a publish lands (spec §6).
 export const dynamic = 'force-dynamic';
+export const metadata = pageMetadata({
+  title: 'macro.watch',
+  description: 'The latest macro brief, market dashboard, and active themes.',
+  path: '/',
+});
 
 export default async function HomePage() {
   const db = getDb();

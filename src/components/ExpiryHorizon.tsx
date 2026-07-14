@@ -42,16 +42,16 @@ function roundTopBar(x: number, yTop: number, h: number): string {
   return `M${x} ${y0} V${yTop + r} Q${x} ${yTop} ${x + r} ${yTop} H${x + BAR_W - r} Q${x + BAR_W} ${yTop} ${x + BAR_W} ${yTop + r} V${y0} Z`;
 }
 
-// Open = still awaiting a verdict: pending, or resolved-in-time-but-unjudged.
-const OPEN_STATUSES = new Set(['pending', 'judgment-required']);
+// Only mechanically scoreable claims with a future outcome belong here.
+const OPEN_STATUSES = new Set(['pending']);
 
 /**
- * "The horizon" — when the open book comes due: open claims (pending +
- * judgment-required) bucketed by expiry month (next 12 months), plus a `12+`
+ * "The horizon" shows when the open book comes due: pending mechanical claims
+ * bucketed by expiry month (next 12 months), plus a `12+`
  * bucket if anything reaches further and an `OPEN` bucket for claims with no
- * expiry. Already-overdue open claims count in the current month — nothing
- * is memory-holed. Single amber-neutral hue (one series); counts label the
- * maxima only; every bar carries a native SVG tooltip.
+ * expiry. Already-overdue open claims count in the current month. Nothing
+ * is memory-holed. Single amber-neutral hue (one series); every nonzero bar
+ * carries a visible count and a native SVG tooltip.
  */
 export function ExpiryHorizon({ claims, now = new Date() }: { claims: ClaimRecord[]; now?: Date }) {
   const openBook = claims.filter((c) => OPEN_STATUSES.has(c.status));
@@ -79,14 +79,14 @@ export function ExpiryHorizon({ claims, now = new Date() }: { claims: ClaimRecor
       label: MONTH_SHORT[m],
       year: i === 0 || m === 0 ? `’${String(y).slice(2)}` : undefined,
       count,
-      title: `${MONTH_LONG[m]} ${y} — ${count} open claim${count === 1 ? '' : 's'} expire${count === 1 ? 's' : ''}`,
+      title: `${MONTH_LONG[m]} ${y}: ${count} open claim${count === 1 ? '' : 's'}`,
     };
   });
   if (later > 0) {
     slots.push({
       label: '12+',
       count: later,
-      title: `Beyond 12 months — ${later} open claim${later === 1 ? '' : 's'}`,
+      title: `Beyond 12 months: ${later} open claim${later === 1 ? '' : 's'}`,
       separated: true,
     });
   }
@@ -94,7 +94,7 @@ export function ExpiryHorizon({ claims, now = new Date() }: { claims: ClaimRecor
     slots.push({
       label: 'OPEN',
       count: open,
-      title: `Open-ended — ${open} open claim${open === 1 ? '' : 's'} with no expiry`,
+      title: `No due date: ${open} open claim${open === 1 ? '' : 's'}`,
       separated: later === 0,
     });
   }
@@ -133,7 +133,7 @@ export function ExpiryHorizon({ claims, now = new Date() }: { claims: ClaimRecor
                 {/* full-column hit target so the tooltip never needs pinpoint hover */}
                 <rect x={s.x} y="0" width={SLOT_W} height={baseline} className="horizon-slot" />
                 {s.count > 0 ? <path d={roundTopBar(s.x + 1, baseline - h, h)} className="horizon-bar" /> : null}
-                {s.count === max ? (
+                {s.count > 0 ? (
                   <text x={cx} y={baseline - h - 5} textAnchor="middle" className="horizon-count">
                     {s.count}
                   </text>
@@ -152,7 +152,7 @@ export function ExpiryHorizon({ claims, now = new Date() }: { claims: ClaimRecor
         </svg>
       </div>
       <figcaption>
-        Open claims (pending + judgment required) by expiry month — hover a bar for the count.
+        Pending eligible claims by decision month.
       </figcaption>
     </figure>
   );

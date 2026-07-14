@@ -4,10 +4,12 @@ import type { Db } from '@/db/client';
 import { briefs, claims, themeEvents, themes, themeState } from '@/db/schema';
 import { type FieldEvent, windowStart } from '@/lib/field-map';
 import type { ThemeStateCard } from '@/lib/ingest/themes';
+import { publicText, publicValue } from '@/lib/public-copy';
 
 export type ThemeCard = {
   slug: string;
   name: string;
+  description: string;
   status: string;
   firstSeen: string | null;
   lastEventAt: string | null;
@@ -18,6 +20,43 @@ export type ThemeCard = {
   lowerConditions: string[];
 };
 
+const THEME_DESCRIPTIONS: Record<string, string> = {
+  'narrative-rotation':
+    'Tracks shifts between crowded market narratives.',
+  'iran-hormuz-oil':
+    'Tracks whether Iran and Hormuz risk is causing a real oil shortage.',
+  'fed-inflation-rates':
+    'Tracks how inflation and jobs data change the expected Fed path.',
+  'ai-semis-momentum':
+    'Tracks AI demand against valuation, crowding, and financing risk.',
+  'stablecoins-tokenized-cash':
+    'Tracks stablecoins and tokenized cash as financial infrastructure.',
+  'china-capital-tech':
+    'Tracks how Chinese policy and technology restrictions affect global demand.',
+  'credit-private-markets':
+    'Tracks stress and liquidity in private credit and leveraged finance.',
+  'supply-chains-trade':
+    'Tracks how tariffs, export controls, and logistics disruptions change trade.',
+  'em-political-stress':
+    'Tracks political and fiscal stress across emerging markets.',
+  'crypto-btc':
+    'Tracks crypto as a signal for liquidity, policy, and risk appetite.',
+  'rate-path-repricing':
+    'Tracks how new data changes the expected path of policy rates.',
+  'dollar-downtrend':
+    'Tracks whether rates and capital flows support a weaker US dollar.',
+  'china-reflation':
+    'Tracks whether Chinese stimulus is reviving demand and commodity growth.',
+};
+
+function themeDescription(slug: string, name: string, supplied?: string | null): string {
+  return publicText(
+    supplied?.trim() ||
+    THEME_DESCRIPTIONS[slug] ||
+    `Tracks ${name.toLowerCase()}.`
+  );
+}
+
 function toList(v: string | string[] | null | undefined): string[] {
   if (!v) return [];
   return Array.isArray(v) ? v : [v];
@@ -27,7 +66,10 @@ function stateCardsOf(payload: unknown): Map<string, ThemeStateCard> {
   const out = new Map<string, ThemeStateCard>();
   const cards = (payload as { themes?: ThemeStateCard[] })?.themes;
   if (Array.isArray(cards)) {
-    for (const c of cards) out.set(c.slug, c);
+    for (const c of cards) {
+      const clean = publicValue(c);
+      out.set(clean.slug, clean);
+    }
   }
   return out;
 }
@@ -54,7 +96,8 @@ export async function getThemeMapCards(
     const s = stateCards.get(t.slug);
     bySlug.set(t.slug, {
       slug: t.slug,
-      name: t.name,
+      name: publicText(t.name),
+      description: themeDescription(t.slug, t.name, s?.description),
       status: t.status,
       firstSeen: t.firstSeen,
       lastEventAt: t.lastEventAt,
@@ -71,6 +114,7 @@ export async function getThemeMapCards(
       bySlug.set(slug, {
         slug,
         name: s.name,
+        description: themeDescription(slug, s.name, s.description),
         status: 'active',
         firstSeen: null,
         lastEventAt: null,
@@ -94,7 +138,7 @@ export async function getThemeMapCards(
 
 /**
  * Every theme event inside the field's 30-day pressure window, grouped by
- * theme — feeds the /map hero's x-axis (presentation read only).
+ * theme. Feeds the /map hero's x-axis (presentation read only).
  */
 export async function getRecentThemeEvents(
   db: Db,
@@ -130,7 +174,7 @@ export type ThemeDetail = {
   relatedClaims: RelatedClaim[];
   conviction: ConvictionPoint[];
   // Event dates (subset of `events[].date`) that have a matching published
-  // brief — most theme events land on days without one, so the timeline
+  // brief. Most theme events land on days without one, so the timeline
   // only links the ones that resolve to a real permalink (spec §5).
   briefDates: string[];
 };
@@ -186,11 +230,11 @@ export const getThemeDetail = cache(async (db: Db, slug: string): Promise<ThemeD
   const card = cards.find((c) => c.slug === slug) ?? null;
   if (!themeRow && !card) return null;
 
-  const events = await db
+  const events = publicValue(await db
     .select()
     .from(themeEvents)
     .where(eq(themeEvents.themeSlug, slug))
-    .orderBy(desc(themeEvents.date), desc(themeEvents.eventId));
+    .orderBy(desc(themeEvents.date), desc(themeEvents.eventId)));
 
   const eventDates = [...new Set(events.map((e) => e.date))];
   const briefRows = eventDates.length
@@ -214,13 +258,13 @@ export const getThemeDetail = cache(async (db: Db, slug: string): Promise<ThemeD
       claimId: c.claimId,
       openedAt: c.openedAt,
       status: c.status,
-      predicate: typeof predicate === 'string' ? predicate : c.claimId,
+      predicate: typeof predicate === 'string' ? publicText(predicate) : c.claimId,
     };
   });
 
   return {
     slug,
-    name: themeRow?.name ?? card?.name ?? slug,
+    name: publicText(themeRow?.name ?? card?.name ?? slug),
     status: themeRow?.status ?? card?.status ?? 'active',
     firstSeen: themeRow?.firstSeen ?? null,
     lastEventAt: themeRow?.lastEventAt ?? null,

@@ -2,11 +2,16 @@ import Link from 'next/link';
 import { EmptyState } from '@/components/EmptyState';
 import { getDb } from '@/db/client';
 import { formatDate } from '@/lib/format';
+import { pageMetadata } from '@/lib/metadata';
 import { searchAll } from '@/lib/queries/search';
 import { safeQuery } from '@/lib/safe';
 
 export const dynamic = 'force-dynamic';
-export const metadata = { title: 'Search' };
+export const metadata = pageMetadata({
+  title: 'Search',
+  description: 'Search macro.watch briefs, theme events, and claims.',
+  path: '/search',
+});
 
 export default async function SearchPage({
   searchParams,
@@ -24,16 +29,16 @@ export default async function SearchPage({
           type="search"
           name="q"
           defaultValue={q}
-          placeholder="briefs, theme events, claims…"
+          placeholder="briefs, themes, claims"
           aria-label="Search query"
         />
         <button type="submit">Search</button>
       </form>
       {q.trim() === '' ? (
-        <p className="brief-meta">Full-text search across every brief, theme event, and claim.</p>
+        <p className="brief-meta">Search briefs, theme events, and claims.</p>
       ) : results.length === 0 ? (
         <EmptyState>
-          Nothing matched “{q}”. Try a ticker, a theme name, or a phrase from a brief.
+          No results for “{q}”. Try a ticker, theme, or phrase.
         </EmptyState>
       ) : (
         <ul className="archive-list">

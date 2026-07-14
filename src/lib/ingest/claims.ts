@@ -2,6 +2,7 @@ import { notInArray } from 'drizzle-orm';
 import { z } from 'zod';
 import type { Db } from '@/db/client';
 import { claims, forwardEvents } from '@/db/schema';
+import { publicHttpsUrl, publicValue } from '@/lib/public-copy';
 
 // ---------------------------------------------------------------- claims ---
 
@@ -30,6 +31,12 @@ export const claimSchema = z
     themes: z.array(z.string()).default([]),
     predicate: z.string().min(1),
     data_anchor: z.string().nullish(),
+    source_url: z.string().url().refine((value) => publicHttpsUrl(value) !== null, {
+      message: 'must be a public HTTPS URL',
+    }).nullish(),
+    checkable: z.boolean().nullish(),
+    claim_kind: z.string().nullish(),
+    opening_probability: z.number().min(0).max(1).nullish(),
     // Quality fields (spec §3): market_type + observable/narrative/geo scores.
     market_type: z.string().nullish(),
     observable_score: z.number().nullish(),
@@ -41,7 +48,23 @@ export const claimSchema = z
     resolved_at: z.string().regex(DATE_RE).nullish(),
     resolution_note: z.string().nullish(),
   })
-  .passthrough();
+  .passthrough()
+  .superRefine((claim, ctx) => {
+    if (['hit', 'miss', 'partial'].includes(claim.status) && !claim.resolved_at) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['resolved_at'],
+        message: `${claim.status} claims require resolved_at`,
+      });
+    }
+    if (['pending', 'judgment-required'].includes(claim.status) && claim.resolved_at) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['resolved_at'],
+        message: `${claim.status} claims cannot carry resolved_at`,
+      });
+    }
+  });
 
 export type ClaimPayload = z.infer<typeof claimSchema>;
 
@@ -53,14 +76,15 @@ export const claimsBodySchema = z.union([
 /** Idempotent upsert on claim_id; the full body rides in payload jsonb. */
 export async function upsertClaims(db: Db, list: ClaimPayload[]): Promise<number> {
   for (const c of list) {
+    const clean = publicValue(c);
     const row = {
-      kind: c.kind,
-      themes: c.themes,
-      payload: c as Record<string, unknown>,
-      status: c.status,
-      openedAt: c.opened_at,
-      expiresAt: c.expires_at ?? null,
-      resolvedAt: c.resolved_at ?? null,
+      kind: clean.kind,
+      themes: clean.themes,
+      payload: clean as Record<string, unknown>,
+      status: clean.status,
+      openedAt: clean.opened_at,
+      expiresAt: clean.expires_at ?? null,
+      resolvedAt: clean.resolved_at ?? null,
     };
     await db
       .insert(claims)
@@ -112,7 +136,8 @@ export type ForwardEventsBody = z.infer<typeof forwardEventsBodySchema>;
 export async function upsertForwardEvents(db: Db, body: ForwardEventsBody): Promise<number> {
   await db.transaction(async (tx) => {
     for (const f of body.events) {
-      const { resolution, event_id, date, ...payload } = f;
+      const clean = publicValue(f);
+      const { resolution, event_id, date, ...payload } = clean;
       const row = {
         eventDate: date,
         payload: { event_id, date, ...payload } as Record<string, unknown>,

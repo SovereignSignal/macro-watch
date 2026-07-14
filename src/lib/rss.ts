@@ -29,7 +29,7 @@ export function buildFeed(items: BriefListItem[]): string {
     '  <channel>',
     '    <title>macro.watch</title>',
     `    <link>${base}</link>`,
-    '    <description>Daily macro brief from SovsClaw — a Sovereign Signal system. AI-composed, deterministically validated, self-graded.</description>',
+    '    <description>Daily macro briefs from SovsClaw by Sovereign Signal.</description>',
     '    <language>en</language>',
     entries,
     '  </channel>',

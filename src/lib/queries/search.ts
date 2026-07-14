@@ -3,6 +3,7 @@ import type { Db } from '@/db/client';
 import { briefs, claims, themeEvents } from '@/db/schema';
 import { PUBLIC_BRIEF_MIN_DATE } from '@/lib/queries/briefs';
 import { sanitizePublicBriefText } from '@/lib/security/public-brief-html';
+import { publicText } from '@/lib/public-copy';
 
 export type SearchResult = {
   type: 'brief' | 'theme-event' | 'claim';
@@ -16,8 +17,8 @@ const LIMIT = 20;
 
 /**
  * Postgres full-text across briefs, theme events, claims (spec §5 /search).
- * `q` always travels as a bound parameter via drizzle's `sql` tag — never
- * string-concatenated — so quotes and injection attempts are just inert
+ * `q` always travels as a bound parameter via drizzle's `sql` tag, never
+ * string-concatenated, so quotes and injection attempts are just inert
  * search text (see tests/search.test.tsx).
  */
 export async function searchAll(db: Db, q: string): Promise<SearchResult[]> {
@@ -69,9 +70,9 @@ export async function searchAll(db: Db, q: string): Promise<SearchResult[]> {
     ...eventHits.map(
       (e): SearchResult => ({
         type: 'theme-event',
-        title: `${e.slug} — ${e.direction}`,
+        title: `${e.slug}: ${e.direction}`,
         href: `/map/${e.slug}`,
-        snippet: e.evidence,
+        snippet: publicText(e.evidence),
         date: e.date,
       }),
     ),
@@ -79,7 +80,7 @@ export async function searchAll(db: Db, q: string): Promise<SearchResult[]> {
       const predicate = (c.payload as Record<string, unknown>).predicate;
       return {
         type: 'claim',
-        title: typeof predicate === 'string' ? predicate : c.claimId,
+        title: typeof predicate === 'string' ? publicText(predicate) : c.claimId,
         href: '/accountability',
         snippet: `status: ${c.status.replaceAll('-', ' ')}`,
         date: c.openedAt,

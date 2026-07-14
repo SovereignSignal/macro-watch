@@ -18,7 +18,7 @@ export function HomeView(props: {
         <BriefArticle brief={props.brief} />
       ) : (
         <EmptyState>
-          No brief published yet. Dailies land at 14:00 UTC Monday–Friday; the weekend review lands
+          No brief yet. Daily briefs publish weekdays at 14:00 UTC. Weekend reviews publish
           Saturday at 12:00 UTC.
         </EmptyState>
       )}

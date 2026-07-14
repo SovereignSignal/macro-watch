@@ -216,6 +216,16 @@ describe('sanitizePublicBriefHtml', () => {
     expect(sanitizePublicBriefText('Contact analyst&amp;#64;example&amp;#46;com')).toBe('Contact [redacted email]');
     expect(sanitizePublicBriefText('📄 View this brief in Notion | 📋 SovsClaw Macro Brief Log — all briefs')).toBe('|');
   });
+
+  it('removes em dashes from public brief text and html', () => {
+    expect(sanitizePublicBriefText('Rates \u2014 hold')).toBe('Rates, hold');
+    const html = sanitizePublicBriefHtml('<p>Oil&mdash; easing.</p><p>Fed &#8212; hold.</p>');
+
+    expect(html).toContain('Oil, easing.');
+    expect(html).toContain('Fed, hold.');
+    expect(html).not.toContain('\u2014');
+    expect(html).not.toMatch(/&mdash;|&#8212;|&#x2014;/i);
+  });
 });
 
 it('sanitizes legacy database HTML immediately before dangerouslySetInnerHTML', () => {

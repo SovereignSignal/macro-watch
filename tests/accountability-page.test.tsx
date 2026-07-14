@@ -23,26 +23,26 @@ it('getClaims filters by kind, status, theme, and quality class', async () => {
   expect(await getClaims(db, { qualityClass: 'unclassified' })).toHaveLength(0);
 });
 
-it('renders scoreboards from the seeded ledger, honestly suppressed below sample thresholds', async () => {
+it('orients the reader and renders track scoreboards below the headline-rate floor', async () => {
   const db = await createTestDb();
   await seedAll(db);
   const markup = renderToStaticMarkup(await page());
   expect(markup).toContain('Accountability');
-  expect(markup).toContain('By theme');
-  expect(markup).toContain('By quality class');
+  expect(markup).toContain('How the record works');
+  expect(markup).toContain('Decided claims by theme');
+  expect(markup).toContain('Decided claims by evidence type');
   expect(markup).toContain('rates'); // market_type class board
   expect(markup).toContain('2y UST closes above 4.40%'); // claims table row
-  // 5 seeded claims -> 2 resolved overall (1 hit, 1 miss). That's well below
-  // the 8-resolved floor, so the honest locked state renders instead of a
-  // bare "50%" that would overstate confidence on two claims.
-  expect(markup).toContain('2 resolved — grading unlocks at 8');
-  expect(markup).not.toContain('batting average');
+  expect(markup).toContain('1 of 8 decisions');
+  expect(markup).toContain('1 correct');
+  expect(markup).not.toContain('decision accuracy');
 });
 
 it('honest empty state with zero claims', async () => {
   await createTestDb();
   const markup = renderToStaticMarkup(await page());
-  expect(markup).toContain('0 resolved — grading unlocks at 8');
+  expect(markup).toContain('Tracking phase');
+  expect(markup).toContain('No eligible claims have resolved yet.');
 });
 
 it('filters narrow the table but never the scoreboards', async () => {
@@ -51,18 +51,18 @@ it('filters narrow the table but never the scoreboards', async () => {
   const markup = renderToStaticMarkup(await page({ status: 'miss' }));
   // The book above the ledger always shows every claim (no memory-holing), so
   // scope the narrowing assertions to the ledger table itself.
-  const ledger = markup.slice(markup.indexOf('The ledger'));
+  const ledger = markup.slice(markup.indexOf('Public ledger'));
   expect(ledger).toContain('LME copper closes above'); // the one miss claim
   expect(ledger).not.toContain('EURUSD trades 1.14'); // expired claim filtered out of table
   // Scoreboards are still computed from the full ledger, filter or no.
-  expect(markup).toContain('2 resolved — grading unlocks at 8');
+  expect(markup).toContain('2 decisions recorded.');
 });
 
 it('the quality class filter narrows the table by market_type', async () => {
   const db = await createTestDb();
   await seedAll(db);
   const markup = renderToStaticMarkup(await page({ class: 'commodities' }));
-  const ledger = markup.slice(markup.indexOf('The ledger'));
+  const ledger = markup.slice(markup.indexOf('Public ledger'));
   expect(ledger).toContain('LME copper closes above'); // the one commodities claim
   expect(ledger).not.toContain('2y UST closes above 4.40%'); // a rates claim, filtered out
 });
@@ -84,30 +84,28 @@ it('renders judgment-only flip conditions with human predicate and subtype', asy
   );
   const markup = renderToStaticMarkup(await page());
   expect(markup).toContain('Lower if losses broaden into public credit.');
-  expect(markup).toContain('map · flip condition');
+  expect(markup).toContain('qualitative map review');
+  expect(markup).toContain('1 flip condition needs human review.');
   expect(markup).not.toContain('map:flip:1</td>');
 });
 
-it('crossing the sample threshold flips a board from suppressed to a numeric batting average', async () => {
+it('crossing the track sample threshold reveals decision accuracy', async () => {
   const db = await createTestDb();
   await seedAll(db);
-  // rate-path-repricing already carries 1 hit (pending claim stays pending).
-  // Add 5 hits + 1 miss, all themed rate-path-repricing: the theme reaches
-  // 7 resolved (over its 4-sample floor) and the overall ledger reaches
-  // 8 resolved (exactly its floor) in the same stroke.
-  const extra = Array.from({ length: 6 }, (_, i) => ({
+  // Map-derived claims already carry one miss. Add six hits and one miss so
+  // that track reaches eight final decisions and can show a headline rate.
+  const extra = Array.from({ length: 7 }, (_, i) => ({
     claim_id: `cl-extra-${i}`,
     kind: 'map',
     themes: ['rate-path-repricing'],
     predicate: `synthetic claim ${i}`,
     opened_at: '2026-07-01',
-    status: i < 5 ? 'hit' : 'miss',
+    status: i < 6 ? 'hit' : 'miss',
+    resolved_at: '2026-07-12',
   }));
   await upsertClaims(db, claimsBodySchema.parse(extra));
   const markup = renderToStaticMarkup(await page());
-  // Overall: hits = 1 (seed) + 5 = 6, misses = 1 (seed) + 1 = 2, resolved = 8.
-  expect(markup).toContain('75%'); // 6/8, at the floor
-  // rate-path-repricing: hits = 1 + 5 = 6, misses = 0 + 1 = 1, resolved = 7.
-  expect(markup).toContain('86%'); // round(6/7 * 100)
-  expect(markup).toContain('batting average');
+  expect(markup).toContain('75%'); // map track: 6 hits / 8 decisions
+  expect(markup).toContain('88%'); // theme: seed hit + 6 hits / 8 decisions
+  expect(markup).toContain('accuracy');
 });

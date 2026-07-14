@@ -3,9 +3,9 @@
 **Live:** https://web-production-cb2e81.up.railway.app
 
 macro.watch is SovsClaw's public face — a Sovereign Signal system. It publishes the
-sovs-macro pipeline's output as a free, public, self-grading macro-intelligence site: the
-daily/weekend brief, a living theme map with full history, an accountability scoreboard
-that grades the system's own claims (honest denominator, no vanity stats), and a
+sovs-macro pipeline's output as a free, public macro-intelligence site: the daily/weekend
+brief, a living theme map with full history, a public record that grades eligible market
+claims against external outcomes, and a
 forward-looking catalyst board. Nothing on the site is hand-edited — every page renders
 from data pushed here by the upstream pipeline. See `docs/specs/2026-07-11-macro-watch-design.md`
 for the full design spec this repo implements.
@@ -38,7 +38,7 @@ projection were dropped, re-publishing from pipeline state would rebuild it.
 | `/` | Today's brief in full, the dashboard panel, a compact theme-map strip |
 | `/briefs`, `/briefs/[date]` | Brief archive with permalinks (daily + weekend) |
 | `/map`, `/map/[theme]` | The living theme map (see below) + per-theme event timeline, related claims, conviction-over-time |
-| `/accountability` | Self-grading scoreboards (overall, per-theme, per-quality-class) + filterable claims table |
+| `/accountability` | Method and coverage, track-specific performance, upcoming decisions, qualitative review, and a source-linked public ledger |
 | `/catalysts` | Upcoming forward events (what-would-surprise framing) and resolved events (expectation vs. outcome) |
 | `/search` | Postgres full-text search across briefs, theme events, and claims |
 | `/feed.xml` | RSS feed of briefs |

@@ -1,12 +1,13 @@
 import type { NextConfig } from 'next';
 
+const development = process.env.NODE_ENV === 'development';
 const contentSecurityPolicy = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline'",
+  `script-src 'self' 'unsafe-inline'${development ? " 'unsafe-eval'" : ''}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' https: data:",
   "font-src 'self' data:",
-  "connect-src 'self'",
+  `connect-src 'self'${development ? ' ws:' : ''}`,
   "object-src 'none'",
   "frame-src 'none'",
   "frame-ancestors 'none'",
