@@ -241,3 +241,13 @@ it('sanitizes legacy database HTML immediately before dangerouslySetInnerHTML', 
   expect(markup).toContain('Safe text');
   expect(markup).not.toMatch(/script|onclick|analyst@example\.com|__pwned|steal\(\)/i);
 });
+
+it('removes a repeated publication date from the start of the brief body', () => {
+  const markup = renderToStaticMarkup(
+    <BriefArticle brief={brief('Sunday, July 12, 2026<h2>Today’s signal</h2><p>Public analysis.</p>')} />,
+  );
+
+  expect(markup).toContain('July 12, 2026');
+  expect(markup).not.toContain('Sunday, July 12, 2026');
+  expect(markup).toContain('<h2>Today’s signal</h2>');
+});

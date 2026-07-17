@@ -13,10 +13,27 @@ const MONTHS = [
   'December',
 ];
 
+const WEEKDAYS = [
+  'Sunday',
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
+];
+
 /** Renders a YYYY-MM-DD date as e.g. "July 11, 2026". */
 export function formatDate(isoDate: string): string {
   const [y, m, d] = isoDate.split('-').map(Number);
   return `${MONTHS[m - 1]} ${d}, ${y}`;
+}
+
+/** Renders a YYYY-MM-DD date as e.g. "Saturday, July 11, 2026". */
+export function formatDateWithWeekday(isoDate: string): string {
+  const [y, m, d] = isoDate.split('-').map(Number);
+  const weekday = WEEKDAYS[new Date(Date.UTC(y, m - 1, d)).getUTCDay()];
+  return `${weekday}, ${formatDate(isoDate)}`;
 }
 
 /** Relative age for freshness badges: "just now", "3m ago", "2h ago", "3d ago". */

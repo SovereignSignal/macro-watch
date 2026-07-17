@@ -71,8 +71,8 @@ re-publishing from pipeline state.
 
 ## 5. Pages
 
-- `/` — today's brief rendered in full (including injected lens + deep research), dashboard
-  panel, compact theme-map strip, footer to archive/RSS.
+- `/` — brief summary, fresh dashboard panel, six active themes, then today's brief rendered
+  in full (including injected lens + deep research), with footer links to archive/RSS.
 - `/briefs`, `/briefs/[date]` — archive with permalinks; weekend reviews labeled.
 - `/map`, `/map/[theme]` — the flagship. Grid of themes (conviction, one-line read, trigger
   states, lifecycle badge). Per-theme page: current card + **full event timeline** (every
@@ -81,8 +81,8 @@ re-publishing from pipeline state.
 - `/accountability` — coverage and method orientation, separate smart-money and map-derived
   scoreboards, upcoming decisions, qualitative review, claim history, and a source-linked
   public ledger. Headline rates stay hidden until each track has eight final decisions.
-- `/catalysts` — upcoming forward events with what-would-surprise framing; resolved events
-  shown expectation-vs-outcome.
+- `/catalysts` — upcoming forward events with what-would-surprise framing; past unresolved
+  events held in an explicit awaiting-resolution state; resolved events shown expectation-vs-outcome.
 - `/about` — what this is, how it works (pipeline → validation → external outcome grading), Sovereign
   Signal identity, disclaimer.
 - `/search` — Postgres full-text across briefs, theme events, claims.

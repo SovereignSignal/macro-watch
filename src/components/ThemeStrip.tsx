@@ -8,9 +8,11 @@ import { Sparkline } from './Sparkline';
 export function ThemeStrip({
   cards,
   sparks,
+  showMapLink = true,
 }: {
   cards: ThemeCard[];
   sparks?: Record<string, number[]>;
+  showMapLink?: boolean;
 }) {
   const live = cards.filter((c) => c.status !== 'retired');
   if (live.length === 0) {
@@ -34,9 +36,11 @@ export function ThemeStrip({
           </li>
         ))}
       </ul>
-      <p className="map-link">
-        <Link href="/map">Full theme map →</Link>
-      </p>
+      {showMapLink ? (
+        <p className="map-link">
+          <Link href="/map">Full theme map →</Link>
+        </p>
+      ) : null}
     </>
   );
 }

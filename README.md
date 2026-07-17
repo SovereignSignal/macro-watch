@@ -35,11 +35,11 @@ projection were dropped, re-publishing from pipeline state would rebuild it.
 
 | Route | What renders |
 |---|---|
-| `/` | Today's brief in full, the dashboard panel, a compact theme-map strip |
+| `/` | Brief summary, fresh market panel, six active themes, then today's brief in full |
 | `/briefs`, `/briefs/[date]` | Brief archive with permalinks (daily + weekend) |
 | `/map`, `/map/[theme]` | The living theme map (see below) + per-theme event timeline, related claims, conviction-over-time |
 | `/accountability` | Method and coverage, track-specific performance, upcoming decisions, qualitative review, and a source-linked public ledger |
-| `/catalysts` | Upcoming forward events (what-would-surprise framing) and resolved events (expectation vs. outcome) |
+| `/catalysts` | Upcoming events, past events awaiting an outcome, and resolved events |
 | `/search` | Postgres full-text search across briefs, theme events, and claims |
 | `/feed.xml` | RSS feed of briefs |
 | `/about` | What SovsClaw is and how it works, plus the disclaimer |

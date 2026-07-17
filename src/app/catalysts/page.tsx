@@ -12,18 +12,23 @@ export const metadata = pageMetadata({
 });
 
 export default async function CatalystsPage() {
-  const { upcoming, resolved } = await safeQuery(() => getForwardEvents(getDb()), {
+  const { upcoming, awaitingResolution, resolved } = await safeQuery(() => getForwardEvents(getDb()), {
     upcoming: [],
+    awaitingResolution: [],
     resolved: [],
   });
   return (
     <main className="container">
       <h1>Catalyst board</h1>
       <p className="brief-meta">
-        Upcoming events show the base case and surprise threshold. Resolved events compare the call
-        with the outcome.
+        Upcoming events show the base case and surprise threshold. Past events stay visible until
+        their outcomes are recorded.
       </p>
-      <CatalystBoard upcoming={upcoming} resolved={resolved} />
+      <CatalystBoard
+        upcoming={upcoming}
+        awaitingResolution={awaitingResolution}
+        resolved={resolved}
+      />
     </main>
   );
 }

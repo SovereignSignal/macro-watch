@@ -17,9 +17,13 @@ const BRIEF: BriefRow = {
 it('renders the brief in full with the weekend label', () => {
   const markup = renderToStaticMarkup(<HomeView brief={BRIEF} panel={null} cards={[]} />);
   expect(markup).toContain('Weekend review: what the map got right about the dollar');
+  expect(markup).toContain('The dollar downtrend theme aged well this week.');
   expect(markup).toContain('DXY closed below its June range.');
   expect(markup).toContain('Weekend review'); // badge
   expect(markup).toContain('July 11, 2026');
+  expect(markup).toContain('href="#live-tape"');
+  expect(markup).toContain('href="#full-brief"');
+  expect(markup).toContain('Full brief');
 });
 
 it('renders panel rows with change coloring', () => {
@@ -39,6 +43,7 @@ it('renders panel rows with change coloring', () => {
   expect(markup).toContain('ES');
   expect(markup).toContain('change-up');
   expect(markup).toContain('change-down');
+  expect(markup).toContain('Live tape');
   expect(markup).toContain('panel-table-scroll');
   expect(markup).toContain('updating'); // UpdatedAgo pre-hydration placeholder
 });

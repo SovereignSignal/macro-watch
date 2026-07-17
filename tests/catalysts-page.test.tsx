@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { expect, it } from 'vitest';
+import { CatalystBoard } from '@/components/CatalystBoard';
 import { forwardEventsBodySchema, upsertForwardEvents } from '@/lib/ingest/claims';
 import { getForwardEvents } from '@/lib/queries/catalysts';
 import { seedAll } from '@/lib/seed';
@@ -7,21 +8,27 @@ import { createTestDb } from './helpers/db';
 
 const { default: CatalystsPage } = await import('@/app/catalysts/page');
 
-it('splits events on resolution: null = upcoming (soonest first), resolved newest first', async () => {
+it('splits unresolved events into upcoming and awaiting-resolution by date', async () => {
   const db = await createTestDb();
   await seedAll(db);
-  const { upcoming, resolved } = await getForwardEvents(db);
-  expect(upcoming.map((e) => e.eventId)).toEqual(['fe-2026-07-15-us-cpi', 'fe-2026-07-30-fomc']);
+  const { upcoming, awaitingResolution, resolved } = await getForwardEvents(db, '2026-07-20');
+  expect(upcoming.map((e) => e.eventId)).toEqual(['fe-2026-07-30-fomc']);
+  expect(awaitingResolution.map((e) => e.eventId)).toEqual(['fe-2026-07-15-us-cpi']);
   expect(resolved.map((e) => e.eventId)).toEqual(['fe-2026-07-03-us-payrolls']);
 });
 
 it('renders upcoming with surprise framing and resolved as expectation vs outcome', async () => {
   const db = await createTestDb();
   await seedAll(db);
-  const markup = renderToStaticMarkup(await CatalystsPage());
+  const groups = await getForwardEvents(db, '2026-07-20');
+  const markup = renderToStaticMarkup(<CatalystBoard {...groups} />);
   expect(markup).toContain('US CPI (June)');
-  expect(markup).toContain('Surprise');
+  expect(markup).toContain('Awaiting resolution');
+  expect(markup).toContain('Outcome has not been recorded.');
   expect(markup).toContain('A 0.4%+ core print');
+  expect(markup).toContain('FOMC decision');
+  expect(markup).toContain('Surprise');
+  expect(markup).toContain('Any signal that the first cut slips past September.');
   expect(markup).toContain('US payrolls (June)');
   expect(markup).toContain('Outcome');
   expect(markup).toContain('+147k with upward revisions');

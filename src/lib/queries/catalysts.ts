@@ -7,10 +7,17 @@ export type ForwardEventRow = typeof forwardEvents.$inferSelect;
 
 export async function getForwardEvents(
   db: Db,
-): Promise<{ upcoming: ForwardEventRow[]; resolved: ForwardEventRow[] }> {
+  asOf = new Date().toISOString().slice(0, 10),
+): Promise<{
+  upcoming: ForwardEventRow[];
+  awaitingResolution: ForwardEventRow[];
+  resolved: ForwardEventRow[];
+}> {
   const rows = await db.select().from(forwardEvents).orderBy(asc(forwardEvents.eventDate));
+  const unresolved = rows.filter((r) => r.resolution == null);
   return {
-    upcoming: rows.filter((r) => r.resolution == null),
+    upcoming: unresolved.filter((r) => r.eventDate >= asOf),
+    awaitingResolution: unresolved.filter((r) => r.eventDate < asOf).reverse(),
     resolved: rows.filter((r) => r.resolution != null).reverse(),
   };
 }
