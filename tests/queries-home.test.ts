@@ -41,6 +41,10 @@ it('panelCoverage exposes only atomically verified source counts', () => {
   expect(panelCoverage({ ...valid, source_count: 1 })).toBeNull();
   expect(panelCoverage({ ...valid, selected_count: 2, rows: [valid.rows[0], valid.rows[0]] })).toBeNull();
   expect(panelCoverage({ ...valid, source_count: Number.MAX_SAFE_INTEGER + 1 })).toBeNull();
+  expect(panelCoverage({ ...valid, selected_count: 0, rows: undefined })).toBeNull();
+  expect(panelCoverage({ ...valid, selected_count: 0, rows: 'not-an-array' })).toBeNull();
+  expect(panelCoverage({ ...valid, selected_count: 0, rows: [{ junk: true }] })).toBeNull();
+  expect(panelCoverage({ ...valid, selected_count: 1, rows: [valid.rows[0], { junk: true }] })).toBeNull();
 });
 
 it('getLatestBrief returns the newest brief by date', async () => {

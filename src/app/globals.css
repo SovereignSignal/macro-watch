@@ -581,12 +581,24 @@ a:focus-visible {
   font-size: 0.95rem;
 }
 
+.panel-table th,
 .panel-table td {
   padding: 0.34rem 0.5rem 0.34rem 0;
   border-bottom: 1px solid var(--rule);
 }
 
-.panel-table tr:last-child td {
+.panel-table thead th {
+  text-align: left;
+  font-weight: 600;
+}
+
+.panel-table tbody th {
+  text-align: left;
+  font-weight: 400;
+}
+
+.panel-table tbody tr:last-child th,
+.panel-table tbody tr:last-child td {
   border-bottom: none;
 }
 
