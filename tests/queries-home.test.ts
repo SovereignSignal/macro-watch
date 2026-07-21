@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { panelRows } from '@/lib/panel-contract';
+import { panelCoverage, panelRows } from '@/lib/panel-contract';
 import { getLatestBrief } from '@/lib/queries/briefs';
 import { getThemeMapCards } from '@/lib/queries/map';
 import { getLatestPanel } from '@/lib/queries/panels';
@@ -21,6 +21,13 @@ it('panelRows extracts rows defensively from unknown payloads', () => {
     { label: 'ES', value: '6,412.50', change: '+0.4%', note: null },
     { label: 'N', value: '42', change: null, note: null },
   ]);
+});
+
+it('panelCoverage exposes only valid verified source counts', () => {
+  expect(panelCoverage({ source_count: 28, selected_count: 8, source_schema_version: 2 }))
+    .toBe('8 selected from 28 verified schema-v2 AMS signals');
+  expect(panelCoverage({ source_count: 2, selected_count: 8 })).toBeNull();
+  expect(panelCoverage({ source_count: '28', selected_count: 8 })).toBeNull();
 });
 
 it('getLatestBrief returns the newest brief by date', async () => {

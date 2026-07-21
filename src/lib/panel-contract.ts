@@ -31,3 +31,15 @@ export function panelRows(payload: unknown): PanelRowItem[] {
   }
   return out;
 }
+
+export function panelCoverage(payload: unknown): string | null {
+  if (typeof payload !== 'object' || payload === null) return null;
+  const record = payload as Record<string, unknown>;
+  const selected = record.selected_count;
+  const source = record.source_count;
+  const schema = record.source_schema_version;
+  if (!Number.isInteger(selected) || !Number.isInteger(source)) return null;
+  if ((selected as number) < 0 || (source as number) < (selected as number)) return null;
+  const schemaLabel = schema === 2 ? 'schema-v2 ' : '';
+  return `${selected} selected from ${source} verified ${schemaLabel}AMS signals`;
+}

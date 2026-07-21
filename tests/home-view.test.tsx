@@ -43,6 +43,32 @@ it('renders panel rows with change coloring', () => {
   expect(markup).toContain('updating'); // UpdatedAgo pre-hydration placeholder
 });
 
+it('renders the prediction market lens as a distinct homepage panel', () => {
+  const markup = renderToStaticMarkup(
+    <HomeView
+      brief={null}
+      panel={null}
+      oddsPanel={{
+        takenAt: '2026-07-21T16:20:12Z',
+        summary: '1 selected from 28 verified schema-v2 AMS signals',
+        rows: [{
+          label: 'Will the U.S. invade Iran before 2027?',
+          value: 'No 74%',
+          change: '+$32K net (24h)',
+          note: 'tail risk gauge · current evidence not assessed',
+        }],
+      }}
+      cards={[]}
+    />,
+  );
+  expect(markup).toContain('Prediction Market Lens');
+  expect(markup).toContain('1 selected from 28 verified schema-v2 AMS signals');
+  expect(markup).toContain('Will the U.S. invade Iran before 2027?');
+  expect(markup).toContain('No 74%');
+  expect(markup).toContain('+$32K net (24h)');
+  expect(markup).toContain('current evidence not assessed');
+});
+
 it('renders explicit empty states when nothing is published', () => {
   const markup = renderToStaticMarkup(<HomeView brief={null} panel={null} cards={[]} />);
   expect(markup).toContain('No brief yet');

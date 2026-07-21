@@ -8,13 +8,14 @@ function changeClass(change: string): string {
   return 'num';
 }
 
-export function PanelTable(props: { title: string; rows: PanelRowItem[]; takenAt: string | null }) {
+export function PanelTable(props: { title: string; rows: PanelRowItem[]; takenAt: string | null; summary?: string | null }) {
   return (
     <div className="panel">
       <div className="panel-head">
         <h2>{props.title}</h2>
         {props.takenAt ? <UpdatedAgo takenAt={props.takenAt} /> : null}
       </div>
+      {props.summary ? <p className="panel-summary">{props.summary}</p> : null}
       {props.rows.length === 0 ? (
         <EmptyState>Waiting for data.</EmptyState>
       ) : (

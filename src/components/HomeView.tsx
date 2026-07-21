@@ -9,6 +9,7 @@ import { ThemeStrip } from './ThemeStrip';
 export function HomeView(props: {
   brief: BriefRow | null;
   panel: { takenAt: string; rows: PanelRowItem[] } | null;
+  oddsPanel?: { takenAt: string; rows: PanelRowItem[]; summary?: string | null } | null;
   cards: ThemeCard[];
   sparks?: Record<string, number[]>;
 }) {
@@ -29,6 +30,16 @@ export function HomeView(props: {
           takenAt={props.panel?.takenAt ?? null}
         />
       </section>
+      {props.oddsPanel ? (
+        <section aria-label="Prediction market lens">
+          <PanelTable
+            title="Prediction Market Lens"
+            rows={props.oddsPanel.rows}
+            takenAt={props.oddsPanel.takenAt}
+            summary={props.oddsPanel.summary}
+          />
+        </section>
+      ) : null}
       <section aria-label="Theme map">
         <h2>Theme map</h2>
         <ThemeStrip cards={props.cards} sparks={props.sparks} />

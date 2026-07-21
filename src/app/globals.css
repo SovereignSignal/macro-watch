@@ -550,6 +550,12 @@ a:focus-visible {
   font-size: 1.05rem;
 }
 
+.panel-summary {
+  margin: 0.35rem 0 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
 .panel-table-scroll {
   max-width: 100%;
   overflow-x: auto;
