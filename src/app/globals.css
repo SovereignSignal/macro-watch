@@ -33,6 +33,18 @@
   --maxw-wide: 70rem;
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #101215; /* charcoal */
@@ -550,6 +562,12 @@ a:focus-visible {
   font-size: 1.05rem;
 }
 
+.panel-summary {
+  margin: 0.35rem 0 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
 .panel-table-scroll {
   max-width: 100%;
   overflow-x: auto;
@@ -563,12 +581,24 @@ a:focus-visible {
   font-size: 0.95rem;
 }
 
+.panel-table th,
 .panel-table td {
   padding: 0.34rem 0.5rem 0.34rem 0;
   border-bottom: 1px solid var(--rule);
 }
 
-.panel-table tr:last-child td {
+.panel-table thead th {
+  text-align: left;
+  font-weight: 600;
+}
+
+.panel-table tbody th {
+  text-align: left;
+  font-weight: 400;
+}
+
+.panel-table tbody tr:last-child th,
+.panel-table tbody tr:last-child td {
   border-bottom: none;
 }
 

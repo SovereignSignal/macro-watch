@@ -67,7 +67,8 @@ it('search page renders a no-results state', async () => {
 it('about page explains the system and carries the disclaimer', () => {
   const markup = renderToStaticMarkup(<AboutPage />);
   expect(markup).toContain('Sovereign Signal');
-  expect(markup).toContain('Structure and data checks');
+  expect(markup).toContain('Brief HTML is sanitized before publication');
+  expect(markup).toContain('Verified panels disclose source coverage and freshness');
   expect(markup).toContain('No investment advice');
   expect(markup).toContain('href="/accountability"');
 });

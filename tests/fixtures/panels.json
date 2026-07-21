@@ -18,6 +18,10 @@
     "taken_at": "2026-07-11T12:00:00Z",
     "payload": {
       "as_of": "2026-07-11",
+      "source_count": 28,
+      "selected_count": 2,
+      "source_schema_version": 2,
+      "source_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "rows": [
         { "label": "Fed cut by September", "value": "38%", "change": "-7pp", "note": "Polymarket" },
         { "label": "Recession called in 2026", "value": "21%", "change": "+2pp", "note": "Polymarket" }

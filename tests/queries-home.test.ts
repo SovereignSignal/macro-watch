@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { panelRows } from '@/lib/panel-contract';
+import { panelCoverage, panelRows } from '@/lib/panel-contract';
 import { getLatestBrief } from '@/lib/queries/briefs';
 import { getThemeMapCards } from '@/lib/queries/map';
 import { getLatestPanel } from '@/lib/queries/panels';
@@ -21,6 +21,30 @@ it('panelRows extracts rows defensively from unknown payloads', () => {
     { label: 'ES', value: '6,412.50', change: '+0.4%', note: null },
     { label: 'N', value: '42', change: null, note: null },
   ]);
+});
+
+it('panelCoverage exposes only atomically verified source counts', () => {
+  const valid = {
+    source_count: 28,
+    selected_count: 2,
+    source_schema_version: 2,
+    source_sha256: 'a'.repeat(64),
+    rows: [
+      { label: 'Fed', value: 'Yes 42%' },
+      { label: 'Iran', value: 'No 74%' },
+    ],
+  };
+  expect(panelCoverage(valid)).toBe('2 selected from 28 verified schema-v2 AMS signals');
+  expect(panelCoverage({ ...valid, source_schema_version: 1 })).toBeNull();
+  expect(panelCoverage({ ...valid, source_sha256: 'not-a-hash' })).toBeNull();
+  expect(panelCoverage({ ...valid, selected_count: 8 })).toBeNull();
+  expect(panelCoverage({ ...valid, source_count: 1 })).toBeNull();
+  expect(panelCoverage({ ...valid, selected_count: 2, rows: [valid.rows[0], valid.rows[0]] })).toBeNull();
+  expect(panelCoverage({ ...valid, source_count: Number.MAX_SAFE_INTEGER + 1 })).toBeNull();
+  expect(panelCoverage({ ...valid, selected_count: 0, rows: undefined })).toBeNull();
+  expect(panelCoverage({ ...valid, selected_count: 0, rows: 'not-an-array' })).toBeNull();
+  expect(panelCoverage({ ...valid, selected_count: 0, rows: [{ junk: true }] })).toBeNull();
+  expect(panelCoverage({ ...valid, selected_count: 1, rows: [valid.rows[0], { junk: true }] })).toBeNull();
 });
 
 it('getLatestBrief returns the newest brief by date', async () => {

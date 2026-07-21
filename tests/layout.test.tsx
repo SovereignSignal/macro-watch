@@ -16,6 +16,12 @@ it('carries the not-investment-advice footer', () => {
   expect(markup).toContain('Research only. No buy or sell recommendations.');
 });
 
+it('describes public checks without claiming universal data verification', () => {
+  expect(markup).toContain('Brief HTML is sanitized before publication');
+  expect(markup).toContain('verified panels disclose source coverage');
+  expect(markup).not.toContain('Data and structure checked');
+});
+
 it('links every surface from the nav', () => {
   for (const href of ['/briefs', '/map', '/accountability', '/catalysts', '/search', '/about']) {
     expect(markup).toContain(`href="${href}"`);

@@ -45,6 +45,9 @@ it('ingest fixture -> home page shows it (full wiring)', async () => {
   const markup = renderToStaticMarkup(await HomePage());
   expect(markup).toContain('Weekend review: what the map got right about the dollar'); // latest brief
   expect(markup).toContain('6,412.50'); // dashboard panel row
+  expect(markup).toContain('Prediction Market Lens');
+  expect(markup).toContain('Fed cut by September');
+  expect(markup).toContain('2 selected from 28 verified schema-v2 AMS signals');
   expect(markup).toContain('Rate-path repricing'); // theme strip
   expect(markup).toContain('href="/map/dollar-downtrend"');
 });

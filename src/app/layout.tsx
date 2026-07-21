@@ -74,7 +74,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <span className="footer-mark" aria-hidden="true">
               ◆
             </span>{' '}
-            SovsClaw by Sovereign Signal. AI composed. Data and structure checked.
+            SovsClaw by Sovereign Signal. AI composed. Brief HTML is sanitized before publication; verified panels disclose source coverage.
           </p>
           <p>
             Research only. No buy or sell recommendations.
