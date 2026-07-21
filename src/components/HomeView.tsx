@@ -28,6 +28,7 @@ export function HomeView(props: {
           title="Dashboard"
           rows={props.panel?.rows ?? []}
           takenAt={props.panel?.takenAt ?? null}
+          columns={['Market', 'Value', 'Change']}
         />
       </section>
       {props.oddsPanel ? (
@@ -37,6 +38,7 @@ export function HomeView(props: {
             rows={props.oddsPanel.rows}
             takenAt={props.oddsPanel.takenAt}
             summary={props.oddsPanel.summary}
+            columns={['Market', 'Odds', '24-hour flow']}
           />
         </section>
       ) : null}

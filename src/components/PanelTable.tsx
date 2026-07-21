@@ -8,7 +8,14 @@ function changeClass(change: string): string {
   return 'num';
 }
 
-export function PanelTable(props: { title: string; rows: PanelRowItem[]; takenAt: string | null; summary?: string | null }) {
+export function PanelTable(props: {
+  title: string;
+  rows: PanelRowItem[];
+  takenAt: string | null;
+  summary?: string | null;
+  columns?: [string, string, string];
+}) {
+  const columns = props.columns ?? ['Market', 'Value', 'Change'];
   return (
     <div className="panel">
       <div className="panel-head">
@@ -21,15 +28,21 @@ export function PanelTable(props: { title: string; rows: PanelRowItem[]; takenAt
       ) : (
         <div className="panel-table-scroll">
           <table className="panel-table">
+            <caption className="sr-only">{props.title}</caption>
+            <thead>
+              <tr>
+                {columns.map((column) => <th key={column} scope="col">{column}</th>)}
+              </tr>
+            </thead>
             <tbody>
-              {props.rows.map((r) => (
-                <tr key={r.label}>
-                  <td>
-                    {r.label}
-                    {r.note ? <span className="panel-note">, {r.note}</span> : null}
-                  </td>
-                  <td className="num">{r.value}</td>
-                  <td className={r.change ? changeClass(r.change) : 'num'}>{r.change ?? ''}</td>
+              {props.rows.map((row) => (
+                <tr key={row.label}>
+                  <th scope="row">
+                    {row.label}
+                    {row.note ? <span className="panel-note">, {row.note}</span> : null}
+                  </th>
+                  <td className="num">{row.value}</td>
+                  <td className={row.change ? changeClass(row.change) : 'num'}>{row.change ?? ''}</td>
                 </tr>
               ))}
             </tbody>

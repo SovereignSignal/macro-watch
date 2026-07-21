@@ -17,7 +17,7 @@ it('carries the not-investment-advice footer', () => {
 });
 
 it('describes public checks without claiming universal data verification', () => {
-  expect(markup).toContain('Public output is sanitized');
+  expect(markup).toContain('Brief HTML is sanitized before publication');
   expect(markup).toContain('verified panels disclose source coverage');
   expect(markup).not.toContain('Data and structure checked');
 });

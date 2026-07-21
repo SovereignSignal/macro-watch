@@ -19,8 +19,8 @@ export default function AboutPage() {
         Saturday at 12:00 UTC.
       </p>
       <p>
-        <strong>Checks.</strong> Public output is validated and sanitized before publication. Optional
-        source blocks may be omitted when unavailable. Verified panels disclose source coverage and freshness.
+        <strong>Checks.</strong> Brief HTML is sanitized before publication. Optional source blocks may
+        be omitted when unavailable. Verified panels disclose source coverage and freshness.
       </p>
       <p>
         <strong>Record.</strong> Eligible calls have a source, opening state, due date, and outcome

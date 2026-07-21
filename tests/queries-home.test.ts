@@ -23,11 +23,24 @@ it('panelRows extracts rows defensively from unknown payloads', () => {
   ]);
 });
 
-it('panelCoverage exposes only valid verified source counts', () => {
-  expect(panelCoverage({ source_count: 28, selected_count: 8, source_schema_version: 2 }))
-    .toBe('8 selected from 28 verified schema-v2 AMS signals');
-  expect(panelCoverage({ source_count: 2, selected_count: 8 })).toBeNull();
-  expect(panelCoverage({ source_count: '28', selected_count: 8 })).toBeNull();
+it('panelCoverage exposes only atomically verified source counts', () => {
+  const valid = {
+    source_count: 28,
+    selected_count: 2,
+    source_schema_version: 2,
+    source_sha256: 'a'.repeat(64),
+    rows: [
+      { label: 'Fed', value: 'Yes 42%' },
+      { label: 'Iran', value: 'No 74%' },
+    ],
+  };
+  expect(panelCoverage(valid)).toBe('2 selected from 28 verified schema-v2 AMS signals');
+  expect(panelCoverage({ ...valid, source_schema_version: 1 })).toBeNull();
+  expect(panelCoverage({ ...valid, source_sha256: 'not-a-hash' })).toBeNull();
+  expect(panelCoverage({ ...valid, selected_count: 8 })).toBeNull();
+  expect(panelCoverage({ ...valid, source_count: 1 })).toBeNull();
+  expect(panelCoverage({ ...valid, selected_count: 2, rows: [valid.rows[0], valid.rows[0]] })).toBeNull();
+  expect(panelCoverage({ ...valid, source_count: Number.MAX_SAFE_INTEGER + 1 })).toBeNull();
 });
 
 it('getLatestBrief returns the newest brief by date', async () => {
