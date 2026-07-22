@@ -64,7 +64,7 @@ it('getLatestPanel returns the newest snapshot of a kind', async () => {
   expect(panelRows(panel?.payload)[0]).toEqual({ label: 'ES', value: '6,412.50', change: '+0.4%', note: null });
 });
 
-it('getLatestVerifiedPanel skips a newer legacy odds row', async () => {
+it('getLatestVerifiedPanel paginates past twenty newer legacy odds rows', async () => {
   const db = await createTestDb();
   const validPayload = {
     source_count: 28,
@@ -82,11 +82,11 @@ it('getLatestVerifiedPanel skips a newer legacy odds row', async () => {
       takenAt: new Date('2026-07-21T16:20:12Z'),
       payload: validPayload,
     },
-    {
-      kind: 'odds_lens',
-      takenAt: new Date('2026-07-21T20:56:00Z'),
-      payload: { rows: [{ label: 'Iran invasion', value: 0.725 }] },
-    },
+    ...Array.from({ length: 20 }, (_, index) => ({
+      kind: 'odds_lens' as const,
+      takenAt: new Date(Date.UTC(2026, 6, 21, 20, index, 0)),
+      payload: { rows: [{ label: `Legacy row ${index}`, value: 0.725 }] },
+    })),
   ]);
 
   const panel = await getLatestVerifiedPanel(db, 'odds_lens');
