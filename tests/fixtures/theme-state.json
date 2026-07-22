@@ -7,8 +7,21 @@
         "slug": "rate-path-repricing",
         "name": "Rate-path repricing",
         "description": "Tracks how incoming data changes the expected path of policy rates and the market pricing around it.",
+        "status": "active",
         "conviction": "high",
         "current_read": "The front end is still underpricing how slow the cutting cycle gets.",
+        "evidence": "Payrolls beat and the front end repriced a slower cutting cycle.",
+        "evidence_lifecycle": {
+          "version": 1,
+          "basis_novelty": "updated",
+          "balance": "supporting",
+          "confidence_change": "raised",
+          "last_basis_change_date": "2026-07-08",
+          "repeat_count": 0
+        },
+        "last_seen": "2026-07-08",
+        "last_changed": "2026-07-08",
+        "next_check": "2026-07-15 CPI",
         "raise_conditions": ["Core CPI re-accelerates above 0.3% m/m", "Another tailed 2y auction"],
         "lower_conditions": ["Labor market cracks force the Fed's hand"],
         "triggers": [
@@ -20,8 +33,21 @@
         "slug": "dollar-downtrend",
         "name": "Dollar downtrend",
         "description": "Tracks whether rate differentials, capital flows, and price action support a sustained decline in the US dollar.",
+        "status": "active",
         "conviction": "medium",
         "current_read": "Differentials are narrowing on schedule; the weekly closes keep confirming.",
+        "evidence": "A risk-off dollar bid challenged the latest weekly close.",
+        "evidence_lifecycle": {
+          "version": 1,
+          "basis_novelty": "repeated",
+          "balance": "challenging",
+          "confidence_change": "lowered",
+          "last_basis_change_date": "2026-06-30",
+          "repeat_count": 2
+        },
+        "last_seen": "2026-07-08",
+        "last_changed": "2026-07-08",
+        "next_check": "2026-07-18 DXY weekly close",
         "raise_conditions": "ECB holds while the Fed blinks",
         "lower_conditions": ["A risk-off bid returns to the dollar"],
         "triggers": [{ "name": "DXY 200dma", "state": "watching" }]
@@ -30,8 +56,21 @@
         "slug": "china-reflation",
         "name": "China reflation",
         "description": "Tracks whether Chinese stimulus is strong enough to revive domestic demand and commodity-sensitive growth.",
+        "status": "invalidated",
         "conviction": "low",
-        "current_read": "Retired 2026-07-05: the stimulus impulse faded before commodities ever confirmed."
+        "current_read": "Retired 2026-07-05: the stimulus impulse faded before commodities ever confirmed.",
+        "evidence": "Credit improved at the margin while commodity demand weakened.",
+        "evidence_lifecycle": {
+          "version": 1,
+          "basis_novelty": "repeated",
+          "balance": "mixed",
+          "confidence_change": "invalidated",
+          "last_basis_change_date": "2026-06-20",
+          "repeat_count": 3
+        },
+        "last_seen": "2026-07-05",
+        "last_changed": "2026-07-05",
+        "next_check": "No further check scheduled"
       }
     ]
   }

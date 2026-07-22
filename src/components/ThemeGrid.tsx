@@ -4,6 +4,7 @@ import type { ThemeCard } from '@/lib/queries/map';
 import { ConvictionScale } from './ConvictionScale';
 import { EmptyState } from './EmptyState';
 import { Sparkline } from './Sparkline';
+import { ThemeEvidenceSummary } from './ThemeEvidence';
 import { TriggerList } from './TriggerList';
 
 type Sparks = Record<string, number[]>;
@@ -29,6 +30,7 @@ function Card({ card, spark, index }: { card: ThemeCard; spark?: number[]; index
         {spark ? <Sparkline levels={spark} /> : null}
       </div>
       {card.read ? <p className="read">{card.read}</p> : null}
+      <ThemeEvidenceSummary card={card} />
       <TriggerList triggers={card.triggers} />
     </li>
   );

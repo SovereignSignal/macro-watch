@@ -83,37 +83,105 @@ export async function upsertThemeEvents(db: Db, events: ThemeEventPayload[]): Pr
 
 // ----------------------------------------------------------------- state ---
 
+export const isoDateSchema = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, 'expected YYYY-MM-DD')
+  .refine(
+    (value) => {
+      const parsed = new Date(`${value}T00:00:00.000Z`);
+      return !Number.isNaN(parsed.valueOf()) && parsed.toISOString().slice(0, 10) === value;
+    },
+    'expected a valid calendar date',
+  );
+
 /**
- * The curated-map card fields the site renders (spec §3/§5). The snapshot is
- * a passthrough of the full theme-state.json; unknown fields are kept.
+ * Lifecycle metadata is atomic: a producer either omits this object for a
+ * legacy/unassessed card or supplies every version-1 field. Unknown nested
+ * fields are stripped by Zod's default object policy.
  */
-const themeStateCardSchema = z
+export const evidenceLifecycleSchema = z
+  .object({
+    version: z.literal(1),
+    basis_novelty: z.enum(['updated', 'repeated']),
+    balance: z.enum(['supporting', 'challenging', 'mixed', 'unchanged', 'emerging']),
+    confidence_change: z.enum(['raised', 'lowered', 'unchanged', 'candidate', 'invalidated']),
+    last_basis_change_date: isoDateSchema,
+    repeat_count: z.number().int().nonnegative().safe(),
+  })
+  .superRefine((lifecycle, ctx) => {
+    if (lifecycle.basis_novelty === 'updated' && lifecycle.repeat_count !== 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['repeat_count'],
+        message: 'updated basis requires repeat_count 0',
+      });
+    }
+    if (lifecycle.basis_novelty === 'repeated' && lifecycle.repeat_count < 1) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['repeat_count'],
+        message: 'repeated basis requires repeat_count at least 1',
+      });
+    }
+  });
+
+/**
+ * Curated public card fields from theme-state.json. Card objects intentionally
+ * strip unknown keys rather than passing producer internals into persisted
+ * JSONB. Legacy cards without evidence_lifecycle remain valid and unassessed.
+ */
+export const themeStateCardSchema = z
   .object({
     slug: z.string().min(1),
     name: z.string().min(1),
     description: z.string().min(1).nullish(),
+    status: z.enum(['active', 'candidate', 'retired', 'invalidated']).nullish(),
     conviction: z.enum(['low', 'medium', 'high']).nullish(),
     current_read: z.string().nullish(),
+    evidence: z.string().min(1).nullish(),
+    evidence_lifecycle: evidenceLifecycleSchema.optional(),
+    last_seen: isoDateSchema.nullish(),
+    last_changed: isoDateSchema.nullish(),
+    next_check: z.string().min(1).nullish(),
     raise_conditions: z.union([z.string(), z.array(z.string())]).nullish(),
     lower_conditions: z.union([z.string(), z.array(z.string())]).nullish(),
     triggers: z.array(z.object({ name: z.string(), state: z.string() })).nullish(),
   })
-  .passthrough();
+  .superRefine((card, ctx) => {
+    if (
+      card.evidence_lifecycle &&
+      card.last_seen &&
+      card.evidence_lifecycle.last_basis_change_date > card.last_seen
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['evidence_lifecycle', 'last_basis_change_date'],
+        message: 'last_basis_change_date must not be after last_seen',
+      });
+    }
+  });
 
 export const themeStateSchema = z.object({
   taken_at: z.string().datetime({ offset: true }),
-  payload: z.object({ themes: z.array(themeStateCardSchema) }).passthrough(),
+  payload: z.object({
+    as_of: z.string().optional(),
+    themes: z.array(themeStateCardSchema),
+  }),
 });
 
+export type EvidenceLifecycle = z.infer<typeof evidenceLifecycleSchema>;
 export type ThemeStatePayload = z.infer<typeof themeStateSchema>;
 export type ThemeStateCard = z.infer<typeof themeStateCardSchema>;
 
 /** Idempotent snapshot upsert on taken_at; history rows accumulate. */
 export async function upsertThemeState(db: Db, p: ThemeStatePayload): Promise<number> {
-  const payload = publicValue(p.payload);
+  // Re-parse at the persistence boundary so direct callers receive the same
+  // key stripping and atomic validation as the HTTP ingest handler.
+  const clean = themeStateSchema.parse(p);
+  const payload = publicValue(clean.payload);
   await db
     .insert(themeState)
-    .values({ takenAt: new Date(p.taken_at), payload })
+    .values({ takenAt: new Date(clean.taken_at), payload })
     .onConflictDoUpdate({ target: themeState.takenAt, set: { payload } });
   return 1;
 }

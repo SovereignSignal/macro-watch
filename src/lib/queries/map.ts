@@ -3,14 +3,27 @@ import { cache } from 'react';
 import type { Db } from '@/db/client';
 import { briefs, claims, themeEvents, themes, themeState } from '@/db/schema';
 import { type FieldEvent, windowStart } from '@/lib/field-map';
-import type { ThemeStateCard } from '@/lib/ingest/themes';
+import {
+  type EvidenceLifecycle,
+  type ThemeStateCard,
+  themeStateCardSchema,
+} from '@/lib/ingest/themes';
 import { publicText, publicValue } from '@/lib/public-copy';
+
+export type ThemeStatus = 'active' | 'candidate' | 'retired';
+export type EvidenceAttentionStatus =
+  | 'live'
+  | 'stale'
+  | 'retire_review'
+  | 'unassessed'
+  | 'date_error'
+  | 'archived';
 
 export type ThemeCard = {
   slug: string;
   name: string;
   description: string;
-  status: string;
+  status: ThemeStatus;
   firstSeen: string | null;
   lastEventAt: string | null;
   conviction: 'low' | 'medium' | 'high' | null;
@@ -18,7 +31,61 @@ export type ThemeCard = {
   triggers: { name: string; state: string }[];
   raiseConditions: string[];
   lowerConditions: string[];
+  evidence: string | null;
+  evidenceLifecycle: EvidenceLifecycle | null;
+  lastSeen: string | null;
+  lastChanged: string | null;
+  nextCheck: string | null;
+  attentionStatus: EvidenceAttentionStatus;
+  evidenceAgeDays: number | null;
 };
+
+const DAY_MS = 86_400_000;
+const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+/** UTC timestamp for a real ISO civil day, or null for rollover/format errors. */
+function isoDay(value: string): number | null {
+  if (!ISO_DATE_RE.test(value)) return null;
+  const [, year, month, day] = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value) ?? [];
+  const parsed = Date.UTC(Number(year), Number(month) - 1, Number(day));
+  const date = new Date(parsed);
+  if (
+    Number.isNaN(parsed) ||
+    date.getUTCFullYear() !== Number(year) ||
+    date.getUTCMonth() !== Number(month) - 1 ||
+    date.getUTCDate() !== Number(day)
+  ) {
+    return null;
+  }
+  return parsed;
+}
+
+/** Read-time freshness from UTC civil days. It never mutates lifecycle status. */
+export function evidenceFreshness(
+  lastBasisChangeDate: string | null | undefined,
+  asOf: string,
+  themeStatus: ThemeStatus = 'active',
+): { attentionStatus: EvidenceAttentionStatus; evidenceAgeDays: number | null } {
+  const asOfDay = isoDay(asOf);
+  if (asOfDay === null) throw new RangeError('asOf must be a valid YYYY-MM-DD date');
+  if (themeStatus === 'retired') {
+    return { attentionStatus: 'archived', evidenceAgeDays: null };
+  }
+  if (lastBasisChangeDate === null || lastBasisChangeDate === undefined) {
+    return { attentionStatus: 'unassessed', evidenceAgeDays: null };
+  }
+  const basisDay = isoDay(lastBasisChangeDate);
+  if (basisDay === null || basisDay > asOfDay) {
+    return { attentionStatus: 'date_error', evidenceAgeDays: null };
+  }
+  const evidenceAgeDays = (asOfDay - basisDay) / DAY_MS;
+  const attentionStatus = evidenceAgeDays <= 7
+    ? 'live'
+    : evidenceAgeDays <= 21
+      ? 'stale'
+      : 'retire_review';
+  return { attentionStatus, evidenceAgeDays };
+}
 
 const THEME_DESCRIPTIONS: Record<string, string> = {
   'narrative-rotation':
@@ -64,24 +131,47 @@ function toList(v: string | string[] | null | undefined): string[] {
 
 function stateCardsOf(payload: unknown): Map<string, ThemeStateCard> {
   const out = new Map<string, ThemeStateCard>();
-  const cards = (payload as { themes?: ThemeStateCard[] })?.themes;
+  const cards = (payload as { themes?: unknown })?.themes;
   if (Array.isArray(cards)) {
-    for (const c of cards) {
-      const clean = publicValue(c);
+    for (const candidate of cards) {
+      const parsed = themeStateCardSchema.safeParse(candidate);
+      if (!parsed.success) continue;
+      const clean = publicValue(parsed.data);
       out.set(clean.slug, clean);
     }
   }
   return out;
 }
 
+function normalizeStatus(status: unknown, fallback: ThemeStatus): ThemeStatus {
+  if (status === 'invalidated' || status === 'retired') return 'retired';
+  if (status === 'candidate' || status === 'active') return status;
+  return fallback;
+}
+
+function evidenceFields(s: ThemeStateCard | undefined, asOf: string, status: ThemeStatus) {
+  const lifecycle = s?.evidence_lifecycle ?? null;
+  return {
+    evidence: s?.evidence ? publicText(s.evidence) : null,
+    evidenceLifecycle: lifecycle ? publicValue(lifecycle) : null,
+    lastSeen: s?.last_seen ?? null,
+    lastChanged: s?.last_changed ?? null,
+    nextCheck: s?.next_check ? publicText(s.next_check) : null,
+    ...evidenceFreshness(lifecycle?.last_basis_change_date, asOf, status),
+  };
+}
+
 /**
- * The map = lifecycle truth from the themes table (fed by events) merged with
- * the latest theme_state snapshot's curated card fields (spec §5 /map).
+ * The latest snapshot reducer status is authoritative; the themes table is a
+ * legacy fallback only. Silence/freshness never changes lifecycle status.
  * Ordered: active, then candidate, then retired; newest activity first.
  */
 export async function getThemeMapCards(
   db: Db,
+  asOf = new Date().toISOString().slice(0, 10),
 ): Promise<{ takenAt: Date | null; cards: ThemeCard[] }> {
+  // Validate the injected clock even when there are no cards.
+  evidenceFreshness(null, asOf);
   const themeRows = await db.select().from(themes);
   const snaps = await db
     .select({ takenAt: themeState.takenAt, payload: themeState.payload })
@@ -94,43 +184,47 @@ export async function getThemeMapCards(
   const bySlug = new Map<string, ThemeCard>();
   for (const t of themeRows) {
     const s = stateCards.get(t.slug);
+    const status = normalizeStatus(s?.status, normalizeStatus(t.status, 'active'));
     bySlug.set(t.slug, {
       slug: t.slug,
       name: publicText(t.name),
       description: themeDescription(t.slug, t.name, s?.description),
-      status: t.status,
+      status,
       firstSeen: t.firstSeen,
       lastEventAt: t.lastEventAt,
       conviction: s?.conviction ?? null,
-      read: s?.current_read ?? null,
-      triggers: s?.triggers ?? [],
-      raiseConditions: toList(s?.raise_conditions),
-      lowerConditions: toList(s?.lower_conditions),
+      read: s?.current_read ? publicText(s.current_read) : null,
+      triggers: publicValue(s?.triggers ?? []),
+      raiseConditions: publicValue(toList(s?.raise_conditions)),
+      lowerConditions: publicValue(toList(s?.lower_conditions)),
+      ...evidenceFields(s, asOf, status),
     });
   }
   // Themes that only exist in the snapshot (state arrived before any event).
   for (const [slug, s] of stateCards) {
     if (!bySlug.has(slug)) {
+      const status = normalizeStatus(s.status, 'active');
       bySlug.set(slug, {
         slug,
-        name: s.name,
+        name: publicText(s.name),
         description: themeDescription(slug, s.name, s.description),
-        status: 'active',
+        status,
         firstSeen: null,
         lastEventAt: null,
         conviction: s.conviction ?? null,
-        read: s.current_read ?? null,
-        triggers: s.triggers ?? [],
-        raiseConditions: toList(s.raise_conditions),
-        lowerConditions: toList(s.lower_conditions),
+        read: s.current_read ? publicText(s.current_read) : null,
+        triggers: publicValue(s.triggers ?? []),
+        raiseConditions: publicValue(toList(s.raise_conditions)),
+        lowerConditions: publicValue(toList(s.lower_conditions)),
+        ...evidenceFields(s, asOf, status),
       });
     }
   }
 
-  const order: Record<string, number> = { active: 0, candidate: 1, retired: 2 };
+  const order: Record<ThemeStatus, number> = { active: 0, candidate: 1, retired: 2 };
   const cards = [...bySlug.values()].sort(
     (a, b) =>
-      (order[a.status] ?? 3) - (order[b.status] ?? 3) ||
+      order[a.status] - order[b.status] ||
       (b.lastEventAt ?? '').localeCompare(a.lastEventAt ?? ''),
   );
   return { takenAt: snap?.takenAt ?? null, cards };
@@ -166,7 +260,7 @@ export type RelatedClaim = { claimId: string; openedAt: string; predicate: strin
 export type ThemeDetail = {
   slug: string;
   name: string;
-  status: string;
+  status: ThemeStatus;
   firstSeen: string | null;
   lastEventAt: string | null;
   card: ThemeCard | null;
@@ -223,10 +317,14 @@ export async function getConvictionSparks(
 
 // cache() dedupes generateMetadata + the page component's fetch into one
 // query per request (Next.js request-scoped memoization).
-export const getThemeDetail = cache(async (db: Db, slug: string): Promise<ThemeDetail | null> => {
+export const getThemeDetail = cache(async (
+  db: Db,
+  slug: string,
+  asOf = new Date().toISOString().slice(0, 10),
+): Promise<ThemeDetail | null> => {
   const themeRows = await db.select().from(themes).where(eq(themes.slug, slug)).limit(1);
   const themeRow = themeRows[0] ?? null;
-  const { cards } = await getThemeMapCards(db);
+  const { cards } = await getThemeMapCards(db, asOf);
   const card = cards.find((c) => c.slug === slug) ?? null;
   if (!themeRow && !card) return null;
 
@@ -265,7 +363,7 @@ export const getThemeDetail = cache(async (db: Db, slug: string): Promise<ThemeD
   return {
     slug,
     name: publicText(themeRow?.name ?? card?.name ?? slug),
-    status: themeRow?.status ?? card?.status ?? 'active',
+    status: card?.status ?? normalizeStatus(themeRow?.status, 'active'),
     firstSeen: themeRow?.firstSeen ?? null,
     lastEventAt: themeRow?.lastEventAt ?? null,
     card,

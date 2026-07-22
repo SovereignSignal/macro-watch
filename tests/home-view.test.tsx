@@ -99,6 +99,13 @@ it('links theme strip entries to their theme pages', () => {
           triggers: [],
           raiseConditions: [],
           lowerConditions: [],
+          evidence: null,
+          evidenceLifecycle: null,
+          lastSeen: null,
+          lastChanged: null,
+          nextCheck: null,
+          attentionStatus: 'unassessed',
+          evidenceAgeDays: null,
         },
       ]}
     />,

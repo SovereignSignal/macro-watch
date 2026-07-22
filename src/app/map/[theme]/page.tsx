@@ -4,6 +4,7 @@ import { ConvictionChart } from '@/components/ConvictionChart';
 import { ConvictionScale } from '@/components/ConvictionScale';
 import { EmptyState } from '@/components/EmptyState';
 import { Sparkline } from '@/components/Sparkline';
+import { ThemeEvidenceCheck } from '@/components/ThemeEvidence';
 import { ThemeTimeline } from '@/components/ThemeTimeline';
 import { TriggerList } from '@/components/TriggerList';
 import { getDb } from '@/db/client';
@@ -41,7 +42,8 @@ export default async function ThemePage({ params }: { params: Promise<{ theme: s
   if (!SLUG_RE.test(theme)) notFound();
   // Deliberately NOT safeQuery: mirrors /briefs/[date]. A DB blip during
   // background revalidation should keep serving the stale page, not 404 it.
-  const detail = await getThemeDetail(getDb(), theme);
+  const asOf = new Date().toISOString().slice(0, 10);
+  const detail = await getThemeDetail(getDb(), theme, asOf);
   if (!detail) notFound();
   const card = detail.card;
   const sparkLevels = detail.conviction.map((p) => p.level);
@@ -71,6 +73,8 @@ export default async function ThemePage({ params }: { params: Promise<{ theme: s
         </div>
         {card?.read ? <p className="read">{card.read}</p> : null}
       </header>
+
+      {card ? <ThemeEvidenceCheck card={card} /> : null}
 
       {card && card.raiseConditions.length + card.lowerConditions.length > 0 ? (
         <section>

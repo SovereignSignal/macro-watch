@@ -2,6 +2,7 @@ import { eq } from 'drizzle-orm';
 import { beforeEach, expect, it, vi } from 'vitest';
 import type { Db } from '@/db/client';
 import { themeEvents, themes, themeState } from '@/db/schema';
+import { themeStateSchema, upsertThemeState } from '@/lib/ingest/themes';
 import { createTestDb } from './helpers/db';
 
 vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }));
@@ -43,7 +44,20 @@ const STATE = {
         slug: 'rate-path-repricing',
         name: 'Rate-path repricing',
         conviction: 'high',
+        status: 'active',
         current_read: 'The front end is still underpricing how slow the cutting cycle gets.',
+        evidence: 'Payrolls beat — the two-year repriced 15bp.',
+        evidence_lifecycle: {
+          version: 1,
+          basis_novelty: 'updated',
+          balance: 'supporting',
+          confidence_change: 'raised',
+          last_basis_change_date: '2026-07-08',
+          repeat_count: 0,
+        },
+        last_seen: '2026-07-08',
+        last_changed: '2026-07-08',
+        next_check: '2026-07-15 — CPI',
         raise_conditions: ['Core CPI re-accelerates'],
         lower_conditions: 'Labor market cracks',
         triggers: [{ name: '2y auction demand', state: 'live' }],
@@ -150,4 +164,95 @@ it('upserts theme state idempotently on taken_at', async () => {
 
 it('rejects theme state missing taken_at with 422', async () => {
   expect((await postState(post('theme-state', { payload: { themes: [] } }))).status).toBe(422);
+});
+
+it('accepts an atomic evidence lifecycle and remains backward compatible when it is absent', () => {
+  expect(themeStateSchema.safeParse(STATE).success).toBe(true);
+  const legacy = structuredClone(STATE) as any;
+  legacy.payload.themes = [{
+    slug: 'legacy-theme',
+    name: 'Legacy theme',
+    status: 'candidate',
+    evidence_novelty: 'new',
+    source_urls: ['https://internal.example/source'],
+  }];
+  const parsed = themeStateSchema.parse(legacy);
+  expect(parsed.payload.themes[0]).toEqual({
+    slug: 'legacy-theme',
+    name: 'Legacy theme',
+    status: 'candidate',
+  });
+});
+
+it.each([
+  ['partial object', (card: any) => { delete card.evidence_lifecycle.version; }],
+  ['wrong version', (card: any) => { card.evidence_lifecycle.version = 2; }],
+  ['wrong novelty', (card: any) => { card.evidence_lifecycle.basis_novelty = 'new'; }],
+  ['wrong balance', (card: any) => { card.evidence_lifecycle.balance = 'bullish'; }],
+  ['wrong confidence change', (card: any) => { card.evidence_lifecycle.confidence_change = 'up'; }],
+  ['malformed basis date', (card: any) => { card.evidence_lifecycle.last_basis_change_date = '2026-7-08'; }],
+  ['impossible basis date', (card: any) => { card.evidence_lifecycle.last_basis_change_date = '2026-02-30'; }],
+  ['negative repeat count', (card: any) => { card.evidence_lifecycle.repeat_count = -1; }],
+  ['fractional repeat count', (card: any) => { card.evidence_lifecycle.repeat_count = 1.5; }],
+  ['unsafe repeat count', (card: any) => { card.evidence_lifecycle.repeat_count = Number.MAX_SAFE_INTEGER + 1; }],
+  ['updated with repeats', (card: any) => { card.evidence_lifecycle.repeat_count = 1; }],
+  ['repeated without repeats', (card: any) => {
+    card.evidence_lifecycle.basis_novelty = 'repeated';
+    card.evidence_lifecycle.repeat_count = 0;
+  }],
+  ['basis after last seen', (card: any) => {
+    card.evidence_lifecycle.last_basis_change_date = '2026-07-09';
+  }],
+  ['malformed last seen', (card: any) => { card.last_seen = 'yesterday'; }],
+  ['unknown status', (card: any) => { card.status = 'watching'; }],
+])('rejects malformed evidence lifecycle: %s', (_label, mutate) => {
+  const malformed = structuredClone(STATE) as any;
+  mutate(malformed.payload.themes[0]);
+  expect(themeStateSchema.safeParse(malformed).success).toBe(false);
+});
+
+it('strips unknown/internal keys and persists only the exact public card contract', async () => {
+  const dirty = structuredClone(STATE) as any;
+  dirty.hash = 'root-hash';
+  dirty.payload.history = [{ hidden: true }];
+  const card = dirty.payload.themes[0];
+  card.source_urls = ['https://internal.example/source'];
+  card.history = [{ hidden: true }];
+  card.hash = 'card-hash';
+  card.evidence_novelty = 'new';
+  card.last_new_evidence_date = '2026-07-08';
+  card.triggers[0].source_url = 'https://internal.example/trigger';
+  card.evidence_lifecycle.hash = 'lifecycle-hash';
+
+  await upsertThemeState(db, dirty);
+  const [row] = await db.select().from(themeState);
+  const payload = row.payload as any;
+  expect(Object.keys(payload).sort()).toEqual(['as_of', 'themes']);
+  expect(Object.keys(payload.themes[0]).sort()).toEqual([
+    'conviction',
+    'current_read',
+    'evidence',
+    'evidence_lifecycle',
+    'last_changed',
+    'last_seen',
+    'lower_conditions',
+    'name',
+    'next_check',
+    'raise_conditions',
+    'slug',
+    'status',
+    'triggers',
+  ]);
+  expect(Object.keys(payload.themes[0].evidence_lifecycle).sort()).toEqual([
+    'balance',
+    'basis_novelty',
+    'confidence_change',
+    'last_basis_change_date',
+    'repeat_count',
+    'version',
+  ]);
+  expect(Object.keys(payload.themes[0].triggers[0]).sort()).toEqual(['name', 'state']);
+  expect(payload.themes[0].evidence).toBe('Payrolls beat, the two-year repriced 15bp.');
+  expect(payload.themes[0].next_check).toBe('2026-07-15, CPI');
+  expect(JSON.stringify(payload)).not.toMatch(/source_urls|source_url|history|hash|evidence_novelty|last_new_evidence_date/);
 });

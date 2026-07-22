@@ -1,4 +1,5 @@
 import { FieldMap } from '@/components/FieldMap';
+import { ThemeEvidenceHealth } from '@/components/ThemeEvidence';
 import { ThemeGrid } from '@/components/ThemeGrid';
 import { UpdatedAgo } from '@/components/UpdatedAgo';
 import { getDb } from '@/db/client';
@@ -15,12 +16,12 @@ export const metadata = pageMetadata({
 
 export default async function MapPage() {
   const db = getDb();
-  const { takenAt, cards } = await safeQuery(() => getThemeMapCards(db), {
+  const asOf = new Date().toISOString().slice(0, 10);
+  const { takenAt, cards } = await safeQuery(() => getThemeMapCards(db, asOf), {
     takenAt: null,
     cards: [],
   });
   const sparks = await safeQuery(() => getConvictionSparks(db), {});
-  const asOf = new Date().toISOString().slice(0, 10);
   const recent = await safeQuery(() => getRecentThemeEvents(db, asOf), {});
   const fieldThemes = cards.map((c) => ({
     slug: c.slug,
@@ -39,6 +40,7 @@ export default async function MapPage() {
       <p className="brief-meta">
         Themes tracked by conviction, current read, triggers, and lifecycle.
       </p>
+      {cards.length > 0 ? <ThemeEvidenceHealth cards={cards} /> : null}
       {cards.length > 0 ? (
         <section aria-labelledby="the-field">
           <h2 id="the-field">Position map</h2>
