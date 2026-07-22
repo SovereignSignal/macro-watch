@@ -1,8 +1,9 @@
 import { expect, it } from 'vitest';
+import { panelSnapshots } from '@/db/schema';
 import { panelCoverage, panelRows } from '@/lib/panel-contract';
 import { getLatestBrief } from '@/lib/queries/briefs';
 import { getThemeMapCards } from '@/lib/queries/map';
-import { getLatestPanel } from '@/lib/queries/panels';
+import { getLatestPanel, getLatestVerifiedPanel } from '@/lib/queries/panels';
 import { safeQuery } from '@/lib/safe';
 import { seedAll } from '@/lib/seed';
 import { createTestDb } from './helpers/db';
@@ -61,6 +62,47 @@ it('getLatestPanel returns the newest snapshot of a kind', async () => {
   const panel = await getLatestPanel(db, 'dashboard');
   expect(panel).not.toBeNull();
   expect(panelRows(panel?.payload)[0]).toEqual({ label: 'ES', value: '6,412.50', change: '+0.4%', note: null });
+});
+
+it('getLatestVerifiedPanel skips a newer legacy odds row', async () => {
+  const db = await createTestDb();
+  const validPayload = {
+    source_count: 28,
+    selected_count: 2,
+    source_schema_version: 2,
+    source_sha256: 'b'.repeat(64),
+    rows: [
+      { label: 'Iran invasion', value: 'No 72%', change: '+$35K net (24h)' },
+      { label: 'Taiwan conflict', value: 'No 96%', change: '-$359 net (24h)' },
+    ],
+  };
+  await db.insert(panelSnapshots).values([
+    {
+      kind: 'odds_lens',
+      takenAt: new Date('2026-07-21T16:20:12Z'),
+      payload: validPayload,
+    },
+    {
+      kind: 'odds_lens',
+      takenAt: new Date('2026-07-21T20:56:00Z'),
+      payload: { rows: [{ label: 'Iran invasion', value: 0.725 }] },
+    },
+  ]);
+
+  const panel = await getLatestVerifiedPanel(db, 'odds_lens');
+  expect(panel?.takenAt.toISOString()).toBe('2026-07-21T16:20:12.000Z');
+  expect(panel?.view.coverage).toBe('2 selected from 28 verified schema-v2 AMS signals');
+  expect(panel?.view.rows.map((row) => row.change)).toEqual(['+$35K net (24h)', '-$359 net (24h)']);
+});
+
+it('getLatestVerifiedPanel returns null when recent odds rows are all unverified', async () => {
+  const db = await createTestDb();
+  await db.insert(panelSnapshots).values({
+    kind: 'odds_lens',
+    takenAt: new Date('2026-07-21T20:56:00Z'),
+    payload: { rows: [{ label: 'Legacy row', value: 0.725 }] },
+  });
+  expect(await getLatestVerifiedPanel(db, 'odds_lens')).toBeNull();
 });
 
 it('getThemeMapCards merges themes rows with the latest state snapshot', async () => {
