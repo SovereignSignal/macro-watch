@@ -184,6 +184,31 @@ it('accepts an atomic evidence lifecycle and remains backward compatible when it
   });
 });
 
+it('accepts legacy empty optional text and normalizes it to null', async () => {
+  const legacy = structuredClone(STATE) as any;
+  Object.assign(legacy.payload.themes[0], {
+    description: '',
+    current_read: '   ',
+    evidence: '',
+    next_check: '   ',
+  });
+  const parsed = themeStateSchema.parse(legacy);
+  expect(parsed.payload.themes[0]).toMatchObject({
+    description: null,
+    current_read: null,
+    evidence: null,
+    next_check: null,
+  });
+  await upsertThemeState(db, legacy);
+  const [row] = await db.select().from(themeState);
+  expect((row.payload as any).themes[0]).toMatchObject({
+    description: null,
+    current_read: null,
+    evidence: null,
+    next_check: null,
+  });
+});
+
 it.each([
   ['partial object', (card: any) => { delete card.evidence_lifecycle.version; }],
   ['wrong version', (card: any) => { card.evidence_lifecycle.version = 2; }],

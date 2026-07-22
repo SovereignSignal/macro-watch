@@ -125,6 +125,11 @@ export const evidenceLifecycleSchema = z
     }
   });
 
+const legacyOptionalTextSchema = z
+  .string()
+  .transform((value) => (value.trim() === '' ? null : value))
+  .nullish();
+
 /**
  * Curated public card fields from theme-state.json. Card objects intentionally
  * strip unknown keys rather than passing producer internals into persisted
@@ -134,15 +139,15 @@ export const themeStateCardSchema = z
   .object({
     slug: z.string().min(1),
     name: z.string().min(1),
-    description: z.string().min(1).nullish(),
+    description: legacyOptionalTextSchema,
     status: z.enum(['active', 'candidate', 'retired', 'invalidated']).nullish(),
     conviction: z.enum(['low', 'medium', 'high']).nullish(),
-    current_read: z.string().nullish(),
-    evidence: z.string().min(1).nullish(),
+    current_read: legacyOptionalTextSchema,
+    evidence: legacyOptionalTextSchema,
     evidence_lifecycle: evidenceLifecycleSchema.optional(),
     last_seen: isoDateSchema.nullish(),
     last_changed: isoDateSchema.nullish(),
-    next_check: z.string().min(1).nullish(),
+    next_check: legacyOptionalTextSchema,
     raise_conditions: z.union([z.string(), z.array(z.string())]).nullish(),
     lower_conditions: z.union([z.string(), z.array(z.string())]).nullish(),
     triggers: z.array(z.object({ name: z.string(), state: z.string() })).nullish(),
