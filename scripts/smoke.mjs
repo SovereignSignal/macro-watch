@@ -30,7 +30,9 @@ await check('GET / renders with the byline', async () => {
   if (!text.includes('Sovs Macro') || !text.includes('A Sovereign Signal project')) {
     throw new Error('Sovs Macro identity missing');
   }
-  if (!text.includes('Not investment advice')) throw new Error('disclaimer missing');
+  if (!text.includes('Research only. No buy or sell recommendations.')) {
+    throw new Error('disclaimer missing');
+  }
 });
 
 await check('GET /feed.xml is RSS', async () => {
