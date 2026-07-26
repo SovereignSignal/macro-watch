@@ -2,7 +2,7 @@ import { beforeEach, expect, it } from 'vitest';
 import { buildFeed, siteUrl } from '@/lib/rss';
 
 beforeEach(() => {
-  process.env.SITE_URL = 'https://macro.watch';
+  process.env.SITE_URL = 'https://web-production-cb2e81.up.railway.app';
 });
 
 const ITEM = {
@@ -16,18 +16,20 @@ const ITEM = {
 it('builds RSS with title = subject and body = ping + link', () => {
   const xml = buildFeed([ITEM]);
   expect(xml).toContain('<?xml version="1.0" encoding="UTF-8"?>');
+  expect(xml).toContain('<title>Sovs Macro</title>');
+  expect(xml).toContain('Sovs Macro, a Sovereign Signal project.');
   expect(xml).toContain('<title>Rates &amp; the &quot;long&quot; end</title>');
-  expect(xml).toContain('<link>https://macro.watch/briefs/2026-07-10</link>');
+  expect(xml).toContain('<link>https://web-production-cb2e81.up.railway.app/briefs/2026-07-10</link>');
   expect(xml).toContain('Front-end yields snapped higher.');
-  expect(xml).toContain('https://macro.watch/briefs/2026-07-10</description>');
+  expect(xml).toContain('https://web-production-cb2e81.up.railway.app/briefs/2026-07-10</description>');
   expect(xml).toContain('<pubDate>Fri, 10 Jul 2026 14:05:00 GMT</pubDate>');
 });
 
-it('siteUrl strips a trailing slash and defaults to macro.watch', () => {
+it('siteUrl strips a trailing slash and defaults to the configured Railway origin', () => {
   process.env.SITE_URL = 'https://staging.example.com/';
   expect(siteUrl()).toBe('https://staging.example.com');
   delete process.env.SITE_URL;
-  expect(siteUrl()).toBe('https://macro.watch');
+  expect(siteUrl()).toBe('https://web-production-cb2e81.up.railway.app');
 });
 
 it('an empty archive still yields a valid channel', () => {

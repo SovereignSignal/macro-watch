@@ -14,7 +14,7 @@ export async function GET(): Promise<Response> {
       { status: 200, headers },
     );
   } catch (error) {
-    console.error('[macro.watch] readiness failed:', error);
+    console.error('[sovs-macro] readiness failed:', error);
     return Response.json(
       { ok: false, ready: false, service: 'macro-watch', database: 'unreachable' },
       { status: 503, headers },

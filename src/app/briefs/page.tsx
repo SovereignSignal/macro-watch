@@ -10,7 +10,7 @@ import { sanitizePublicBriefText } from '@/lib/security/public-brief-html';
 export const dynamic = 'force-dynamic';
 export const metadata = pageMetadata({
   title: 'Brief archive',
-  description: 'Daily macro briefs and weekend reviews published by SovsClaw.',
+  description: 'Daily macro briefs and weekend reviews published by Sovs Macro.',
   path: '/briefs',
 });
 

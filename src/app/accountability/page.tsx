@@ -14,7 +14,7 @@ import { GROUP_MIN_SAMPLE, groupBoards, OVERALL_MIN_SAMPLE, qualityClass, scoreC
 export const dynamic = 'force-dynamic';
 export const metadata = pageMetadata({
   title: 'Accountability',
-  description: 'Sources, due dates, and outcomes for measurable macro.watch calls.',
+  description: 'Sources, due dates, and outcomes for measurable Sovs Macro calls.',
   path: '/accountability',
 });
 

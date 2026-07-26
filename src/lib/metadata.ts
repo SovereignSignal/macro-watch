@@ -15,7 +15,7 @@ export function pageMetadata({
     alternates: { canonical: path },
     openGraph: {
       type: 'website',
-      siteName: 'macro.watch',
+      siteName: 'Sovs Macro',
       title,
       description,
       url: path,
