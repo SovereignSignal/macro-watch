@@ -22,6 +22,13 @@ it('keeps the root layout neutral so child routes do not inherit the homepage UR
   expect(openGraphUrl(layoutMetadata)).toBeUndefined();
 });
 
+it('brands root and route metadata as Sovs Macro', () => {
+  expect((layoutMetadata.title as { default: string }).default).toBe('Sovs Macro');
+  expect(layoutMetadata.openGraph?.siteName).toBe('Sovs Macro');
+  expect(homeMetadata.title).toBe('Sovs Macro');
+  expect(homeMetadata.openGraph?.siteName).toBe('Sovs Macro');
+});
+
 it.each([
   ['/', homeMetadata],
   ['/briefs', briefsMetadata],

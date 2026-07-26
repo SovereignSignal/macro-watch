@@ -11,7 +11,7 @@ import { pageMetadata } from '@/lib/metadata';
 // on-demand the moment a publish lands (spec §6).
 export const dynamic = 'force-dynamic';
 export const metadata = pageMetadata({
-  title: 'macro.watch',
+  title: 'Sovs Macro',
   description: 'The latest macro brief, market dashboard, and active themes.',
   path: '/',
 });

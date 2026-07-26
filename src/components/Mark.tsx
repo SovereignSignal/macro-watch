@@ -1,5 +1,5 @@
 /**
- * The macro.watch mark: the 🦂 scorpion emoji, the SovsClaw signature.
+ * The Sovs Macro mark: the 🦂 scorpion emoji.
  *
  * Rendered as the emoji glyph rather than a custom drawing (Sov's call,
  * 2026-07-12: the hand-drawn scorpion read as a blob at small sizes). The

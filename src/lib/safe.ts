@@ -7,7 +7,7 @@ export async function safeQuery<T>(fn: () => Promise<T>, fallback: T): Promise<T
   try {
     return await fn();
   } catch (err) {
-    console.error('[macro.watch] query failed:', err);
+    console.error('[sovs-macro] query failed:', err);
     return fallback;
   }
 }

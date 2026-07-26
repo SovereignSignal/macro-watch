@@ -64,9 +64,12 @@ it('search page renders a no-results state', async () => {
   expect(markup).toContain('No results for');
 });
 
-it('about page explains the system and carries the disclaimer', () => {
+it('about page explains the product and carries the disclaimer', () => {
   const markup = renderToStaticMarkup(<AboutPage />);
-  expect(markup).toContain('Sovereign Signal');
+  expect(markup).toContain('About Sovs Macro');
+  expect(markup).toContain('Sovs Macro is a Sovereign Signal project');
+  expect(markup).not.toContain('macro.watch');
+  expect(markup).not.toContain('SovsClaw');
   expect(markup).toContain('Brief HTML is sanitized before publication');
   expect(markup).toContain('Verified panels disclose source coverage and freshness');
   expect(markup).toContain('No investment advice');

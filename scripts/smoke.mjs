@@ -27,7 +27,9 @@ await check('GET / renders with the byline', async () => {
   const res = await fetch(`${base}/`);
   if (res.status !== 200) throw new Error(`status ${res.status}`);
   const text = await res.text();
-  if (!text.includes('a Sovereign Signal system')) throw new Error('byline missing');
+  if (!text.includes('Sovs Macro') || !text.includes('A Sovereign Signal project')) {
+    throw new Error('Sovs Macro identity missing');
+  }
   if (!text.includes('Not investment advice')) throw new Error('disclaimer missing');
 });
 

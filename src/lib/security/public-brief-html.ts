@@ -99,6 +99,7 @@ const WINDOWS_PATH_RE = /\b[A-Z]:\\(?:Users|Windows|Program Files|tmp)(?:\\[^\s<
 const PRIVATE_ENDPOINT_RE = /\/(?:api\/(?:ingest|admin|internal|private|debug|webhooks?)|admin|internal|private)(?:\/[^\s<>'"]*)?/gi;
 const SAFE_ID_RE = /^[A-Za-z][A-Za-z0-9_:.-]{0,127}$/;
 const PRIVATE_FOOTER_RE = /(?:📄\s*)?View this brief in Notion|(?:📋\s*)?SovsClaw Macro Brief Log\s*[\u2014-]\s*all briefs/gi;
+const PUBLIC_ORIGIN = 'https://web-production-cb2e81.up.railway.app';
 
 function hasPrivateFooter(text: string): boolean {
   PRIVATE_FOOTER_RE.lastIndex = 0;
@@ -209,12 +210,12 @@ function normalizePublicUrl(rawValue: string | undefined, allowImagePath = false
   if (value.startsWith('/')) {
     let parsed: URL;
     try {
-      parsed = new URL(value, 'https://macro.watch');
+      parsed = new URL(value, PUBLIC_ORIGIN);
       decodeURIComponent(parsed.pathname);
     } catch {
       return null;
     }
-    if (parsed.origin !== 'https://macro.watch' || parsed.username || parsed.password || parsed.search) return null;
+    if (parsed.origin !== PUBLIC_ORIGIN || parsed.username || parsed.password || parsed.search) return null;
     if (!safeFragment(parsed.hash)) return null;
     const safeRoute = SAFE_RELATIVE_ROUTES.some((route) => route.test(parsed.pathname));
     const safeImage = allowImagePath && /^\/images\/[A-Za-z0-9/_-]+\.(?:avif|gif|jpe?g|png|webp)$/i.test(parsed.pathname);

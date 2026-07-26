@@ -3,7 +3,7 @@ import type { BriefListItem } from './queries/briefs';
 import { sanitizePublicBriefText } from './security/public-brief-html';
 
 export function siteUrl(): string {
-  return (process.env.SITE_URL ?? 'https://macro.watch').replace(/\/$/, '');
+  return (process.env.SITE_URL ?? 'https://web-production-cb2e81.up.railway.app').replace(/\/$/, '');
 }
 
 /** RSS 2.0 of briefs: title = subject, body = ping + link (spec §5). */
@@ -27,9 +27,9 @@ export function buildFeed(items: BriefListItem[]): string {
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<rss version="2.0">',
     '  <channel>',
-    '    <title>macro.watch</title>',
+    '    <title>Sovs Macro</title>',
     `    <link>${base}</link>`,
-    '    <description>Daily macro briefs from SovsClaw by Sovereign Signal.</description>',
+    '    <description>Daily macro briefs from Sovs Macro, a Sovereign Signal project.</description>',
     '    <language>en</language>',
     entries,
     '  </channel>',
