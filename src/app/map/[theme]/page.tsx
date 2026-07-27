@@ -24,14 +24,14 @@ export async function generateMetadata({ params }: { params: Promise<{ theme: st
   if (!SLUG_RE.test(theme)) {
     return pageMetadata({
       title: 'Theme',
-      description: 'A macro.watch theme dossier.',
+      description: 'A Sovs Macro theme dossier.',
       path: '/map',
     });
   }
   const detail = await getThemeDetail(getDb(), theme);
   return pageMetadata({
     title: detail ? detail.name : 'Theme',
-    description: detail?.card?.description ?? detail?.card?.read ?? 'A macro.watch theme dossier.',
+    description: detail?.card?.description ?? detail?.card?.read ?? 'A Sovs Macro theme dossier.',
     path: `/map/${theme}`,
   });
 }

@@ -1,8 +1,8 @@
-# macro.watch
+# Sovs Macro
 
 **Live:** https://web-production-cb2e81.up.railway.app
 
-macro.watch is SovsClaw's public face — a Sovereign Signal system. It publishes the
+Sovs Macro is a Sovereign Signal project. It publishes the
 sovs-macro pipeline's output as a free, public macro-intelligence site: the daily/weekend
 brief, a living theme map with full history, a public record that grades eligible market
 claims against external outcomes, and a
@@ -42,7 +42,7 @@ projection were dropped, re-publishing from pipeline state would rebuild it.
 | `/catalysts` | Upcoming forward events (what-would-surprise framing) and resolved events (expectation vs. outcome) |
 | `/search` | Postgres full-text search across briefs, theme events, and claims |
 | `/feed.xml` | RSS feed of briefs |
-| `/about` | What SovsClaw is and how it works, plus the disclaimer |
+| `/about` | What Sovs Macro is and how it works, plus the disclaimer |
 
 `/map` is the flagship view: a field where each theme is placed by conviction band
 (y-axis) and 30-day directional pressure (x-axis) — see `docs/architecture.md` for the
@@ -109,7 +109,7 @@ Full contract, payload shapes, and schema: `docs/specs/2026-07-11-macro-watch-de
 - **Status glyphs:** claim status is always glyph + color together, never color alone —
   `pending ○ · hit ◆ · miss ✕ · partial ◐ · expired — · judgment-required ? · void ∅`
   (`src/components/StatusMark.tsx`).
-- **Mark:** the 🦂 scorpion emoji — the SovsClaw signature — in the masthead lockup
+- **Mark:** the 🦂 scorpion emoji — the Sovs Macro mark — in the masthead lockup
   (`src/components/Mark.tsx`) and as the favicon (`src/app/icon.svg`, an emoji SVG). A
   hand-drawn scorpion was tried and dropped (it read as a blob at small sizes); the emoji
   is cleaner and unmistakable. `Mark.tsx` is a server component, `aria-hidden`; the

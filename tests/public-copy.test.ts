@@ -46,4 +46,10 @@ describe('public copy contract', () => {
 
     expect(offenders).toEqual([]);
   });
+
+  it('keeps the deployment smoke disclaimer aligned with the rendered footer', () => {
+    const disclaimer = 'Research only. No buy or sell recommendations.';
+    expect(fs.readFileSync('src/app/layout.tsx', 'utf8')).toContain(disclaimer);
+    expect(fs.readFileSync('scripts/smoke.mjs', 'utf8')).toContain(disclaimer);
+  });
 });

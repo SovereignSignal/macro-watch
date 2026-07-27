@@ -112,6 +112,7 @@ const DEAD_POINTER_TEXT_RE = /^\s*(?:Full decision memo|Research log\s*:.*)$/is;
 // frame-level filter cannot see it. Bounded to the text run: stops at the
 // sentence end or line end so surrounding analysis is untouched.
 const DEAD_POINTER_RUN_RE = /(?:Full decision memo|Research log\s*:[^<\n]*?)(?:\.|$|\n)/gi;
+const PUBLIC_ORIGIN = 'https://web-production-cb2e81.up.railway.app';
 
 function hasPrivateFooter(text: string): boolean {
   PRIVATE_FOOTER_RE.lastIndex = 0;
@@ -224,12 +225,12 @@ function normalizePublicUrl(rawValue: string | undefined, allowImagePath = false
   if (value.startsWith('/')) {
     let parsed: URL;
     try {
-      parsed = new URL(value, 'https://macro.watch');
+      parsed = new URL(value, PUBLIC_ORIGIN);
       decodeURIComponent(parsed.pathname);
     } catch {
       return null;
     }
-    if (parsed.origin !== 'https://macro.watch' || parsed.username || parsed.password || parsed.search) return null;
+    if (parsed.origin !== PUBLIC_ORIGIN || parsed.username || parsed.password || parsed.search) return null;
     if (!safeFragment(parsed.hash)) return null;
     const safeRoute = SAFE_RELATIVE_ROUTES.some((route) => route.test(parsed.pathname));
     const safeImage = allowImagePath && /^\/images\/[A-Za-z0-9/_-]+\.(?:avif|gif|jpe?g|png|webp)$/i.test(parsed.pathname);

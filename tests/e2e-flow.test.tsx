@@ -41,6 +41,11 @@ it('ingest fixture -> home page shows it (full wiring)', async () => {
   for (const p of fixture('panels.json') as unknown[]) {
     expect((await postPanels(post('panels', p))).status).toBe(200);
   }
+  expect((await postPanels(post('panels', {
+    kind: 'odds_lens',
+    taken_at: '2026-07-11T12:05:00Z',
+    payload: { rows: [{ label: 'LEGACY RAW ODDS', value: 0.725 }] },
+  }))).status).toBe(200);
 
   const markup = renderToStaticMarkup(await HomePage());
   expect(markup).toContain('Weekend review: what the map got right about the dollar'); // latest brief
@@ -48,6 +53,7 @@ it('ingest fixture -> home page shows it (full wiring)', async () => {
   expect(markup).toContain('Prediction Market Lens');
   expect(markup).toContain('Fed cut by September');
   expect(markup).toContain('2 selected from 28 verified schema-v2 AMS signals');
+  expect(markup).not.toContain('LEGACY RAW ODDS');
   expect(markup).toContain('Rate-path repricing'); // theme strip
   expect(markup).toContain('href="/map/dollar-downtrend"');
 });

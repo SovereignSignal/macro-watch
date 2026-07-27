@@ -8,8 +8,11 @@ const markup = renderToStaticMarkup(
   </RootLayout>,
 );
 
-it('carries the Sovereign Signal byline', () => {
-  expect(markup).toContain('SovsClaw by Sovereign Signal');
+it('brands the product as Sovs Macro and the relationship as a Sovereign Signal project', () => {
+  expect(markup).toContain('Sovs Macro');
+  expect(markup).toContain('A Sovereign Signal project');
+  expect(markup).not.toContain('macro.watch');
+  expect(markup).not.toContain('SovsClaw');
 });
 
 it('carries the not-investment-advice footer', () => {

@@ -9,7 +9,7 @@ import { safeQuery } from '@/lib/safe';
 export const dynamic = 'force-dynamic';
 export const metadata = pageMetadata({
   title: 'Search',
-  description: 'Search macro.watch briefs, theme events, and claims.',
+  description: 'Search Sovs Macro briefs, theme events, and claims.',
   path: '/search',
 });
 

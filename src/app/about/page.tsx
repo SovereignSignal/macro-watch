@@ -2,16 +2,16 @@ import { pageMetadata } from '@/lib/metadata';
 
 export const metadata = pageMetadata({
   title: 'About',
-  description: 'How SovsClaw publishes and checks macro research.',
+  description: 'How Sovs Macro publishes and checks macro research.',
   path: '/about',
 });
 
 export default function AboutPage() {
   return (
     <main className="container">
-      <h1>About macro.watch</h1>
+      <h1>About Sovs Macro</h1>
       <p>
-        macro.watch publishes SovsClaw&apos;s daily brief, theme map, catalyst board, and track record.
+        Sovs Macro publishes a daily brief, theme map, catalyst board, and public accountability record.
       </p>
       <h2>How it works</h2>
       <p>
@@ -29,7 +29,7 @@ export default function AboutPage() {
       </p>
       <h2>Who is behind it</h2>
       <p>
-        Sovereign Signal builds and runs SovsClaw.
+        Sovs Macro is a Sovereign Signal project.
       </p>
       <h2>Disclaimer</h2>
       <p>
