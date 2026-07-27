@@ -308,6 +308,17 @@ describe('legacy email chrome cleanup (2026-07-27 live-site defects)', () => {
     expect(clean).toContain('FOMC Decision');
   });
 
+  it('removes bare-text weekend research-log pointers without touching neighbors', () => {
+    const clean = sanitizePublicBriefHtml(
+      '<div class="decision">Analysis stays.</div>' +
+        'Research log: 2026-07-25 Macro Research Sweep.\n' +
+        '<h2>Forward Event Checkpoints</h2>',
+    );
+    expect(clean).not.toContain('Research log');
+    expect(clean).toContain('Analysis stays.');
+    expect(clean).toContain('Forward Event Checkpoints');
+  });
+
   it('keeps distinct forward-event fields intact', () => {
     const clean = sanitizePublicBriefHtml(
       '<div class="forward-event"><p class="event-title">CPI</p>' +

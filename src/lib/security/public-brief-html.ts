@@ -108,6 +108,10 @@ const PRIVATE_FOOTER_RE = /(?:📄\s*)?View this brief in Notion|(?:📋\s*)?Sov
 // keep their label. Render-time sanitization removes both from stored rows.
 const EMAIL_MASTHEAD_TEXT_RE = /SOV[\u2019']S MACRO\s*(?:(?:Mon|Tues|Wednes|Thurs|Fri|Satur|Sun)day,\s+[A-Z][a-z]+\s+\d{1,2},\s+\d{4})?/g;
 const DEAD_POINTER_TEXT_RE = /^\s*(?:Full decision memo|Research log\s*:.*)$/is;
+// Legacy weekend rows carry the pointer as a bare text run (not a <p>), so a
+// frame-level filter cannot see it. Bounded to the text run: stops at the
+// sentence end or line end so surrounding analysis is untouched.
+const DEAD_POINTER_RUN_RE = /(?:Full decision memo|Research log\s*:[^<\n]*?)(?:\.|$|\n)/gi;
 
 function hasPrivateFooter(text: string): boolean {
   PRIVATE_FOOTER_RE.lastIndex = 0;
@@ -118,6 +122,7 @@ const PRIVATE_BLOCK_RE = /(?:file:\/\/\/|\/(?:home|Users|root|tmp|private|opt|sr
 function scrubPrivateText(text: string): string {
   return publicText(text.replace(PRIVATE_FOOTER_RE, ''))
     .replace(EMAIL_MASTHEAD_TEXT_RE, '')
+    .replace(DEAD_POINTER_RUN_RE, '')
     .replace(NOTION_URL_RE, '[redacted workspace link]')
     .replace(PRIVATE_URL_RE, '[redacted internal URL]')
     .replace(FILE_URL_RE, '[redacted path]')
