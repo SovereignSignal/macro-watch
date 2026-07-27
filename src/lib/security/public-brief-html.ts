@@ -94,11 +94,20 @@ const EMAIL_RE = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi;
 const NOTION_URL_RE = /\bhttps?:\/\/(?:[a-z0-9-]+\.)*notion\.(?:so|site|com)(?::\d+)?(?:\/[^\s<>'"]*)?/gi;
 const PRIVATE_URL_RE = /\bhttps?:\/\/(?:localhost|0\.0\.0\.0|127(?:\.\d{1,3}){3}|10(?:\.\d{1,3}){3}|192\.168(?:\.\d{1,3}){2}|172\.(?:1[6-9]|2\d|3[01])(?:\.\d{1,3}){2}|\[[^\]]+\]|[a-z0-9.-]+\.(?:internal|local))(?::\d+)?(?:\/[^\s<>'"]*)?/gi;
 const FILE_URL_RE = /\bfile:\/\/\/[^\s<>'"]+/gi;
-const POSIX_PATH_RE = /\/(?:home|Users|root|tmp|private|opt|srv|var\/(?:lib|log|run))(?:\/[^\s<>'"]*)?/g;
+// Boundary guards keep real filesystem leaks (`/home/ubuntu/...`) caught while
+// leaving public URLs whose hostname starts with a reserved word intact
+// (`https://home.treasury.gov/...` previously lost its href here).
+const POSIX_PATH_RE = /(?<![\w.-])\/(?:home|Users|root|tmp|private|opt|srv|var\/(?:lib|log|run))(?![\w.-])(?:\/[^\s<>'"]*)?/g;
 const WINDOWS_PATH_RE = /\b[A-Z]:\\(?:Users|Windows|Program Files|tmp)(?:\\[^\s<>'"]*)*/gi;
 const PRIVATE_ENDPOINT_RE = /\/(?:api\/(?:ingest|admin|internal|private|debug|webhooks?)|admin|internal|private)(?:\/[^\s<>'"]*)?/gi;
 const SAFE_ID_RE = /^[A-Za-z][A-Za-z0-9_:.-]{0,127}$/;
 const PRIVATE_FOOTER_RE = /(?:📄\s*)?View this brief in Notion|(?:📋\s*)?SovsClaw Macro Brief Log\s*[\u2014-]\s*all briefs/gi;
+// Email chrome and private-artifact pointers that survive legacy ingest as
+// dead text: the wordmark+date masthead flattens into `SOV'S MACROMonday...`
+// once its divs unwrap, and Notion-pointer paragraphs lose their href but
+// keep their label. Render-time sanitization removes both from stored rows.
+const EMAIL_MASTHEAD_TEXT_RE = /SOV[\u2019']S MACRO\s*(?:(?:Mon|Tues|Wednes|Thurs|Fri|Satur|Sun)day,\s+[A-Z][a-z]+\s+\d{1,2},\s+\d{4})?/g;
+const DEAD_POINTER_TEXT_RE = /^\s*(?:Full decision memo|Research log\s*:.*)$/is;
 
 function hasPrivateFooter(text: string): boolean {
   PRIVATE_FOOTER_RE.lastIndex = 0;
@@ -108,6 +117,7 @@ const PRIVATE_BLOCK_RE = /(?:file:\/\/\/|\/(?:home|Users|root|tmp|private|opt|sr
 
 function scrubPrivateText(text: string): string {
   return publicText(text.replace(PRIVATE_FOOTER_RE, ''))
+    .replace(EMAIL_MASTHEAD_TEXT_RE, '')
     .replace(NOTION_URL_RE, '[redacted workspace link]')
     .replace(PRIVATE_URL_RE, '[redacted internal URL]')
     .replace(FILE_URL_RE, '[redacted path]')
@@ -366,6 +376,7 @@ const options: IOptions = {
   exclusiveFilter: (frame) => {
     if (frame.tag === 'h1') return true;
     if (frame.tag === 'div' && hasPrivateFooter(frame.text)) return true;
+    if (frame.tag === 'p' && DEAD_POINTER_TEXT_RE.test(frame.text)) return true;
     if (
       ['section', 'p', 'li', 'blockquote', 'figure', 'figcaption', 'table', 'thead', 'tbody', 'tfoot', 'tr'].includes(frame.tag) &&
       (hasPrivateFooter(frame.text) || PRIVATE_BLOCK_RE.test(frame.text))

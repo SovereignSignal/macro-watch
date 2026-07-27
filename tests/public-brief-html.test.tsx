@@ -241,3 +241,52 @@ it('sanitizes legacy database HTML immediately before dangerouslySetInnerHTML', 
   expect(markup).toContain('Safe text');
   expect(markup).not.toMatch(/script|onclick|analyst@example\.com|__pwned|steal\(\)/i);
 });
+
+describe('legacy email chrome cleanup (2026-07-27 live-site defects)', () => {
+  it('removes the flattened wordmark+date masthead from legacy stored rows', () => {
+    // Stored rows ingested before the producer fix carry the email header as
+    // unwrapped text; on the page it rendered as `SOV'S MACROMonday, ...`.
+    const clean = sanitizePublicBriefHtml(
+      '<div>SOV\u2019S MACRO</div><h1>\ud83e\udd82 Macro Brief, Monday, July 27, 2026</h1>' +
+        '<div>Monday, July 27, 2026</div>' +
+        '<p><strong>Bottom line:</strong> Brent fell below $90.</p>',
+    );
+    expect(clean).not.toMatch(/SOV[\u2019']S MACRO/);
+    expect(clean).not.toContain('<h1');
+    expect(clean).toContain('Bottom line:');
+  });
+
+  it('removes already-flattened masthead text runs', () => {
+    const clean = sanitizePublicBriefHtml(
+      '<p>SOV\u2019S MACROMonday, July 27, 2026</p><p>Real copy stays.</p>',
+    );
+    expect(clean).not.toMatch(/SOV|MACRO|July 27, 2026/);
+    expect(clean).toContain('Real copy stays.');
+  });
+
+  it('drops dead Notion-pointer paragraphs instead of leaving orphaned labels', () => {
+    const clean = sanitizePublicBriefHtml(
+      '<p><a href="https://app.notion.com/p/private-memo">Full decision memo</a></p>' +
+        '<p>Research log: <a href="https://app.notion.com/p/sweep">2026-07-27 Macro Research Sweep</a></p>' +
+        '<p>Kept paragraph with substance.</p>',
+    );
+    expect(clean).not.toContain('Full decision memo');
+    expect(clean).not.toContain('Research log');
+    expect(clean).toContain('Kept paragraph with substance.');
+  });
+
+  it('keeps public https links whose hostname starts with a reserved path word', () => {
+    const clean = sanitizePublicBriefHtml(
+      '<p><a href="https://home.treasury.gov/policy-issues/financing-the-government/quarterly-refunding">Treasury Refunding</a></p>',
+    );
+    expect(clean).toContain('href="https://home.treasury.gov/policy-issues/financing-the-government/quarterly-refunding"');
+    expect(clean).toContain('Treasury Refunding');
+  });
+
+  it('still scrubs real filesystem paths after the boundary fix', () => {
+    const clean = sanitizePublicBriefHtml(
+      '<h2>Kept</h2><p>Debug note: /home/ubuntu/openclaw-workspace/secret.txt and /tmp/leak.</p>',
+    );
+    expect(clean).not.toMatch(/\/home\/ubuntu|\/tmp\/leak/);
+  });
+});
