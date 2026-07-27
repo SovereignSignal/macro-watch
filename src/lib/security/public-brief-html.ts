@@ -392,6 +392,38 @@ const options: IOptions = {
 };
 
 /**
+ * Legacy stored forward-event cards can repeat the baseline sentence under
+ * "Expected signal:" and "Why it matters:" labels (producer bug fixed
+ * 2026-07-27). Render-time dedupe removes echo paragraphs inside each
+ * forward-event block so archived briefs read cleanly without re-ingestion.
+ */
+function dedupeForwardEventEchoes(html: string): string {
+  return html.replace(
+    /<div class="forward-event">([\s\S]*?)<\/div>/g,
+    (block, inner: string) => {
+      const paragraphRe = /<p(?: class="(event-[a-z-]+)")?>([\s\S]*?)<\/p>/g;
+      const seen = new Set<string>();
+      const cleaned = inner.replace(paragraphRe, (paragraph, cls: string | undefined, body: string) => {
+        const text = body
+          .replace(/<[^>]+>/g, '')
+          .replace(/^\s*(?:Baseline|Expected signal|Why it matters|Date|Resolve with|Surprise|Market impact):\s*/i, '')
+          .replace(/\s+/g, ' ')
+          .trim()
+          .toLowerCase();
+        if (!text) return paragraph;
+        // Titles, dates, resolve-with, and sources always render; only the
+        // analytic fields participate in echo suppression.
+        const comparable = cls === undefined || ['event-baseline', 'event-expectation'].includes(cls);
+        const isEcho = comparable && seen.has(text);
+        if (comparable) seen.add(text);
+        return isEcho ? '' : paragraph;
+      });
+      return `<div class="forward-event">${cleaned}</div>`;
+    },
+  );
+}
+
+/**
  * Sanitizes publisher HTML for public display and storage.
  *
  * This is intentionally server-only: the allowlist and privacy scrub are a
@@ -401,5 +433,7 @@ export function sanitizePublicBriefHtml(dirtyHtml: string): string {
   // Canonicalize nested entities before parsing so double-encoded markup and
   // private text cannot survive as recoverable entities in stored HTML.
   const canonical = decodeTextEntities(dirtyHtml);
-  return publicText(sanitizeHtml(sanitizeHtml(canonical, options), options)).trim();
+  return dedupeForwardEventEchoes(
+    publicText(sanitizeHtml(sanitizeHtml(canonical, options), options)),
+  ).trim();
 }

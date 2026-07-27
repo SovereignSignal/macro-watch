@@ -289,4 +289,35 @@ describe('legacy email chrome cleanup (2026-07-27 live-site defects)', () => {
     );
     expect(clean).not.toMatch(/\/home\/ubuntu|\/tmp\/leak/);
   });
+
+  it('dedupes legacy forward-event field echoes at render time', () => {
+    const echo = 'The statement, dots, and Powell&#39;s reaction function matter more than the rate hold itself.';
+    const clean = sanitizePublicBriefHtml(
+      '<div class="forward-event"><p class="event-title">FOMC Decision</p>' +
+        `<p class="event-baseline"><strong>Baseline:</strong> ${echo}</p>` +
+        `<p class="event-expectation"><strong>Expected signal:</strong> ${echo}</p>` +
+        `<p><strong>Why it matters:</strong> ${echo}</p>` +
+        '<p class="event-resolve"><strong>Resolve with:</strong> Official release.</p>' +
+        '<p class="event-source"><a href="https://www.federalreserve.gov/a">FOMC Decision</a></p></div>',
+    );
+    expect((clean.match(/reaction function matter/g) ?? []).length).toBe(1);
+    expect(clean).toContain('Baseline:');
+    expect(clean).not.toContain('Expected signal:');
+    expect(clean).not.toContain('Why it matters:');
+    expect(clean).toContain('Resolve with:');
+    expect(clean).toContain('FOMC Decision');
+  });
+
+  it('keeps distinct forward-event fields intact', () => {
+    const clean = sanitizePublicBriefHtml(
+      '<div class="forward-event"><p class="event-title">CPI</p>' +
+        '<p class="event-baseline"><strong>Baseline:</strong> Core inflation is sticky.</p>' +
+        '<p class="event-expectation"><strong>Expected signal:</strong> Watch services ex-housing.</p>' +
+        '<p><strong>Why it matters:</strong> Sets September cut odds.</p>' +
+        '<p class="event-resolve"><strong>Resolve with:</strong> Official release.</p></div>',
+    );
+    expect(clean).toContain('Core inflation is sticky.');
+    expect(clean).toContain('Watch services ex-housing.');
+    expect(clean).toContain('Sets September cut odds.');
+  });
 });
