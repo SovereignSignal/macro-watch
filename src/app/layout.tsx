@@ -60,6 +60,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Link href="/">Brief</Link>
             <Link href="/briefs">Archive</Link>
             <Link href="/map">Theme map</Link>
+            <Link href="/research">Research</Link>
             <Link href="/accountability">Accountability</Link>
             <Link href="/catalysts">Catalysts</Link>
             <Link href="/search">Search</Link>
