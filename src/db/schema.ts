@@ -119,3 +119,29 @@ export const forwardEvents = pgTable('forward_events', {
   payload: jsonb('payload').notNull(), // event, expectation, what-would-surprise framing
   resolution: jsonb('resolution'), // null until reconciled
 });
+
+// Daily research memos from the paid Decision Research loop (07:00 UTC,
+// weekdays + Saturday). One memo per day; structured sections, never raw
+// email content — the memo is Parallel web research over public sources.
+export const researchMemos = pgTable(
+  'research_memos',
+  {
+    date: text('date').primaryKey(), // YYYY-MM-DD
+    topic: text('topic').notNull(), // display topic, e.g. "Dedollarization / BRICS"
+    finding: text('finding').notNull(),
+    changed: text('changed').notNull(),
+    decision: text('decision').notNull(),
+    watch: text('watch').notNull(),
+    // [{url, title?}] — public https URLs only (publisher + ingest sanitized)
+    citations: jsonb('citations').notNull().default(sql`'[]'::jsonb`),
+    generatedAt: timestamp('generated_at', { withTimezone: true, mode: 'date' }).notNull(),
+    ingestedAt: timestamp('ingested_at', { withTimezone: true, mode: 'date' })
+      .notNull()
+      .defaultNow(),
+    search: tsvector('search').generatedAlwaysAs(
+      (): SQL =>
+        sql`to_tsvector('english', coalesce(${researchMemos.topic}, '') || ' ' || coalesce(${researchMemos.finding}, '') || ' ' || coalesce(${researchMemos.changed}, '') || ' ' || coalesce(${researchMemos.decision}, '') || ' ' || coalesce(${researchMemos.watch}, ''))`,
+    ),
+  },
+  (t) => [index('research_memos_search_idx').using('gin', t.search)],
+);
