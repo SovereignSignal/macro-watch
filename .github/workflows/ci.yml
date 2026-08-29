@@ -5,6 +5,11 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
 jobs:
   checks:
     runs-on: ubuntu-latest
@@ -16,7 +21,28 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run typecheck
-      - run: npm test
+      - name: Test
+        run: |
+          set +e
+          npm test > test.log 2>&1
+          status=$?
+          cat test.log
+          exit $status
+      - name: Publish test log
+        if: failure() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const log = fs.existsSync('test.log')
+              ? fs.readFileSync('test.log', 'utf8')
+              : 'test.log missing';
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: '## test log\n\n```\n' + log.slice(0, 60000) + '\n```\n',
+            });
       - run: npm run build
         env:
           # Fake URL: build-time prerender must succeed with no DB reachable
