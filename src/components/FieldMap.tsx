@@ -94,7 +94,7 @@ export function FieldMap({ themes, asOf }: { themes: FieldThemeInput[]; asOf: st
             </g>
           ))}
           {/* quadrant whispers: two annotations, no grid.
-              "pressured" not "the front" — Front is the email weather strip. */}
+              "pressured" not "the front". Front is the email weather strip. */}
           <text x={layout.width - 16} y={layout.bands[0].top + 17} textAnchor="end" className="field-quad">
             pressured
           </text>

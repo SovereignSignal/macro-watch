@@ -65,7 +65,7 @@ export default async function AccountabilityPage({
   const classOptions = [...new Set(all.map((c) => qualityClass(c.payload)))].sort();
   const unmappedCount = all.filter((claim) => !isMappedThemeClaim(claim)).length;
   // An explicit theme= query always wins. Otherwise default focus hides the
-  // unmapped wallet bucket from book, horizon, and ledger — not scoreboards.
+  // unmapped wallet bucket from book, horizon, and ledger, not scoreboards.
   const showUnmapped = relevance === 'all' || Boolean(filters.theme);
   const focusedScoreable = showUnmapped ? scoreable : scoreable.filter(isMappedThemeClaim);
   const focusedQualitative = showUnmapped ? qualitative : qualitative.filter(isMappedThemeClaim);
