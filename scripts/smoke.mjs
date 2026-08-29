@@ -35,15 +35,16 @@ await check('GET / renders with the byline', async () => {
   }
 });
 
-await check('GET /feed.xml is RSS', async () => {
+await check('GET /feed.xml is RSS on this origin', async () => {
   const res = await fetch(`${base}/feed.xml`);
   if (res.status !== 200) throw new Error(`status ${res.status}`);
   const text = await res.text();
   if (!text.includes('<rss version="2.0">')) throw new Error('not an RSS document');
+  if (text.includes('macro.watch')) throw new Error('RSS still points at macro.watch');
 });
 
-await check('GET /map, /accountability, /catalysts, /about, /search all 200', async () => {
-  for (const p of ['/map', '/accountability', '/catalysts', '/about', '/search']) {
+await check('GET /map, /accountability, /catalysts, /about, /search, /research all 200', async () => {
+  for (const p of ['/map', '/accountability', '/catalysts', '/about', '/search', '/research']) {
     const res = await fetch(`${base}${p}`);
     if (res.status !== 200) throw new Error(`${p} -> ${res.status}`);
   }

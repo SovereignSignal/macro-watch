@@ -12,7 +12,7 @@ import { pageMetadata } from '@/lib/metadata';
 import { getThemeDetail } from '@/lib/queries/map';
 import { statusLabel } from '@/lib/claim-display';
 
-export const revalidate = 900;
+export const dynamic = 'force-dynamic';
 
 // Theme slugs are kebab-case (spec §4: themes.slug). Reject anything else
 // before it ever reaches the database, same pattern as /briefs/[date]'s

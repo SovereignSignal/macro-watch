@@ -9,7 +9,7 @@ import { safeQuery } from '@/lib/safe';
 export const dynamic = 'force-dynamic';
 export const metadata = pageMetadata({
   title: 'Search',
-  description: 'Search Sovs Macro briefs, theme events, and claims.',
+  description: 'Search Sovs Macro briefs, theme events, claims, and research.',
   path: '/search',
 });
 
@@ -29,13 +29,13 @@ export default async function SearchPage({
           type="search"
           name="q"
           defaultValue={q}
-          placeholder="briefs, themes, claims"
+          placeholder="briefs, themes, claims, research"
           aria-label="Search query"
         />
         <button type="submit">Search</button>
       </form>
       {q.trim() === '' ? (
-        <p className="brief-meta">Search briefs, theme events, and claims.</p>
+        <p className="brief-meta">Search briefs, theme events, claims, and research.</p>
       ) : results.length === 0 ? (
         <EmptyState>
           No results for “{q}”. Try a ticker, theme, or phrase.

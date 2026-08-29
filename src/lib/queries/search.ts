@@ -1,12 +1,13 @@
 import { desc, sql } from 'drizzle-orm';
 import type { Db } from '@/db/client';
-import { briefs, claims, themeEvents } from '@/db/schema';
+import { briefs, claims, researchMemos, themeEvents } from '@/db/schema';
 import { PUBLIC_BRIEF_MIN_DATE } from '@/lib/queries/briefs';
+import { isPlaceholderResearch, publicResearchText } from '@/lib/research-public';
 import { sanitizePublicBriefText } from '@/lib/security/public-brief-html';
 import { publicText } from '@/lib/public-copy';
 
 export type SearchResult = {
-  type: 'brief' | 'theme-event' | 'claim';
+  type: 'brief' | 'theme-event' | 'claim' | 'research';
   title: string;
   href: string;
   snippet: string;
@@ -16,7 +17,7 @@ export type SearchResult = {
 const LIMIT = 20;
 
 /**
- * Postgres full-text across briefs, theme events, claims (spec §5 /search).
+ * Postgres full-text across briefs, theme events, claims, and research.
  * `q` always travels as a bound parameter via drizzle's `sql` tag, never
  * string-concatenated, so quotes and injection attempts are just inert
  * search text (see tests/search.test.tsx).
@@ -57,6 +58,18 @@ export async function searchAll(db: Db, q: string): Promise<SearchResult[]> {
     .orderBy(desc(claims.openedAt))
     .limit(LIMIT);
 
+  const researchHits = await db
+    .select({
+      date: researchMemos.date,
+      topic: researchMemos.topic,
+      finding: researchMemos.finding,
+      citations: researchMemos.citations,
+    })
+    .from(researchMemos)
+    .where(sql`${researchMemos.search} @@ websearch_to_tsquery('english', ${query}) AND ${researchMemos.date} >= ${PUBLIC_BRIEF_MIN_DATE}`)
+    .orderBy(desc(researchMemos.date))
+    .limit(LIMIT);
+
   return [
     ...briefHits.map(
       (b): SearchResult => ({
@@ -86,5 +99,16 @@ export async function searchAll(db: Db, q: string): Promise<SearchResult[]> {
         date: c.openedAt,
       };
     }),
+    ...researchHits
+      .filter((row) => !isPlaceholderResearch(row))
+      .map(
+        (row): SearchResult => ({
+          type: 'research',
+          title: publicResearchText(sanitizePublicBriefText(row.topic)) || 'Research memo',
+          href: `/research/${row.date}`,
+          snippet: publicResearchText(sanitizePublicBriefText(row.finding)).slice(0, 220),
+          date: row.date,
+        }),
+      ),
   ];
 }

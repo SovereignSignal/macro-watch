@@ -14,7 +14,7 @@ it('archive lists every brief newest-first with weekend labels', async () => {
   expect(markup).toContain('href="/briefs/2026-07-11"');
   expect(markup).toContain('href="/briefs/2026-07-09"');
   expect(markup).toContain('href="/briefs/2026-07-08"');
-  expect(markup).toContain('Weekend review'); // label on the Saturday brief
+  expect(markup).toContain('Weekend review');
   expect(markup.indexOf('2026-07-11')).toBeLessThan(markup.indexOf('2026-07-08')); // newest first
 });
 

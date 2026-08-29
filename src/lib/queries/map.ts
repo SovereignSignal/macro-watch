@@ -5,6 +5,7 @@ import { briefs, claims, themeEvents, themes, themeState } from '@/db/schema';
 import { type FieldEvent, windowStart } from '@/lib/field-map';
 import type { ThemeStateCard } from '@/lib/ingest/themes';
 import { publicText, publicValue } from '@/lib/public-copy';
+import { displayThemeName } from '@/lib/theme-display';
 
 export type ThemeCard = {
   slug: string;
@@ -47,13 +48,25 @@ const THEME_DESCRIPTIONS: Record<string, string> = {
     'Tracks whether rates and capital flows support a weaker US dollar.',
   'china-reflation':
     'Tracks whether Chinese stimulus is reviving demand and commodity growth.',
+  'long-end-funding-pressure':
+    'Tracks term premium and long-end Treasury supply as a funding-stress signal.',
+  'dollar-plumbing-versus-gold':
+    'Tracks whether reserve drain and a metals bid are reading the same plumbing shock.',
+  'dollar-plumbing-vs-gold':
+    'Tracks whether reserve drain and a metals bid are reading the same plumbing shock.',
+  'gold-miners-real-assets':
+    'Tracks gold, silver, and miners as a policy-credibility and real-rate signal.',
+  'red-sea-bab-al-mandab-export-chokepoint':
+    'Tracks whether Red Sea and Bab al-Mandab disruption is moving export costs.',
+  'official-currency-defense-yen-funded-leverage':
+    'Tracks yen-funded leverage and official defense of currency and duration.',
 };
 
 function themeDescription(slug: string, name: string, supplied?: string | null): string {
   return publicText(
     supplied?.trim() ||
     THEME_DESCRIPTIONS[slug] ||
-    `Tracks ${name.toLowerCase()}.`
+    `Tracks ${displayThemeName(slug, name).toLowerCase()}.`
   );
 }
 
@@ -96,7 +109,7 @@ export async function getThemeMapCards(
     const s = stateCards.get(t.slug);
     bySlug.set(t.slug, {
       slug: t.slug,
-      name: publicText(t.name),
+      name: displayThemeName(t.slug, publicText(t.name)),
       description: themeDescription(t.slug, t.name, s?.description),
       status: t.status,
       firstSeen: t.firstSeen,
@@ -113,7 +126,7 @@ export async function getThemeMapCards(
     if (!bySlug.has(slug)) {
       bySlug.set(slug, {
         slug,
-        name: s.name,
+        name: displayThemeName(slug, s.name),
         description: themeDescription(slug, s.name, s.description),
         status: 'active',
         firstSeen: null,
@@ -264,7 +277,7 @@ export const getThemeDetail = cache(async (db: Db, slug: string): Promise<ThemeD
 
   return {
     slug,
-    name: publicText(themeRow?.name ?? card?.name ?? slug),
+    name: displayThemeName(slug, publicText(themeRow?.name ?? card?.name ?? slug)),
     status: themeRow?.status ?? card?.status ?? 'active',
     firstSeen: themeRow?.firstSeen ?? null,
     lastEventAt: themeRow?.lastEventAt ?? null,

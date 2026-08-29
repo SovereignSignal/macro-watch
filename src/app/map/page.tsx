@@ -5,6 +5,7 @@ import { getDb } from '@/db/client';
 import { getConvictionSparks, getRecentThemeEvents, getThemeMapCards } from '@/lib/queries/map';
 import { pageMetadata } from '@/lib/metadata';
 import { safeQuery } from '@/lib/safe';
+import { isRetiredAlias } from '@/lib/theme-display';
 
 export const dynamic = 'force-dynamic';
 export const metadata = pageMetadata({
@@ -22,14 +23,17 @@ export default async function MapPage() {
   const sparks = await safeQuery(() => getConvictionSparks(db), {});
   const asOf = new Date().toISOString().slice(0, 10);
   const recent = await safeQuery(() => getRecentThemeEvents(db, asOf), {});
-  const fieldThemes = cards.map((c) => ({
-    slug: c.slug,
-    name: c.name,
-    status: c.status,
-    conviction: c.conviction,
-    lastEventAt: c.lastEventAt,
-    events: recent[c.slug] ?? [],
-  }));
+  const present = new Set(cards.map((c) => c.slug));
+  const fieldThemes = cards
+    .filter((c) => !isRetiredAlias(c.slug, c.status, present))
+    .map((c) => ({
+      slug: c.slug,
+      name: c.name,
+      status: c.status,
+      conviction: c.conviction,
+      lastEventAt: c.lastEventAt,
+      events: recent[c.slug] ?? [],
+    }));
   return (
     <main className="container-wide">
       <div className="page-head">

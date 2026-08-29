@@ -11,7 +11,8 @@ export default function AboutPage() {
     <main className="container">
       <h1>About Sovs Macro</h1>
       <p>
-        Sovs Macro publishes a daily brief, theme map, catalyst board, and public accountability record.
+        Sovs Macro publishes a daily brief, theme map, research memos, catalyst board, and public
+        accountability record.
       </p>
       <h2>How it works</h2>
       <p>

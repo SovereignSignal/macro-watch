@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { formatAgo } from '@/lib/format';
+import { formatAgo, formatUtcStamp } from '@/lib/format';
 
 /**
  * "updated Nm ago" badge from a snapshot's taken_at (spec §6).
@@ -17,7 +17,9 @@ export function UpdatedAgo({ takenAt }: { takenAt: string }) {
   }, []);
   return (
     <span className="chip updated-ago" title={new Date(takenAt).toUTCString()}>
-      {now === null ? 'updating' : `updated ${formatAgo(new Date(takenAt).getTime(), now)}`}
+      {now === null
+        ? `updated ${formatUtcStamp(takenAt)}`
+        : `updated ${formatAgo(new Date(takenAt).getTime(), now)}`}
     </span>
   );
 }

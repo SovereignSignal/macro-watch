@@ -14,6 +14,26 @@ const BRIEF: BriefRow = {
   search: '',
 };
 
+it('strips embedded dashboard and lens sections that the homepage already renders', () => {
+  const markup = renderToStaticMarkup(
+    <HomeView
+      brief={{
+        ...BRIEF,
+        html: '<h2>Map</h2><p>Gold lowered.</p><h2>5. Prediction Market Lens</h2><div class="prediction-lens"><p>No 97%</p></div><h2>7. Market Snapshot</h2><table><tr><td>SPY</td></tr></table>',
+      }}
+      panel={{
+        takenAt: '2026-07-11T12:00:00Z',
+        rows: [{ label: 'S&P 500 (SPY)', value: '769.35', change: '+0.60%', note: null }],
+      }}
+      cards={[]}
+    />,
+  );
+  expect(markup).toContain('Gold lowered.');
+  expect(markup).toContain('SPY (S&amp;P 500 ETF)');
+  expect(markup).not.toContain('Prediction Market Lens</h2>');
+  expect(markup).not.toContain('Market Snapshot');
+});
+
 it('renders the brief in full with the weekend label', () => {
   const markup = renderToStaticMarkup(<HomeView brief={BRIEF} panel={null} cards={[]} />);
   expect(markup).toContain('Weekend review: what the map got right about the dollar');
@@ -40,7 +60,7 @@ it('renders panel rows with change coloring', () => {
   expect(markup).toContain('change-up');
   expect(markup).toContain('change-down');
   expect(markup).toContain('panel-table-scroll');
-  expect(markup).toContain('updating'); // UpdatedAgo pre-hydration placeholder
+  expect(markup).toContain('updated 11 Jul 12:00 UTC');
 });
 
 it('renders the prediction market lens as a distinct homepage panel', () => {
