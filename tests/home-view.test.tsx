@@ -99,6 +99,8 @@ it('links theme strip entries to their theme pages', () => {
           triggers: [],
           raiseConditions: [],
           lowerConditions: [],
+          cellPhase: 'ignition',
+          phaseAgeDays: 6,
         },
       ]}
     />,
@@ -106,4 +108,5 @@ it('links theme strip entries to their theme pages', () => {
   expect(markup).toContain('href="/map/rate-path-repricing"');
   expect(markup).toContain('expected path of policy rates');
   expect(markup).toContain('conv-high');
+  expect(markup).toContain('Ignition · 6d');
 });

@@ -19,8 +19,8 @@ export type ThemeCard = {
   triggers: { name: string; state: string }[];
   raiseConditions: string[];
   lowerConditions: string[];
-  cellPhase: string | null;
-  phaseAgeDays: number | null;
+  cellPhase?: string | null;
+  phaseAgeDays?: number | null;
 };
 
 const THEME_DESCRIPTIONS: Record<string, string> = {
