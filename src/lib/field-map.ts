@@ -149,7 +149,7 @@ export function xForPressure(p: number): number {
  * truncates. The tooltip and the grid below carry the full name.
  */
 export function fieldLabel(name: string): string {
-  const bare = name.replace(/^new theme candidate\s*[—–-]\s*/i, '');
+  const bare = name.replace(/^new theme candidate\s*[\u2014\u2013-]\s*/i, '');
   if (bare.length <= LABEL_MAX) return bare;
   return `${bare.slice(0, LABEL_MAX - 1).trimEnd()}…`;
 }
