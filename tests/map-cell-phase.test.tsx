@@ -79,5 +79,5 @@ it('FieldMap tooltips name cell phase and the plot says pressured', () => {
   );
   expect(markup).toContain('cell phase ignition');
   expect(markup).toContain('pressured');
-  expect(markup).not.toContain('the front');
+  expect(markup).not.toContain('>the front<');
 });

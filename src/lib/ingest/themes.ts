@@ -2,7 +2,6 @@ import { sql } from 'drizzle-orm';
 import { z } from 'zod';
 import type { Db } from '@/db/client';
 import { themeEvents, themes, themeState } from '@/db/schema';
-import { CELL_PHASE_ENUM } from '@/lib/cell-phase';
 import { publicValue } from '@/lib/public-copy';
 
 // ---------------------------------------------------------------- events ---
@@ -98,9 +97,10 @@ const themeStateCardSchema = z
     raise_conditions: z.union([z.string(), z.array(z.string())]).nullish(),
     lower_conditions: z.union([z.string(), z.array(z.string())]).nullish(),
     triggers: z.array(z.object({ name: z.string(), state: z.string() })).nullish(),
-    // Unknown future phases drop rather than reject the whole snapshot.
-    cell_phase: z.enum(CELL_PHASE_ENUM).nullish().catch(undefined),
-    phase_age_days: z.number().finite().nullish().catch(undefined),
+    // Vocabulary is enforced at display time (parseCellPhase). A future
+    // publisher phase must not 422 the whole snapshot.
+    cell_phase: z.string().min(1).nullish(),
+    phase_age_days: z.number().finite().nullish(),
   })
   .passthrough();
 

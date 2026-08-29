@@ -45,7 +45,7 @@ it('hides unmapped wallet noise from the default book and ledger', async () => {
   expect(def).not.toContain(UNMAPPED_PREDICATE);
   // Scoreboards and headline counts stay on the full ledger.
   expect(def).toContain('2 decisions recorded.');
-  expect(def).toContain('>6<'); // all entries: 5 seed + 1 unmapped
+  expect(def).toMatch(/<dt>All entries<\/dt>\s*<dd>6<\/dd>/);
 
   const all = renderToStaticMarkup(await page({ relevance: 'all' }));
   const allLedger = all.slice(all.indexOf('Public ledger'));

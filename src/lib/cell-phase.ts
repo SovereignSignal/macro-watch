@@ -16,9 +16,6 @@ export const CELL_PHASES = [
 
 export type CellPhase = (typeof CELL_PHASES)[number];
 
-/** Mutable tuple for zod enums (readonly `as const` is not assignable). */
-export const CELL_PHASE_ENUM = CELL_PHASES as unknown as [CellPhase, ...CellPhase[]];
-
 export const CELL_PHASE_LABELS: Record<CellPhase, string> = {
   compression: 'Compression',
   ignition: 'Ignition',
