@@ -39,7 +39,7 @@ export function PanelTable(props: {
                 <tr key={row.label}>
                   <th scope="row">
                     {row.label}
-                    {row.note ? <span className="panel-note">, {row.note}</span> : null}
+                    {row.note ? <span className="panel-note"> {row.note}</span> : null}
                   </th>
                   <td className="num">{row.value}</td>
                   <td className={row.change ? changeClass(row.change) : 'num'}>{row.change ?? ''}</td>

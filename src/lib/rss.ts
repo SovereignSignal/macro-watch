@@ -1,10 +1,9 @@
 import { xmlEscape } from './format';
 import type { BriefListItem } from './queries/briefs';
 import { sanitizePublicBriefText } from './security/public-brief-html';
+import { siteUrl } from './site-url';
 
-export function siteUrl(): string {
-  return (process.env.SITE_URL ?? 'https://web-production-cb2e81.up.railway.app').replace(/\/$/, '');
-}
+export { siteUrl } from './site-url';
 
 /** RSS 2.0 of briefs: title = subject, body = ping + link (spec §5). */
 export function buildFeed(items: BriefListItem[]): string {

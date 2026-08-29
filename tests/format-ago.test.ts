@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { formatAgo, xmlEscape } from '@/lib/format';
+import { formatAgo, formatUtcStamp, xmlEscape } from '@/lib/format';
 
 const T0 = Date.parse('2026-07-11T12:00:00Z');
 
@@ -15,6 +15,10 @@ it('renders minutes, hours, days', () => {
 
 it('clamps clock skew to just now', () => {
   expect(formatAgo(T0 + 60_000, T0)).toBe('just now');
+});
+
+it('formats a stable UTC stamp for SSR freshness chips', () => {
+  expect(formatUtcStamp('2026-07-11T12:00:00Z')).toBe('11 Jul 12:00 UTC');
 });
 
 it('escapes XML special characters', () => {

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Suspense } from 'react';
 import { Mark } from '@/components/Mark';
 import { MastheadUpdated } from '@/components/MastheadUpdated';
+import { siteUrl } from '@/lib/site-url';
 import './globals.css';
 
 // Self-hosted at build time by next/font. No runtime requests leave the site.
@@ -21,7 +22,7 @@ const plexMono = IBM_Plex_Mono({
   display: 'swap',
 });
 
-const siteOrigin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://web-production-cb2e81.up.railway.app';
+const siteOrigin = siteUrl();
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteOrigin),

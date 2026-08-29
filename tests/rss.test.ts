@@ -29,6 +29,12 @@ it('siteUrl strips a trailing slash and defaults to the configured Railway origi
   process.env.SITE_URL = 'https://staging.example.com/';
   expect(siteUrl()).toBe('https://staging.example.com');
   delete process.env.SITE_URL;
+  delete process.env.NEXT_PUBLIC_SITE_URL;
+  expect(siteUrl()).toBe('https://web-production-cb2e81.up.railway.app');
+});
+
+it('siteUrl refuses macro.watch because that host is a different site', () => {
+  process.env.SITE_URL = 'https://macro.watch';
   expect(siteUrl()).toBe('https://web-production-cb2e81.up.railway.app');
 });
 

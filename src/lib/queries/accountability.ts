@@ -2,6 +2,7 @@ import { and, desc, eq, sql, type SQL } from 'drizzle-orm';
 import type { Db } from '@/db/client';
 import { claims, themes } from '@/db/schema';
 import { publicText } from '@/lib/public-copy';
+import { displayThemeName } from '@/lib/theme-display';
 
 export type ClaimRecord = typeof claims.$inferSelect;
 
@@ -35,5 +36,5 @@ export async function getClaims(db: Db, f: ClaimFilters = {}): Promise<ClaimReco
 
 export async function getThemeNames(db: Db): Promise<Record<string, string>> {
   const rows = await db.select({ slug: themes.slug, name: themes.name }).from(themes);
-  return Object.fromEntries(rows.map((row) => [row.slug, publicText(row.name)]));
+  return Object.fromEntries(rows.map((row) => [row.slug, displayThemeName(row.slug, publicText(row.name))]));
 }

@@ -5,6 +5,7 @@ import { formatDate } from '@/lib/format';
 import { pageMetadata } from '@/lib/metadata';
 import { listBriefs } from '@/lib/queries/briefs';
 import { safeQuery } from '@/lib/safe';
+import { BriefKindChip } from '@/components/BriefArticle';
 import { sanitizePublicBriefText } from '@/lib/security/public-brief-html';
 
 export const dynamic = 'force-dynamic';
@@ -47,7 +48,7 @@ export default async function BriefsPage({
           {items.map((b) => (
             <li key={b.date}>
               <span className="date">{formatDate(b.date)}</span>
-              {b.kind === 'weekend' ? <span className="badge badge-weekend">Weekend review</span> : null}
+              <BriefKindChip kind={b.kind} subject={b.subject} />
               <div>
                 <Link href={`/briefs/${b.date}`}>{sanitizePublicBriefText(b.subject) || 'Brief'}</Link>
               </div>

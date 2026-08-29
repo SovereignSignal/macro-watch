@@ -40,7 +40,8 @@ projection were dropped, re-publishing from pipeline state would rebuild it.
 | `/map`, `/map/[theme]` | The living theme map (see below) + per-theme event timeline, related claims, conviction-over-time |
 | `/accountability` | Method and coverage, track-specific performance, upcoming decisions, qualitative review, and a source-linked public ledger |
 | `/catalysts` | Upcoming forward events (what-would-surprise framing) and resolved events (expectation vs. outcome) |
-| `/search` | Postgres full-text search across briefs, theme events, and claims |
+| `/research`, `/research/[date]` | Daily decision-research memos |
+| `/search` | Postgres full-text search across briefs, theme events, claims, and research |
 | `/feed.xml` | RSS feed of briefs |
 | `/about` | What Sovs Macro is and how it works, plus the disclaimer |
 
@@ -124,9 +125,8 @@ which are unreliable here). This is deliberate fail-closed discipline — merge 
 `main` can move freely and nothing reaches visitors until someone runs a verified deploy.
 `npm run start` runs `db:migrate` before `next start`, so every deploy migrates the
 database on boot. Railway's own healthcheck hits `GET /api/health`
-(`src/app/api/health/route.ts`, `railway.json`'s `healthcheckPath`) — a dependency-free
-liveness check (`{ok: true, service: 'macro-watch'}`, `force-dynamic`) that doesn't touch
-Postgres, so a deploy isn't gated on the database being reachable. After a deploy,
+(`src/app/api/health/route.ts`, `railway.json`'s `healthcheckPath`) — a readiness
+check (`{ok, ready, service, database}`, `force-dynamic`) that probes Postgres. After a deploy,
 `node scripts/smoke.mjs <url>` runs read-only checks
 against the live site (add `--with-write` against staging only, to verify the ingest
 round-trip with a clearly-marked sentinel brief that is excluded from all public

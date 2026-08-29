@@ -92,10 +92,10 @@ export function FieldMap({ themes, asOf }: { themes: FieldThemeInput[]; asOf: st
           ))}
           {/* quadrant whispers: two annotations, no grid */}
           <text x={layout.width - 16} y={layout.bands[0].top + 17} textAnchor="end" className="field-quad">
-            the front
+            pressured
           </text>
           <text x={layout.width - 16} y={lowBand.top + 17} textAnchor="end" className="field-quad">
-            emerging
+            building
           </text>
           {/* the retired shelf */}
           {layout.shelf ? (

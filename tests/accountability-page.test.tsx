@@ -38,6 +38,15 @@ it('orients the reader and renders track scoreboards below the headline-rate flo
   expect(markup).not.toContain('decision accuracy');
 });
 
+it('does not call a past expiry the next decision', async () => {
+  const db = await createTestDb();
+  await seedAll(db);
+  const markup = renderToStaticMarkup(await page());
+  expect(markup).toMatch(/eligible claims? are past due|eligible claim is past due/);
+  expect(markup).not.toContain('Next decision: August 1, 2026');
+  expect(markup).not.toContain('Next decision: July 31, 2026');
+});
+
 it('honest empty state with zero claims', async () => {
   await createTestDb();
   const markup = renderToStaticMarkup(await page());

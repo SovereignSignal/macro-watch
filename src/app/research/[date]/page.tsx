@@ -3,9 +3,10 @@ import { notFound } from 'next/navigation';
 import { getDb } from '@/db/client';
 import { formatDate } from '@/lib/format';
 import { getResearchByDate } from '@/lib/queries/research';
+import { publicResearchText } from '@/lib/research-public';
 import { sanitizePublicBriefText } from '@/lib/security/public-brief-html';
 
-export const revalidate = 900;
+export const dynamic = 'force-dynamic';
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -14,7 +15,7 @@ type Citation = { url?: string; title?: string };
 function publicCitations(value: unknown): { url: string; title: string }[] {
   if (!Array.isArray(value)) return [];
   return (value as Citation[])
-    .filter((c) => typeof c?.url === 'string' && c.url.startsWith('https://'))
+    .filter((c) => typeof c?.url === 'string' && c.url.startsWith('https://') && !/example\.com/i.test(c.url))
     .slice(0, 15)
     .map((c) => {
       const url = c.url as string;
@@ -24,7 +25,7 @@ function publicCitations(value: unknown): { url: string; title: string }[] {
       } catch {
         /* keep raw url */
       }
-      return { url, title: sanitizePublicBriefText(c.title ?? '') || host };
+      return { url, title: publicResearchText(sanitizePublicBriefText(c.title ?? '')) || host };
     });
 }
 
@@ -37,8 +38,8 @@ export async function generateMetadata({
   if (!DATE_RE.test(date)) return { title: 'Research memo' };
   const memo = await getResearchByDate(getDb(), date);
   if (!memo) return { title: 'Research memo' };
-  const topic = sanitizePublicBriefText(memo.topic) || 'Research memo';
-  const description = sanitizePublicBriefText(memo.finding).slice(0, 220) || topic;
+  const topic = publicResearchText(sanitizePublicBriefText(memo.topic)) || 'Research memo';
+  const description = publicResearchText(sanitizePublicBriefText(memo.finding)).slice(0, 220) || topic;
   return {
     title: `${topic} · research memo`,
     description,
@@ -77,11 +78,11 @@ export default async function ResearchMemoPage({
     <main className="container">
       <article>
         <p className="date">{formatDate(memo.date)} · Decision research</p>
-        <h1>{sanitizePublicBriefText(memo.topic) || 'Research memo'}</h1>
+        <h1>{publicResearchText(sanitizePublicBriefText(memo.topic)) || 'Research memo'}</h1>
         {SECTIONS.map(([label, key]) => (
           <section key={key}>
             <h2>{label}</h2>
-            <p>{sanitizePublicBriefText(memo[key])}</p>
+            <p>{publicResearchText(sanitizePublicBriefText(memo[key]))}</p>
           </section>
         ))}
         {citations.length > 0 ? (

@@ -84,11 +84,10 @@ Revalidation targets by endpoint:
 
 ## Health endpoint
 
-`GET /api/health` (`src/app/api/health/route.ts`) is a dependency-free liveness check —
-`force-dynamic` (never cached), no database read, just `{ok: true, service: 'macro-watch'}`.
-It's Railway's `healthcheckPath` (`railway.json`, added `f778bd3`, replacing the previous
-`/`): a deploy's health gate no longer depends on Postgres being reachable or any page
-successfully rendering, only on the process being up.
+`GET /api/health` (`src/app/api/health/route.ts`) is a readiness check —
+`force-dynamic` (never cached). It runs `select 1` against Postgres and returns
+`{ok, ready, service, database}` with 200 when reachable and 503 when not.
+It's Railway's `healthcheckPath` (`railway.json`).
 
 ## Honest-denominator scoring rules
 

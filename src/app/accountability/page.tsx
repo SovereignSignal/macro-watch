@@ -8,6 +8,7 @@ import { formatDate } from '@/lib/format';
 import { pageMetadata } from '@/lib/metadata';
 import { getClaims, getThemeNames } from '@/lib/queries/accountability';
 import { safeQuery } from '@/lib/safe';
+import { decisionHorizon } from '@/lib/decision-horizon';
 import { GROUP_MIN_SAMPLE, groupBoards, OVERALL_MIN_SAMPLE, qualityClass, scoreClaims } from '@/lib/scoring';
 
 // Reads searchParams (filters), so this page renders per-request.
@@ -54,10 +55,8 @@ export default async function AccountabilityPage({
     .sort(([a], [b]) => a.localeCompare(b));
   const themeOptions = [...new Set(all.flatMap((c) => c.themes))].sort();
   const classOptions = [...new Set(all.map((c) => qualityClass(c.payload)))].sort();
-  const nextDecision = scoreable
-    .filter((claim) => claim.status === 'pending' && claim.expiresAt)
-    .map((claim) => claim.expiresAt as string)
-    .sort()[0];
+  const today = new Date().toISOString().slice(0, 10);
+  const { nextDecision, overdue } = decisionHorizon(scoreable, today);
   const phase = overall.resolved === 0 ? 'Tracking phase' : overall.resolved < OVERALL_MIN_SAMPLE ? 'Early record' : 'Performance active';
 
   return (
@@ -166,9 +165,15 @@ export default async function AccountabilityPage({
       <section aria-labelledby="upcoming-decisions">
         <h2 id="upcoming-decisions">Upcoming decisions</h2>
         <p className="brief-meta">
+          {overdue > 0
+            ? `${overdue} eligible claim${overdue === 1 ? '' : 's'} ${overdue === 1 ? 'is' : 'are'} past due. `
+            : ''}
           {nextDecision
-            ? `Next decision: ${formatDate(nextDecision)}. Only eligible claims appear here.`
-            : 'No dated claims are pending.'}
+            ? `Next decision: ${formatDate(nextDecision)}. `
+            : overdue === 0
+              ? 'No dated claims are pending. '
+              : ''}
+          Only eligible claims appear here.
         </p>
         <ExpiryHorizon claims={scoreable} />
       </section>

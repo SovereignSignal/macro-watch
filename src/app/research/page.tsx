@@ -5,6 +5,7 @@ import { formatDate } from '@/lib/format';
 import { pageMetadata } from '@/lib/metadata';
 import { listResearch } from '@/lib/queries/research';
 import { safeQuery } from '@/lib/safe';
+import { publicResearchText } from '@/lib/research-public';
 import { sanitizePublicBriefText } from '@/lib/security/public-brief-html';
 
 export const dynamic = 'force-dynamic';
@@ -51,9 +52,13 @@ export default async function ResearchPage({
             <li key={m.date}>
               <span className="date">{formatDate(m.date)}</span>
               <div>
-                <Link href={`/research/${m.date}`}>{sanitizePublicBriefText(m.topic) || 'Research memo'}</Link>
+                <Link href={`/research/${m.date}`}>
+                  {publicResearchText(sanitizePublicBriefText(m.topic)) || 'Research memo'}
+                </Link>
               </div>
-              <p className="excerpt">{sanitizePublicBriefText(m.finding).slice(0, 280)}</p>
+              <p className="excerpt">
+                {publicResearchText(sanitizePublicBriefText(m.finding)).slice(0, 280)}
+              </p>
             </li>
           ))}
         </ul>

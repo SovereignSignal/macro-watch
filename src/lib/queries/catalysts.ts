@@ -15,6 +15,10 @@ export async function getForwardEvents(
   };
 }
 
+function publicSourceTitle(title: string): string {
+  return title.replace(/\s*\(user-provided screenshot\)/gi, '').trim();
+}
+
 function str(v: unknown): string {
   return typeof v === 'string' ? publicText(v) : '';
 }
@@ -41,7 +45,7 @@ export function catalystFields(payload: unknown): {
     event: str(p.event),
     expectation: str(p.expectation),
     surprise: str(p.surprise),
-    sourceTitle: str(p.source_title),
+    sourceTitle: publicSourceTitle(str(p.source_title)),
     sourceUrl: safeHttpsUrl(p.source_url),
   };
 }

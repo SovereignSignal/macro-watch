@@ -88,6 +88,7 @@ const SAFE_RELATIVE_ROUTES = [
   /^\/feed\.xml$/,
   /^\/map(?:\/[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)?$/,
   /^\/search$/,
+  /^\/research(?:\/\d{4}-\d{2}-\d{2})?$/,
 ];
 
 const EMAIL_RE = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi;
