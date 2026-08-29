@@ -12,7 +12,7 @@ import {
 } from '@/lib/claim-display';
 import { formatDate } from '@/lib/format';
 import { pageMetadata } from '@/lib/metadata';
-import { getClaims, getThemeNames } from '@/lib/queries/accountability';
+import { getClaims, getThemeNames, type ClaimFilters } from '@/lib/queries/accountability';
 import { safeQuery } from '@/lib/safe';
 import { GROUP_MIN_SAMPLE, groupBoards, OVERALL_MIN_SAMPLE, qualityClass, scoreClaims } from '@/lib/scoring';
 
@@ -34,8 +34,9 @@ export default async function AccountabilityPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const sp = await searchParams;
-  const relevance = one(sp.relevance) === 'all' ? 'all' : 'mapped';
-  const filters = {
+  const relevance: NonNullable<ClaimFilters['relevance']> =
+    one(sp.relevance) === 'all' ? 'all' : 'mapped';
+  const filters: ClaimFilters = {
     kind: one(sp.kind),
     status: one(sp.status),
     theme: one(sp.theme),
