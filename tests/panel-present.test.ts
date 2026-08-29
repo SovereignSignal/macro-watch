@@ -41,6 +41,60 @@ it('relabels ETF tickers and unitizes known dashboard rows', () => {
   ).toBe('-1.47 pts');
 });
 
+it('unitizes live dashboard values that carry an as-of suffix', () => {
+  expect(
+    presentPanelRow({
+      label: 'Fed Balance Sheet',
+      value: '6730912.0 (as of 2026-08-29)',
+      change: '-0.22% (7d)',
+      note: null,
+    }).value,
+  ).toBe('$6.73T (as of 2026-08-29)');
+  expect(
+    presentPanelRow({
+      label: 'Reverse Repo (RRP)',
+      value: '0.17 (as of 2026-08-29)',
+      change: null,
+      note: null,
+    }).value,
+  ).toBe('$0.17B (as of 2026-08-29)');
+  expect(
+    presentPanelRow({
+      label: 'HY Spread (OAS)',
+      value: '2.63 (as of 2026-08-29)',
+      change: null,
+      note: null,
+    }).value,
+  ).toBe('263 bp (as of 2026-08-29)');
+  expect(
+    presentPanelRow({
+      label: 'IG Spread (OAS)',
+      value: '0.79 (as of 2026-08-29)',
+      change: null,
+      note: null,
+    }).value,
+  ).toBe('79 bp (as of 2026-08-29)');
+  expect(
+    presentPanelRow({
+      label: 'S&P 500 (SPY)',
+      value: '769.35 (as of 2026-08-29)',
+      change: '+0.60% (7d)',
+      note: null,
+    }).value,
+  ).toBe('769.35 (as of 2026-08-29)');
+});
+
+it('does not treat month names inside as-of as already-unitized', () => {
+  expect(
+    presentPanelRow({
+      label: 'Fed Balance Sheet',
+      value: '6,730,912.00 (as of August 29, 2026)',
+      change: '-0.22%',
+      note: null,
+    }).value,
+  ).toBe('$6.73T (as of August 29, 2026)');
+});
+
 it('drops empty comma notes from odds rows', () => {
   expect(
     presentPanelRow({

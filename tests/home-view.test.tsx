@@ -42,6 +42,29 @@ it('renders the brief in full with the weekend label', () => {
   expect(markup).toContain('July 11, 2026');
 });
 
+it('unitizes dashboard rows that ship with an as-of suffix', () => {
+  const markup = renderToStaticMarkup(
+    <HomeView
+      brief={null}
+      panel={{
+        takenAt: '2026-08-29T17:00:00Z',
+        rows: [
+          { label: 'S&P 500 (SPY)', value: '769.35 (as of 2026-08-29)', change: '+0.60% (7d)', note: null },
+          { label: 'Fed Balance Sheet', value: '6730912.0 (as of 2026-08-29)', change: '-0.22% (7d)', note: null },
+          { label: 'Reverse Repo (RRP)', value: '0.17 (as of 2026-08-29)', change: null, note: null },
+          { label: 'HY Spread (OAS)', value: '2.63 (as of 2026-08-29)', change: null, note: null },
+        ],
+      }}
+      cards={[]}
+    />,
+  );
+  expect(markup).toContain('SPY (S&amp;P 500 ETF)');
+  expect(markup).toContain('$6.73T (as of 2026-08-29)');
+  expect(markup).toContain('$0.17B (as of 2026-08-29)');
+  expect(markup).toContain('263 bp (as of 2026-08-29)');
+  expect(markup).not.toContain('6730912');
+});
+
 it('renders panel rows with change coloring', () => {
   const markup = renderToStaticMarkup(
     <HomeView
