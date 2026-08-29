@@ -12,6 +12,8 @@ export type ClaimFilters = {
   // Quality class = the claim's market_type (spec §3); 'unclassified' matches
   // claims with no market_type set, mirroring lib/scoring.ts's qualityClass().
   qualityClass?: string;
+  /** Default ledger focus. `mapped` hides macro-unmapped wallet noise. */
+  relevance?: 'mapped' | 'all';
 };
 
 export async function getClaims(db: Db, f: ClaimFilters = {}): Promise<ClaimRecord[]> {

@@ -34,8 +34,13 @@ export function ClaimsTable(props: {
   classOptions: string[];
   themeNames: Record<string, string>;
 }) {
+  const relevance = props.filters.relevance ?? 'mapped';
   const hasFilters = Boolean(
-    props.filters.kind || props.filters.status || props.filters.theme || props.filters.qualityClass,
+    props.filters.kind ||
+      props.filters.status ||
+      props.filters.theme ||
+      props.filters.qualityClass ||
+      relevance === 'all',
   );
   return (
     <>
@@ -82,6 +87,13 @@ export function ClaimsTable(props: {
                 {qualityLabel(c)}
               </option>
             ))}
+          </select>
+        </label>
+        <label>
+          Focus
+          <select name="relevance" defaultValue={relevance}>
+            <option value="mapped">standing themes</option>
+            <option value="all">include unmapped</option>
           </select>
         </label>
         <button type="submit">Filter</button>

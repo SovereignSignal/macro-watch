@@ -3,7 +3,13 @@ import { ClaimsTable } from '@/components/ClaimsTable';
 import { ExpiryHorizon } from '@/components/ExpiryHorizon';
 import { GradeMeter, GradeRow } from '@/components/GradeMeter';
 import { getDb } from '@/db/client';
-import { humanizeSlug, isQualitativeClaim, isScoreableClaim, qualityLabel } from '@/lib/claim-display';
+import {
+  humanizeSlug,
+  isMappedThemeClaim,
+  isQualitativeClaim,
+  isScoreableClaim,
+  qualityLabel,
+} from '@/lib/claim-display';
 import { formatDate } from '@/lib/format';
 import { pageMetadata } from '@/lib/metadata';
 import { getClaims, getThemeNames } from '@/lib/queries/accountability';
@@ -28,11 +34,13 @@ export default async function AccountabilityPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const sp = await searchParams;
+  const relevance = one(sp.relevance) === 'all' ? 'all' : 'mapped';
   const filters = {
     kind: one(sp.kind),
     status: one(sp.status),
     theme: one(sp.theme),
     qualityClass: one(sp.class),
+    relevance,
   };
   const db = getDb();
   // Filters only narrow the public ledger. They never change performance math.
@@ -54,7 +62,14 @@ export default async function AccountabilityPage({
     .sort(([a], [b]) => a.localeCompare(b));
   const themeOptions = [...new Set(all.flatMap((c) => c.themes))].sort();
   const classOptions = [...new Set(all.map((c) => qualityClass(c.payload)))].sort();
-  const nextDecision = scoreable
+  const unmappedCount = all.filter((claim) => !isMappedThemeClaim(claim)).length;
+  // An explicit theme= query always wins. Otherwise default focus hides the
+  // unmapped wallet bucket from book, horizon, and ledger — not scoreboards.
+  const showUnmapped = relevance === 'all' || Boolean(filters.theme);
+  const focusedScoreable = showUnmapped ? scoreable : scoreable.filter(isMappedThemeClaim);
+  const focusedQualitative = showUnmapped ? qualitative : qualitative.filter(isMappedThemeClaim);
+  const ledger = showUnmapped ? filtered : filtered.filter(isMappedThemeClaim);
+  const nextDecision = focusedScoreable
     .filter((claim) => claim.status === 'pending' && claim.expiresAt)
     .map((claim) => claim.expiresAt as string)
     .sort()[0];
@@ -119,6 +134,14 @@ export default async function AccountabilityPage({
         </div>
         <aside className="coverage-note">
           Covers Polymarket wallet signals and weekly theme map calls. Daily brief commentary is excluded.
+          {unmappedCount > 0 ? (
+            <>
+              {' '}
+              {unmappedCount} unmapped wallet market{unmappedCount === 1 ? '' : 's'}{' '}
+              {unmappedCount === 1 ? 'stays' : 'stay'} in the scoreboards. Default view is
+              standing themes only.
+            </>
+          ) : null}
         </aside>
       </section>
 
@@ -170,14 +193,14 @@ export default async function AccountabilityPage({
             ? `Next decision: ${formatDate(nextDecision)}. Only eligible claims appear here.`
             : 'No dated claims are pending.'}
         </p>
-        <ExpiryHorizon claims={scoreable} />
+        <ExpiryHorizon claims={focusedScoreable} />
       </section>
 
-      {qualitative.length > 0 ? (
+      {focusedQualitative.length > 0 ? (
         <section className="qualitative-note" aria-labelledby="qualitative-review">
           <h2 id="qualitative-review">Qualitative map review</h2>
           <p>
-            {qualitative.length} flip condition{qualitative.length === 1 ? '' : 's'} {qualitative.length === 1 ? 'needs' : 'need'} human review.
+            {focusedQualitative.length} flip condition{focusedQualitative.length === 1 ? '' : 's'} {focusedQualitative.length === 1 ? 'needs' : 'need'} human review.
             They stay out of performance stats.
           </p>
         </section>
@@ -186,14 +209,14 @@ export default async function AccountabilityPage({
       <section aria-labelledby="claim-history">
         <h2 id="claim-history">Claim history</h2>
         <p className="brief-meta">Eligible claims, oldest first.</p>
-        <ClaimsBook claims={scoreable} />
+        <ClaimsBook claims={focusedScoreable} />
       </section>
 
       <section aria-labelledby="public-ledger">
         <h2 id="public-ledger">Public ledger</h2>
         <p className="brief-meta">Filters only affect this ledger.</p>
         <ClaimsTable
-          claims={filtered}
+          claims={ledger}
           filters={filters}
           themeOptions={themeOptions}
           classOptions={classOptions}

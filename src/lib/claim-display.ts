@@ -3,6 +3,9 @@ import { publicHttpsUrl, publicText } from '@/lib/public-copy';
 
 export type ClaimSource = { label: string; href: string | null };
 
+/** Publisher slug for wallet markets that never attached to a standing theme. */
+export const UNMAPPED_THEME_SLUG = 'macro-unmapped';
+
 export const STATUS_COPY: Record<string, { label: string; description: string }> = {
   pending: {
     label: 'awaiting outcome',
@@ -73,6 +76,11 @@ export function isQualitativeClaim(claim: ClaimRecord): boolean {
 
 export function isScoreableClaim(claim: ClaimRecord): boolean {
   return !isQualitativeClaim(claim);
+}
+
+/** True when at least one theme is a standing map row, not the unmapped bucket. */
+export function isMappedThemeClaim(claim: Pick<ClaimRecord, 'themes'>): boolean {
+  return claim.themes.some((theme) => theme && theme !== UNMAPPED_THEME_SLUG);
 }
 
 export function claimTrackLabel(claim: ClaimRecord): string {
