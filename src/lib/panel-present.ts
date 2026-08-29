@@ -24,6 +24,17 @@ function tidyCell(value: string | null): string | null {
   return cleaned.length > 0 ? cleaned : null;
 }
 
+const AS_OF_SUFFIX = /\s*(\(\s*as of\s+[^)]+\))\s*$/i;
+
+function splitAsOf(value: string): { core: string; suffix: string | null } {
+  const match = value.match(AS_OF_SUFFIX);
+  if (!match || match.index === undefined) return { core: value.trim(), suffix: null };
+  return {
+    core: value.slice(0, match.index).trim(),
+    suffix: match[1].replace(/\s+/g, ' ').trim(),
+  };
+}
+
 function parseNumber(value: string): number | null {
   const normalized = value.replace(/,/g, '').replace(/[^\d.+-]/g, '');
   if (!normalized || normalized === '+' || normalized === '-') return null;
@@ -35,19 +46,27 @@ function alreadyUnitized(value: string): boolean {
   return /(?:\$|bp|t\b|b\b|m\b|%|pts)/i.test(value);
 }
 
+function withAsOf(formatted: string, suffix: string | null): string {
+  return suffix ? `${formatted} ${suffix}` : formatted;
+}
+
 function formatPanelValue(label: string, value: string): string {
-  if (alreadyUnitized(value)) return value;
-  const n = parseNumber(value);
+  const { core, suffix } = splitAsOf(value);
+  if (!core) return value;
+  // Only inspect the numeric core. The as-of clause can contain month names
+  // ("August") that would otherwise trip the `t\b` unit heuristic.
+  if (alreadyUnitized(core)) return withAsOf(core, suffix);
+  const n = parseNumber(core);
   if (n === null) return value;
 
   if (/balance sheet/i.test(label) && Math.abs(n) >= 1000) {
-    return `$${(n / 1_000_000).toFixed(2)}T`;
+    return withAsOf(`$${(n / 1_000_000).toFixed(2)}T`, suffix);
   }
   if (/reverse repo|rrp/i.test(label) && Math.abs(n) < 100) {
-    return `$${n.toFixed(2)}B`;
+    return withAsOf(`$${n.toFixed(2)}B`, suffix);
   }
   if (/spread/i.test(label) && Math.abs(n) < 20) {
-    return `${Math.round(n * 100)} bp`;
+    return withAsOf(`${Math.round(n * 100)} bp`, suffix);
   }
   return value;
 }
