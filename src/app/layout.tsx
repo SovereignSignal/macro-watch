@@ -5,6 +5,7 @@ import { Suspense } from 'react';
 import { Mark } from '@/components/Mark';
 import { MastheadUpdated } from '@/components/MastheadUpdated';
 import './globals.css';
+import './owned-brief.css';
 
 // Self-hosted at build time by next/font. No runtime requests leave the site.
 const fraunces = Fraunces({

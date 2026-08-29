@@ -1,0 +1,69 @@
+/* Owned brief strips + cell-phase chips. Keep out of globals.css so the
+   house sheet stays the source of layout truth. */
+
+.brief-body aside.sweep-finding {
+  display: block;
+  margin: 1.25rem 0;
+  padding: 0.7rem 0 0.7rem 1rem;
+  border-left: 3px solid var(--accent);
+  background: color-mix(in srgb, var(--accent) 6%, var(--card));
+}
+
+.brief-body aside.sweep-finding p {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.brief-body p.daily-front,
+.brief-body p.front-line {
+  margin: 0.85rem 0 0;
+  padding: 0.45rem 0 0.45rem 0.85rem;
+  border-left: 3px solid #5b7c99;
+  background: color-mix(in srgb, #5b7c99 8%, var(--card));
+  font-size: 0.92rem;
+}
+
+.brief-body section.convective-front {
+  margin: 2rem 0 1.25rem;
+  padding: 0.9rem 0 0.2rem;
+  border-top: 1px solid var(--rule);
+}
+
+.brief-body section.convective-front h2 {
+  margin-top: 0;
+}
+
+.brief-body p.front-quiet {
+  color: var(--muted);
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+}
+
+.badge-phase {
+  letter-spacing: 0.08em;
+}
+
+.badge-phase-compression {
+  color: var(--faint);
+}
+
+.badge-phase-ignition,
+.badge-phase-crystallization {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--rule));
+}
+
+.badge-phase-mature {
+  color: var(--ink);
+}
+
+.badge-phase-bifurcation {
+  color: var(--hold);
+}
+
+.badge-phase-crack,
+.badge-phase-downdraft {
+  color: var(--down);
+  border-color: color-mix(in srgb, var(--down) 45%, var(--rule));
+}

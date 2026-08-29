@@ -6,6 +6,7 @@ import { publicText } from '@/lib/public-copy';
 
 const ALLOWED_TAGS = [
   'section',
+  'aside',
   'div',
   'span',
   'p',
@@ -56,8 +57,11 @@ const ALLOWED_CLASSES: Record<string, ReadonlySet<string>> = {
     'delta-title', 'delta-evidence', 'delta-next', 'event-title',
     'event-baseline', 'event-expectation', 'event-resolve', 'event-actual',
     'event-surprise', 'event-theme-impact', 'event-source',
+    'daily-front', 'front-line', 'front-quiet',
   ]),
   span: new Set(['event-theme', 'open']),
+  aside: new Set(['sweep-finding']),
+  section: new Set(['convective-front']),
 };
 
 const NON_TEXT_TAGS = [
@@ -101,12 +105,12 @@ const POSIX_PATH_RE = /(?<![\w.-])\/(?:home|Users|root|tmp|private|opt|srv|var\/
 const WINDOWS_PATH_RE = /\b[A-Z]:\\(?:Users|Windows|Program Files|tmp)(?:\\[^\s<>'"]*)*/gi;
 const PRIVATE_ENDPOINT_RE = /\/(?:api\/(?:ingest|admin|internal|private|debug|webhooks?)|admin|internal|private)(?:\/[^\s<>'"]*)?/gi;
 const SAFE_ID_RE = /^[A-Za-z][A-Za-z0-9_:.-]{0,127}$/;
-const PRIVATE_FOOTER_RE = /(?:📄\s*)?View this brief in Notion|(?:📋\s*)?SovsClaw Macro Brief Log\s*[\u2014-]\s*all briefs/gi;
+const PRIVATE_FOOTER_RE = /(?:📄\s*)?View this brief in Notion|(?:📋\s*)?SovsClaw Macro Brief Log\s*[—-]\s*all briefs/gi;
 // Email chrome and private-artifact pointers that survive legacy ingest as
 // dead text: the wordmark+date masthead flattens into `SOV'S MACROMonday...`
 // once its divs unwrap, and Notion-pointer paragraphs lose their href but
 // keep their label. Render-time sanitization removes both from stored rows.
-const EMAIL_MASTHEAD_TEXT_RE = /SOV[\u2019']S MACRO\s*(?:(?:Mon|Tues|Wednes|Thurs|Fri|Satur|Sun)day,\s+[A-Z][a-z]+\s+\d{1,2},\s+\d{4})?/g;
+const EMAIL_MASTHEAD_TEXT_RE = /SOV[’']S MACRO\s*(?:(?:Mon|Tues|Wednes|Thurs|Fri|Satur|Sun)day,\s+[A-Z][a-z]+\s+\d{1,2},\s+\d{4})?/g;
 const DEAD_POINTER_TEXT_RE = /^\s*(?:Full decision memo|Research log\s*:.*)$/is;
 // Legacy weekend rows carry the pointer as a bare text run (not a <p>), so a
 // frame-level filter cannot see it. Bounded to the text run: stops at the
@@ -288,7 +292,8 @@ function cleanDateTime(value: string | undefined): string | undefined {
 const options: IOptions = {
   allowedTags: [...ALLOWED_TAGS],
   allowedAttributes: {
-    section: ['id'],
+    section: ['id', 'class'],
+    aside: ['class'],
     div: ['class'],
     h2: ['id'],
     h3: ['id'],
@@ -313,7 +318,11 @@ const options: IOptions = {
   nestingLimit: 40,
   parseStyleAttributes: false,
   transformTags: {
-    section: (tagName, attribs) => ({ tagName, attribs: cleanId(attribs) }),
+    section: (tagName, attribs) => ({
+      tagName,
+      attribs: { ...cleanId(attribs), ...cleanClass(tagName, attribs) },
+    }),
+    aside: (tagName, attribs) => ({ tagName, attribs: cleanClass(tagName, attribs) }),
     div: (tagName, attribs) => ({ tagName, attribs: cleanClass(tagName, attribs) }),
     h2: (tagName, attribs) => ({ tagName, attribs: cleanId(attribs) }),
     h3: (tagName, attribs) => ({ tagName, attribs: cleanId(attribs) }),
@@ -384,13 +393,13 @@ const options: IOptions = {
     if (frame.tag === 'div' && hasPrivateFooter(frame.text)) return true;
     if (frame.tag === 'p' && DEAD_POINTER_TEXT_RE.test(frame.text)) return true;
     if (
-      ['section', 'p', 'li', 'blockquote', 'figure', 'figcaption', 'table', 'thead', 'tbody', 'tfoot', 'tr'].includes(frame.tag) &&
+      ['section', 'aside', 'p', 'li', 'blockquote', 'figure', 'figcaption', 'table', 'thead', 'tbody', 'tfoot', 'tr'].includes(frame.tag) &&
       (hasPrivateFooter(frame.text) || PRIVATE_BLOCK_RE.test(frame.text))
     ) {
       return true;
     }
     if (frame.tag === 'a' && !frame.attribs.href) return 'excludeTag';
-    if (['div', 'span'].includes(frame.tag) && !frame.attribs.class) return 'excludeTag';
+    if (['div', 'span', 'aside'].includes(frame.tag) && !frame.attribs.class) return 'excludeTag';
     if (frame.tag === 'img' && !frame.attribs.src) return true;
     return false;
   },
