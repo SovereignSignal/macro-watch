@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { ThemeCard } from '@/lib/queries/map';
+import { CellPhaseChip } from './CellPhaseChip';
 import { ConvictionScale } from './ConvictionScale';
 import { EmptyState } from './EmptyState';
 import { Sparkline } from './Sparkline';
@@ -29,6 +30,7 @@ export function ThemeStrip({
               <ConvictionScale conviction={c.conviction} hollow={c.status === 'candidate'} />
               {c.conviction ? <span className={`conv conv-${c.conviction}`}>{c.conviction}</span> : null}
               <span className={`badge badge-${c.status}`}>{c.status}</span>
+              <CellPhaseChip phase={c.cellPhase} ageDays={c.phaseAgeDays} />
               {sparks?.[c.slug] ? <Sparkline levels={sparks[c.slug]} width={56} height={16} /> : null}
             </span>
           </li>

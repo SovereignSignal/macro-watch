@@ -4,6 +4,7 @@ import {
   type FieldThemeInput,
   formatPressure,
 } from '@/lib/field-map';
+import { cellPhaseLabel, parseCellPhase } from '@/lib/cell-phase';
 import { EmptyState } from './EmptyState';
 
 /** Rotated-square diamond path, the house conviction glyph. */
@@ -16,6 +17,8 @@ function nodeTitle(n: FieldNode): string {
     `${n.name}: ${n.status}`,
     `conviction ${n.conviction ?? 'unrated'}`,
   ];
+  const phase = cellPhaseLabel(parseCellPhase(n.cellPhase));
+  if (phase) parts.push(`cell phase ${phase.toLowerCase()}`);
   if (!n.shelf) {
     parts.push(
       n.eventCount === 0
@@ -90,9 +93,10 @@ export function FieldMap({ themes, asOf }: { themes: FieldThemeInput[]; asOf: st
               </text>
             </g>
           ))}
-          {/* quadrant whispers: two annotations, no grid */}
+          {/* quadrant whispers: two annotations, no grid.
+              "pressured" not "the front" — Front is the email weather strip. */}
           <text x={layout.width - 16} y={layout.bands[0].top + 17} textAnchor="end" className="field-quad">
-            the front
+            pressured
           </text>
           <text x={layout.width - 16} y={lowBand.top + 17} textAnchor="end" className="field-quad">
             emerging
@@ -141,8 +145,8 @@ export function FieldMap({ themes, asOf }: { themes: FieldThemeInput[]; asOf: st
         </svg>
       </div>
       <figcaption>
-        Diamonds show conviction. Hollow marks candidates. Halos show recent activity. Select a
-        theme for its record.
+        Diamonds show conviction. Hollow marks candidates. Halos show recent activity. Cell phase
+        is on the cards below. Select a theme for its record.
       </figcaption>
     </figure>
   );

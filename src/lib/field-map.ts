@@ -22,6 +22,8 @@ export type FieldThemeInput = {
   status: string; // active | candidate | retired
   conviction: 'low' | 'medium' | 'high' | null;
   lastEventAt: string | null;
+  /** Optional satellite weather from theme-state. Display-only. */
+  cellPhase?: string | null;
   /** Theme events; buildFieldLayout windows them to the 30 days ending asOf. */
   events: FieldEvent[];
 };
@@ -33,6 +35,7 @@ export type FieldNode = {
   label: string;
   status: string;
   conviction: 'low' | 'medium' | 'high' | null;
+  cellPhase: string | null;
   /** Lit positions on the diamond gauge (high 3 / medium 2 / low 1 / unrated 0). */
   lit: 0 | 1 | 2 | 3;
   /** Clamped 30-day pressure score. */
@@ -146,7 +149,7 @@ export function xForPressure(p: number): number {
  * truncates. The tooltip and the grid below carry the full name.
  */
 export function fieldLabel(name: string): string {
-  const bare = name.replace(/^new theme candidate\s*[\u2014–-]\s*/i, '');
+  const bare = name.replace(/^new theme candidate\s*[—–-]\s*/i, '');
   if (bare.length <= LABEL_MAX) return bare;
   return `${bare.slice(0, LABEL_MAX - 1).trimEnd()}…`;
 }
@@ -193,6 +196,7 @@ export function buildFieldLayout(themes: FieldThemeInput[], asOf: string): Field
       label,
       status: t.status,
       conviction: t.conviction,
+      cellPhase: t.cellPhase ?? null,
       lit: t.conviction ? LEVEL[t.conviction] : 0,
       pressure,
       eventCount: recent.length,
@@ -259,6 +263,7 @@ export function buildFieldLayout(themes: FieldThemeInput[], asOf: string): Field
         label,
         status: t.status,
         conviction: t.conviction,
+        cellPhase: t.cellPhase ?? null,
         lit: t.conviction ? LEVEL[t.conviction] : 0,
         pressure: 0,
         eventCount: 0,

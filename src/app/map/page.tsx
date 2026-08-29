@@ -9,7 +9,7 @@ import { safeQuery } from '@/lib/safe';
 export const dynamic = 'force-dynamic';
 export const metadata = pageMetadata({
   title: 'Theme map',
-  description: 'Macro themes tracked by conviction, directional pressure, triggers, and lifecycle.',
+  description: 'Macro themes tracked by conviction, cell phase, directional pressure, and lifecycle.',
   path: '/map',
 });
 
@@ -28,6 +28,7 @@ export default async function MapPage() {
     status: c.status,
     conviction: c.conviction,
     lastEventAt: c.lastEventAt,
+    cellPhase: c.cellPhase,
     events: recent[c.slug] ?? [],
   }));
   return (
@@ -37,13 +38,14 @@ export default async function MapPage() {
         {takenAt ? <UpdatedAgo takenAt={takenAt.toISOString()} /> : null}
       </div>
       <p className="brief-meta">
-        Themes tracked by conviction, current read, triggers, and lifecycle.
+        Themes tracked by conviction, current read, cell phase, and lifecycle.
       </p>
       {cards.length > 0 ? (
         <section aria-labelledby="the-field">
           <h2 id="the-field">Position map</h2>
           <p className="brief-meta">
             Conviction sets the row. Events from the last 30 days move themes left or right.
+            Cell phase (ignition, crack, and the rest) is on the cards, not this plot.
           </p>
           <FieldMap themes={fieldThemes} asOf={asOf} />
         </section>

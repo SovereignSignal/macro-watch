@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type { CSSProperties } from 'react';
 import type { ThemeCard } from '@/lib/queries/map';
+import { CellPhaseChip } from './CellPhaseChip';
 import { ConvictionScale } from './ConvictionScale';
 import { EmptyState } from './EmptyState';
 import { Sparkline } from './Sparkline';
@@ -26,6 +27,7 @@ function Card({ card, spark, index }: { card: ThemeCard; spark?: number[]; index
           {card.conviction ?? 'unrated'}
         </span>
         <span className={`badge badge-${card.status}`}>{card.status}</span>
+        <CellPhaseChip phase={card.cellPhase} ageDays={card.phaseAgeDays} />
         {spark ? <Sparkline levels={spark} /> : null}
       </div>
       {card.read ? <p className="read">{card.read}</p> : null}

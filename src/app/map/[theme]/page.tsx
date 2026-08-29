@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { CellPhaseChip } from '@/components/CellPhaseChip';
 import { ConvictionChart } from '@/components/ConvictionChart';
 import { ConvictionScale } from '@/components/ConvictionScale';
 import { EmptyState } from '@/components/EmptyState';
@@ -14,9 +15,6 @@ import { statusLabel } from '@/lib/claim-display';
 
 export const revalidate = 900;
 
-// Theme slugs are kebab-case (spec §4: themes.slug). Reject anything else
-// before it ever reaches the database, same pattern as /briefs/[date]'s
-// DATE_RE guard.
 const SLUG_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 export async function generateMetadata({ params }: { params: Promise<{ theme: string }> }) {
@@ -39,8 +37,6 @@ export async function generateMetadata({ params }: { params: Promise<{ theme: st
 export default async function ThemePage({ params }: { params: Promise<{ theme: string }> }) {
   const { theme } = await params;
   if (!SLUG_RE.test(theme)) notFound();
-  // Deliberately NOT safeQuery: mirrors /briefs/[date]. A DB blip during
-  // background revalidation should keep serving the stale page, not 404 it.
   const detail = await getThemeDetail(getDb(), theme);
   if (!detail) notFound();
   const card = detail.card;
@@ -64,6 +60,7 @@ export default async function ThemePage({ params }: { params: Promise<{ theme: s
             {card?.conviction ?? 'unrated'}
           </span>
           <span className={`badge badge-${detail.status}`}>{detail.status}</span>
+          <CellPhaseChip phase={card?.cellPhase} ageDays={card?.phaseAgeDays} />
           {detail.firstSeen ? (
             <span className="since">on the map since {formatDate(detail.firstSeen)}</span>
           ) : null}

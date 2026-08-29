@@ -2,6 +2,7 @@ import { asc, desc, eq, gte, inArray, sql } from 'drizzle-orm';
 import { cache } from 'react';
 import type { Db } from '@/db/client';
 import { briefs, claims, themeEvents, themes, themeState } from '@/db/schema';
+import { parseCellPhase } from '@/lib/cell-phase';
 import { type FieldEvent, windowStart } from '@/lib/field-map';
 import type { ThemeStateCard } from '@/lib/ingest/themes';
 import { publicText, publicValue } from '@/lib/public-copy';
@@ -18,6 +19,8 @@ export type ThemeCard = {
   triggers: { name: string; state: string }[];
   raiseConditions: string[];
   lowerConditions: string[];
+  cellPhase: string | null;
+  phaseAgeDays: number | null;
 };
 
 const THEME_DESCRIPTIONS: Record<string, string> = {
@@ -62,6 +65,23 @@ function toList(v: string | string[] | null | undefined): string[] {
   return Array.isArray(v) ? v : [v];
 }
 
+function phaseAgeDaysOf(card: ThemeStateCard | undefined): number | null {
+  const value = card?.phase_age_days;
+  return typeof value === 'number' && Number.isFinite(value) ? value : null;
+}
+
+function cardFields(s: ThemeStateCard | undefined) {
+  return {
+    conviction: s?.conviction ?? null,
+    read: s?.current_read ?? null,
+    triggers: s?.triggers ?? [],
+    raiseConditions: toList(s?.raise_conditions),
+    lowerConditions: toList(s?.lower_conditions),
+    cellPhase: parseCellPhase(s?.cell_phase),
+    phaseAgeDays: phaseAgeDaysOf(s),
+  };
+}
+
 function stateCardsOf(payload: unknown): Map<string, ThemeStateCard> {
   const out = new Map<string, ThemeStateCard>();
   const cards = (payload as { themes?: ThemeStateCard[] })?.themes;
@@ -101,11 +121,7 @@ export async function getThemeMapCards(
       status: t.status,
       firstSeen: t.firstSeen,
       lastEventAt: t.lastEventAt,
-      conviction: s?.conviction ?? null,
-      read: s?.current_read ?? null,
-      triggers: s?.triggers ?? [],
-      raiseConditions: toList(s?.raise_conditions),
-      lowerConditions: toList(s?.lower_conditions),
+      ...cardFields(s),
     });
   }
   // Themes that only exist in the snapshot (state arrived before any event).
@@ -118,11 +134,7 @@ export async function getThemeMapCards(
         status: 'active',
         firstSeen: null,
         lastEventAt: null,
-        conviction: s.conviction ?? null,
-        read: s.current_read ?? null,
-        triggers: s.triggers ?? [],
-        raiseConditions: toList(s.raise_conditions),
-        lowerConditions: toList(s.lower_conditions),
+        ...cardFields(s),
       });
     }
   }
