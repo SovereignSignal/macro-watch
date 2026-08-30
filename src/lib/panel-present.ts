@@ -80,17 +80,43 @@ function formatPanelChange(label: string, change: string | null): string | null 
   return tidy;
 }
 
-export function presentPanelRow(row: PanelRowItem): PanelRowItem {
+export type PresentPanelOptions = {
+  /** Drop a repeated as-of clause when the panel header already carries freshness. */
+  omitAsOf?: boolean;
+};
+
+export function presentPanelRow(row: PanelRowItem, options?: PresentPanelOptions): PanelRowItem {
   const label = ETF_LABELS[row.label] ?? row.label;
   const value = tidyCell(row.value) ?? row.value;
+  const formatted = formatPanelValue(label, value);
   return {
     label,
-    value: formatPanelValue(label, value),
+    value: options?.omitAsOf ? (splitAsOf(formatted).core || formatted) : formatted,
     change: formatPanelChange(label, row.change),
     note: tidyCell(row.note),
   };
 }
 
-export function presentPanelRows(rows: PanelRowItem[]): PanelRowItem[] {
-  return rows.map(presentPanelRow);
+export function presentPanelRows(rows: PanelRowItem[], options?: PresentPanelOptions): PanelRowItem[] {
+  return rows.map((row) => presentPanelRow(row, options));
+}
+
+const HORIZON_7D = /\s*\(7d\)\s*$/i;
+
+/** Homepage tape: one as-of in the header, one 7d label on the column. */
+export function presentDashboardRows(rows: PanelRowItem[]): {
+  rows: PanelRowItem[];
+  changeColumn: string;
+} {
+  const presented = presentPanelRows(rows, { omitAsOf: true });
+  const changes = presented.map((row) => row.change).filter((change): change is string => Boolean(change));
+  const all7d = changes.length > 0 && changes.every((change) => HORIZON_7D.test(change));
+  if (!all7d) return { rows: presented, changeColumn: 'Change' };
+  return {
+    changeColumn: 'Change (7d)',
+    rows: presented.map((row) => ({
+      ...row,
+      change: row.change ? row.change.replace(HORIZON_7D, '') : row.change,
+    })),
+  };
 }

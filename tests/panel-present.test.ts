@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { presentPanelRow } from '@/lib/panel-present';
+import { presentDashboardRows, presentPanelRow } from '@/lib/panel-present';
 
 it('relabels ETF tickers and unitizes known dashboard rows', () => {
   expect(
@@ -82,6 +82,16 @@ it('unitizes live dashboard values that carry an as-of suffix', () => {
       note: null,
     }).value,
   ).toBe('769.35 (as of 2026-08-29)');
+});
+
+it('drops repeated as-of and 7d labels on the homepage tape', () => {
+  const tape = presentDashboardRows([
+    { label: 'Fed Balance Sheet', value: '6730912.0 (as of 2026-08-29)', change: '-0.22% (7d)', note: null },
+    { label: 'HY Spread (OAS)', value: '2.63 (as of 2026-08-29)', change: null, note: null },
+  ]);
+  expect(tape.changeColumn).toBe('Change (7d)');
+  expect(tape.rows[0]).toMatchObject({ value: '$6.73T', change: '-0.22%' });
+  expect(tape.rows[1].value).toBe('263 bp');
 });
 
 it('does not treat month names inside as-of as already-unitized', () => {

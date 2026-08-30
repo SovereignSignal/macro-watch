@@ -111,8 +111,8 @@ export function ClaimsTable(props: {
               const resolution = payloadStr(c.payload, 'resolution_note');
               return (
                 <tr key={c.claimId}>
-                  <td className="cell-mono">{formatDate(c.openedAt)}</td>
-                  <td>
+                  <td className="cell-mono" data-label="Opened">{formatDate(c.openedAt)}</td>
+                  <td data-label="Claim">
                     <span className="claim-predicate">{payloadStr(c.payload, 'predicate') || c.claimId}</span>
                     {source ? (
                       <span className="claim-meta-line">
@@ -130,8 +130,8 @@ export function ClaimsTable(props: {
                       <span className="claim-meta-line">Opening probability: {Math.round(probability * 100)}%</span>
                     ) : null}
                   </td>
-                  <td className="cell-mono">{claimTrackLabel(c)}</td>
-                  <td className="claim-themes">
+                  <td className="cell-mono" data-label="Track">{claimTrackLabel(c)}</td>
+                  <td className="claim-themes" data-label="Themes">
                     {c.themes.length > 0
                       ? c.themes.map((theme, index) => (
                           <span key={theme}>
@@ -141,15 +141,15 @@ export function ClaimsTable(props: {
                         ))
                       : 'Unassigned'}
                   </td>
-                  <td className="cell-mono">{qualityLabel(qualityClass(c.payload))}</td>
-                  <td className="cell-mono">{c.expiresAt ? formatDate(c.expiresAt) : 'No due date'}</td>
-                  <td>
+                  <td className="cell-mono" data-label="Evidence">{qualityLabel(qualityClass(c.payload))}</td>
+                  <td className="cell-mono" data-label="Expected">{c.expiresAt ? formatDate(c.expiresAt) : 'No due date'}</td>
+                  <td data-label="State">
                     <span className={`status-chip status-chip--${c.status}`}>
                       <StatusMark status={c.status} size={12} decorative />
                       {statusLabel(c.status)}
                     </span>
                   </td>
-                  <td>
+                  <td data-label="Result">
                     {c.resolvedAt ? <span className="claim-meta-line">{formatDate(c.resolvedAt)}</span> : null}
                     {resolution || (c.resolvedAt ? 'Outcome recorded.' : RESULT_FALLBACK[c.status] ?? STATUS_COPY[c.status]?.description ?? 'No result recorded.')}
                   </td>

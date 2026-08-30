@@ -1,7 +1,7 @@
 import type { PanelRowItem } from '@/lib/panel-contract';
 import type { BriefRow } from '@/lib/queries/briefs';
 import type { ThemeCard } from '@/lib/queries/map';
-import { presentPanelRows } from '@/lib/panel-present';
+import { presentDashboardRows, presentPanelRows } from '@/lib/panel-present';
 import { BriefArticle } from './BriefArticle';
 import { EmptyState } from './EmptyState';
 import { PanelTable } from './PanelTable';
@@ -14,7 +14,7 @@ export function HomeView(props: {
   cards: ThemeCard[];
   sparks?: Record<string, number[]>;
 }) {
-  const panelRows = presentPanelRows(props.panel?.rows ?? []);
+  const dashboard = presentDashboardRows(props.panel?.rows ?? []);
   const oddsRows = presentPanelRows(props.oddsPanel?.rows ?? []);
   return (
     <main className="container">
@@ -29,9 +29,9 @@ export function HomeView(props: {
       <section aria-label="Market dashboard">
         <PanelTable
           title="Dashboard"
-          rows={panelRows}
+          rows={dashboard.rows}
           takenAt={props.panel?.takenAt ?? null}
-          columns={['Market', 'Value', 'Change']}
+          columns={['Market', 'Value', dashboard.changeColumn]}
         />
       </section>
       {props.oddsPanel ? (

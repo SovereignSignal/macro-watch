@@ -41,14 +41,11 @@ export default async function MapPage() {
         {takenAt ? <UpdatedAgo takenAt={takenAt.toISOString()} /> : null}
       </div>
       <p className="brief-meta">
-        Themes tracked by conviction, current read, triggers, and lifecycle.
+        Conviction sets the row. Events from the last 30 days move themes left or right.
       </p>
       {cards.length > 0 ? (
         <section aria-labelledby="the-field">
           <h2 id="the-field">Position map</h2>
-          <p className="brief-meta">
-            Conviction sets the row. Events from the last 30 days move themes left or right.
-          </p>
           <FieldMap themes={fieldThemes} asOf={asOf} />
         </section>
       ) : null}

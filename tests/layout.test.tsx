@@ -1,6 +1,11 @@
 import { renderToStaticMarkup } from 'react-dom/server';
-import { expect, it } from 'vitest';
-import RootLayout from '@/app/layout';
+import { expect, it, vi } from 'vitest';
+
+vi.mock('next/navigation', () => ({
+  usePathname: () => '/',
+}));
+
+const { default: RootLayout } = await import('@/app/layout');
 
 const markup = renderToStaticMarkup(
   <RootLayout>
@@ -29,6 +34,11 @@ it('links every surface from the nav', () => {
   for (const href of ['/briefs', '/map', '/research', '/accountability', '/catalysts', '/search', '/about']) {
     expect(markup).toContain(`href="${href}"`);
   }
+});
+
+it('marks the brief as the current page on /', () => {
+  expect(markup).toContain('aria-current="page"');
+  expect(markup).toContain('href="/"');
 });
 
 it('renders children', () => {

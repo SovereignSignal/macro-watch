@@ -59,9 +59,13 @@ it('unitizes dashboard rows that ship with an as-of suffix', () => {
     />,
   );
   expect(markup).toContain('SPY (S&amp;P 500 ETF)');
-  expect(markup).toContain('$6.73T (as of 2026-08-29)');
-  expect(markup).toContain('$0.17B (as of 2026-08-29)');
-  expect(markup).toContain('263 bp (as of 2026-08-29)');
+  expect(markup).toContain('$6.73T');
+  expect(markup).toContain('$0.17B');
+  expect(markup).toContain('263 bp');
+  expect(markup).toContain('Change (7d)');
+  expect(markup).toContain('+0.60%');
+  expect(markup).not.toContain('+0.60% (7d)');
+  expect(markup).not.toContain('(as of 2026-08-29)');
   expect(markup).not.toContain('6730912');
 });
 

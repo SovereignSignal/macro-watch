@@ -53,6 +53,7 @@ it('search page renders results for ?q=', async () => {
     await SearchPage({ searchParams: Promise.resolve({ q: 'auction' }) }),
   );
   expect(markup).toContain('href="/briefs/2026-07-08"');
+  expect(markup).toMatch(/\d+ results?/);
 });
 
 it('search page renders a no-results state', async () => {
