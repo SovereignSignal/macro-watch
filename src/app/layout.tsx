@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Suspense } from 'react';
 import { Mark } from '@/components/Mark';
 import { MastheadUpdated } from '@/components/MastheadUpdated';
+import { SiteNav } from '@/components/SiteNav';
 import { siteUrl } from '@/lib/site-url';
 import './globals.css';
 
@@ -57,16 +58,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <MastheadUpdated />
             </Suspense>
           </div>
-          <nav className="site-nav" aria-label="Site">
-            <Link href="/">Brief</Link>
-            <Link href="/briefs">Archive</Link>
-            <Link href="/map">Theme map</Link>
-            <Link href="/research">Research</Link>
-            <Link href="/accountability">Accountability</Link>
-            <Link href="/catalysts">Catalysts</Link>
-            <Link href="/search">Search</Link>
-            <Link href="/about">About</Link>
-          </nav>
+          <SiteNav />
         </header>
         {children}
         <footer className="site-footer">

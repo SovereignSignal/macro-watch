@@ -48,7 +48,9 @@ function Section({
   if (cards.length === 0) return null;
   return (
     <section>
-      <h2>{title}</h2>
+      <h2>
+        {title} <span className="section-count">{cards.length}</span>
+      </h2>
       <ul className="theme-grid">
         {cards.map((c, i) => (
           <Card key={c.slug} card={c} spark={sparks?.[c.slug]} index={offset + i} />

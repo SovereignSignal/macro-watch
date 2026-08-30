@@ -41,18 +41,23 @@ export default async function SearchPage({
           No results for “{q}”. Try a ticker, theme, or phrase.
         </EmptyState>
       ) : (
-        <ul className="archive-list">
-          {results.map((r, i) => (
-            <li key={`${r.type}-${i}`}>
-              <span className="badge">{r.type.replaceAll('-', ' ')}</span>{' '}
-              <span className="date">{formatDate(r.date)}</span>
-              <div>
-                <Link href={r.href}>{r.title}</Link>
-              </div>
-              <p className="excerpt">{r.snippet}</p>
-            </li>
-          ))}
-        </ul>
+        <>
+          <p className="brief-meta">
+            {results.length} result{results.length === 1 ? '' : 's'}
+          </p>
+          <ul className="archive-list">
+            {results.map((r, i) => (
+              <li key={`${r.type}-${i}`}>
+                <span className="badge">{r.type.replaceAll('-', ' ')}</span>{' '}
+                <span className="date">{formatDate(r.date)}</span>
+                <div>
+                  <Link href={r.href}>{r.title}</Link>
+                </div>
+                <p className="excerpt">{r.snippet}</p>
+              </li>
+            ))}
+          </ul>
+        </>
       )}
     </main>
   );

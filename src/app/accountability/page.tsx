@@ -74,11 +74,11 @@ export default async function AccountabilityPage({
             : `${overall.resolved} decision${overall.resolved === 1 ? '' : 's'} recorded.`}
         </h2>
         <dl className="accountability-stats">
-          <div>
+          <div className={overall.resolved === 0 ? 'is-quiet' : undefined}>
             <dt>All entries</dt>
             <dd>{all.length}</dd>
           </div>
-          <div>
+          <div className={overall.resolved === 0 ? 'is-quiet' : undefined}>
             <dt>Eligible claims</dt>
             <dd>{scoreable.length}</dd>
           </div>
@@ -86,7 +86,7 @@ export default async function AccountabilityPage({
             <dt>Decided</dt>
             <dd>{overall.resolved}</dd>
           </div>
-          <div>
+          <div className={overall.resolved === 0 ? 'is-focus' : undefined}>
             <dt>Pending</dt>
             <dd>{overall.pending}</dd>
           </div>

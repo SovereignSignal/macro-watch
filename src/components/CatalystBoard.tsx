@@ -89,11 +89,15 @@ export function CatalystBoard(props: { upcoming: ForwardEventRow[]; resolved: Fo
   return (
     <>
       <section>
-        <h2>Upcoming</h2>
+        <h2>
+          Upcoming <span className="section-count">{props.upcoming.length}</span>
+        </h2>
         <Upcoming rows={props.upcoming} />
       </section>
       <section>
-        <h2>Resolved</h2>
+        <h2>
+          Resolved <span className="section-count">{props.resolved.length}</span>
+        </h2>
         <Resolved rows={props.resolved} />
       </section>
     </>
