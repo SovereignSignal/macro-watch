@@ -1285,6 +1285,11 @@ a:focus-visible {
   .field-lanes {
     display: block;
   }
+
+  /* The glow is a chart-only mark; the list already names the event count. */
+  .field-legend-glow {
+    display: none;
+  }
 }
 
 .fn-halo {

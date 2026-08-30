@@ -167,7 +167,7 @@ it('nudges same-band same-pressure themes apart so labels never collide', () => 
   const band = layout.bands[1];
   const ys = layout.nodes.map((n) => n.y).sort((a, b) => a - b);
   for (let i = 1; i < ys.length; i++) {
-    expect(ys[i] - ys[i - 1]).toBeGreaterThanOrEqual(18);
+    expect(ys[i] - ys[i - 1]).toBeGreaterThanOrEqual(22);
   }
   // The band grows to hold the stack instead of letting it spill.
   for (const n of layout.nodes) {

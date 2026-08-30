@@ -75,7 +75,7 @@ function FieldLegend() {
         <li>
           <ConvictionScale conviction="medium" hollow /> candidate
         </li>
-        <li>
+        <li className="field-legend-glow">
           <span className="field-legend-halo" aria-hidden="true" />
           glow means recent events
         </li>
