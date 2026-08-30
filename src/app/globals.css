@@ -1030,6 +1030,188 @@ a:focus-visible {
   margin: 1.1rem 0 0.5rem;
 }
 
+.field-legend {
+  margin: 0 0 0.9rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.field-legend-axes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.7rem 1.5rem;
+  margin: 0 0 0.75rem;
+}
+
+.field-legend-axes dt {
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.field-legend-axes dd {
+  margin: 0.18rem 0 0;
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+
+.field-legend-marks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.05rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 0.7rem;
+  letter-spacing: 0.03em;
+  color: var(--muted);
+}
+
+.field-legend-marks li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  white-space: nowrap;
+}
+
+.field-legend-halo {
+  display: inline-block;
+  width: 0.72rem;
+  height: 0.72rem;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.field-lanes {
+  display: none;
+}
+
+.field-lanes-lead {
+  margin: 0 0 0.7rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.field-lanes-axis {
+  display: flex;
+  justify-content: space-between;
+  margin: 0 0 0.35rem 0;
+  padding-left: calc(100% - 5.6rem);
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 0.64rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.field-lane {
+  margin: 0 0 1rem;
+}
+
+.field-lane h3 {
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 0.35rem;
+}
+
+.field-lane ol {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border-top: 1px solid var(--rule);
+}
+
+.field-lane li {
+  border-bottom: 1px solid var(--rule);
+}
+
+.field-lane a {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) 5.6rem;
+  grid-template-rows: auto auto;
+  column-gap: 0.65rem;
+  align-items: center;
+  padding: 0.55rem 0;
+  text-decoration: none;
+  color: inherit;
+}
+
+.field-lane a .conv-scale {
+  grid-row: 1 / span 2;
+}
+
+.field-lane-name {
+  color: var(--ink);
+  font-size: 0.95rem;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.field-lane a:hover .field-lane-name,
+.field-lane a:focus-visible .field-lane-name {
+  color: var(--accent);
+}
+
+.field-lane-meta {
+  grid-column: 2;
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 0.68rem;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+}
+
+.field-meter {
+  position: relative;
+  grid-row: 1 / span 2;
+  grid-column: 3;
+  height: 1.35rem;
+  width: 5.6rem;
+}
+
+.field-meter-track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background: var(--rule);
+}
+
+.field-meter-zero {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1px;
+  height: 0.7rem;
+  background: var(--muted);
+  transform: translate(-50%, -50%);
+}
+
+.field-meter-dot {
+  position: absolute;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  background: var(--accent);
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.field-meter-empty {
+  visibility: hidden;
+}
+
+.field-lane.is-shelf .field-lane-name,
+.field-lane.is-shelf .field-lane-meta {
+  color: var(--faint);
+}
+
 .field-scroll {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
@@ -1043,25 +1225,71 @@ a:focus-visible {
   height: auto;
 }
 
-.field-band-label {
-  fill: var(--faint);
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
-  font-size: 8.5px;
-  letter-spacing: 0.16em;
+.field-band-fill-high {
+  fill: color-mix(in srgb, var(--accent) 7%, transparent);
 }
 
-.field-quad {
-  fill: var(--faint);
+.field-band-fill-medium {
+  fill: color-mix(in srgb, var(--ink) 3.5%, transparent);
+}
+
+.field-band-fill-low {
+  fill: transparent;
+}
+
+.field-band-label {
+  fill: var(--muted);
   font-family: var(--font-mono, ui-monospace, Menlo, monospace);
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 0.08em;
 }
 
-.field-axis-label {
+.field-axis-title {
   fill: var(--muted);
   font-family: var(--font-mono, ui-monospace, Menlo, monospace);
-  font-size: 9.5px;
+  font-size: 10px;
   letter-spacing: 0.1em;
+}
+
+.field-axis-label {
+  fill: var(--ink);
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+}
+
+.field-axis-rule,
+.field-tick {
+  stroke: var(--muted);
+  stroke-width: 1;
+}
+
+.field-zero {
+  stroke: var(--muted);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+
+@media (max-width: 40rem) {
+  .field-legend-axes {
+    grid-template-columns: 1fr;
+  }
+
+  /* The 720-wide field cannot shrink without making labels unreadable, and a
+     cropped scroll of it is what made the map look like a random list. On a
+     phone the lane list is the map; the chart returns at the 40rem cutoff. */
+  .field-scroll {
+    display: none;
+  }
+
+  .field-lanes {
+    display: block;
+  }
+
+  /* The glow is a chart-only mark; the list already names the event count. */
+  .field-legend-glow {
+    display: none;
+  }
 }
 
 .fn-halo {

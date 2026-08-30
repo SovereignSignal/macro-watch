@@ -73,11 +73,13 @@ it('/map renders the field hero above the grid, nodes linked to dossiers', async
   const db = await createTestDb();
   await seedAll(db);
   const markup = renderToStaticMarkup(await MapPage());
-  expect(markup).toContain('Position map');
-  expect(markup).toContain('← easing · pressure · building →');
+  expect(markup).toContain('Where themes stand');
+  expect(markup).toContain('High conviction sits at the top');
+  expect(markup).toContain('Lowered');
+  expect(markup).toContain('Raised');
   expect(markup).toContain('field-node');
   expect(markup).toContain('href="/map/rate-path-repricing"'); // SVG node link
-  expect(markup).toContain('RETIRED'); // china-reflation pins to the shelf
+  expect(markup).toContain('Retired'); // china-reflation pins to the shelf
   expect(markup.indexOf('the-field')).toBeLessThan(markup.indexOf('theme-grid'));
 });
 
