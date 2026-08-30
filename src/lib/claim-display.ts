@@ -26,7 +26,7 @@ export const STATUS_COPY: Record<string, { label: string; description: string }>
   },
   'judgment-required': {
     label: 'qualitative review',
-    description: 'A map condition that needs human review.',
+    description: 'A map condition with no market that can settle it.',
   },
   void: {
     label: 'excluded',

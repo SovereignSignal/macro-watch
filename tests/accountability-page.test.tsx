@@ -42,7 +42,7 @@ it('does not call a past expiry the next decision', async () => {
   const db = await createTestDb();
   await seedAll(db);
   const markup = renderToStaticMarkup(await page());
-  expect(markup).toMatch(/eligible claims? are past due|eligible claim is past due/);
+  expect(markup).toMatch(/listed markets are past their due date|listed market is past its due date/);
   expect(markup).not.toContain('Next decision: August 1, 2026');
   expect(markup).not.toContain('Next decision: July 31, 2026');
 });
@@ -51,7 +51,9 @@ it('honest empty state with zero claims', async () => {
   await createTestDb();
   const markup = renderToStaticMarkup(await page());
   expect(markup).toContain('Tracking phase');
-  expect(markup).toContain('No eligible claims have resolved yet.');
+  expect(markup).toContain('Waiting for markets to settle.');
+  expect(markup).toContain('Nobody grades anything on this page');
+  expect(markup).toContain('There is no decide button');
 });
 
 it('filters narrow the table but never the scoreboards', async () => {
@@ -64,7 +66,7 @@ it('filters narrow the table but never the scoreboards', async () => {
   expect(ledger).toContain('LME copper closes above'); // the one miss claim
   expect(ledger).not.toContain('EURUSD trades 1.14'); // expired claim filtered out of table
   // Scoreboards are still computed from the full ledger, filter or no.
-  expect(markup).toContain('2 decisions recorded.');
+  expect(markup).toContain('2 markets have settled.');
 });
 
 it('the quality class filter narrows the table by market_type', async () => {
@@ -94,7 +96,7 @@ it('renders judgment-only flip conditions with human predicate and subtype', asy
   const markup = renderToStaticMarkup(await page());
   expect(markup).toContain('Lower if losses broaden into public credit.');
   expect(markup).toContain('qualitative map review');
-  expect(markup).toContain('1 flip condition needs human review.');
+  expect(markup).toContain('1 map condition has no market that can settle it.');
   expect(markup).not.toContain('map:flip:1</td>');
 });
 

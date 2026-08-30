@@ -22,7 +22,7 @@ const STATUSES = ['pending', 'hit', 'miss', 'partial', 'expired', 'judgment-requ
 const RESULT_FALLBACK: Record<string, string> = {
   pending: 'Pending result.',
   expired: 'No verified result.',
-  'judgment-required': 'Human review. Excluded from stats.',
+  'judgment-required': 'No market can settle this. Excluded from stats.',
   void: 'Excluded from stats.',
 };
 

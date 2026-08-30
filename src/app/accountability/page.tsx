@@ -63,35 +63,40 @@ export default async function AccountabilityPage({
     <main className="container-wide">
       <h1>Accountability</h1>
       <p className="accountability-lede">
-        Measurable calls, sources, due dates, and outcomes.
+        A public scorecard. Listed markets settle the calls. Nobody grades anything on this page.
       </p>
 
       <section className="accountability-summary" aria-labelledby="record-status">
         <p className="accountability-phase">{phase}</p>
         <h2 id="record-status">
           {overall.resolved === 0
-            ? 'No eligible claims have resolved yet.'
-            : `${overall.resolved} decision${overall.resolved === 1 ? '' : 's'} recorded.`}
+            ? 'Waiting for markets to settle.'
+            : `${overall.resolved} market${overall.resolved === 1 ? '' : 's'} ${overall.resolved === 1 ? 'has' : 'have'} settled.`}
         </h2>
+        <p className="brief-meta">
+          {overall.resolved === 0
+            ? `${overall.pending} listed ${overall.pending === 1 ? 'market is' : 'markets are'} still open. Settled stays at 0 until those prints land.`
+            : 'Hit or miss is taken from the source result, not from a person.'}
+        </p>
         <dl className="accountability-stats">
           <div className={overall.resolved === 0 ? 'is-quiet' : undefined}>
             <dt>All entries</dt>
             <dd>{all.length}</dd>
           </div>
           <div className={overall.resolved === 0 ? 'is-quiet' : undefined}>
-            <dt>Eligible claims</dt>
+            <dt>Listed markets</dt>
             <dd>{scoreable.length}</dd>
           </div>
           <div>
-            <dt>Decided</dt>
+            <dt>Settled</dt>
             <dd>{overall.resolved}</dd>
           </div>
           <div className={overall.resolved === 0 ? 'is-focus' : undefined}>
-            <dt>Pending</dt>
+            <dt>Still open</dt>
             <dd>{overall.pending}</dd>
           </div>
           <div>
-            <dt>Human review</dt>
+            <dt>Not scored</dt>
             <dd>{qualitative.length}</dd>
           </div>
         </dl>
@@ -103,17 +108,17 @@ export default async function AccountabilityPage({
           <article>
             <p className="method-number">01</p>
             <h3>Record</h3>
-            <p>Save the claim, source, opening state, and due date.</p>
+            <p>The pipeline saves the call, the source, and the due date.</p>
           </article>
           <article>
             <p className="method-number">02</p>
-            <h3>Verify</h3>
-            <p>Use the source&apos;s final result. No model judgment.</p>
+            <h3>Settle</h3>
+            <p>The market or official print closes. There is no decide button.</p>
           </article>
           <article>
             <p className="method-number">03</p>
             <h3>Score</h3>
-            <p>Count correct and incorrect results. Exclude mixed, missing, duplicate, and qualitative rows.</p>
+            <p>Hits and misses only. Accuracy waits until eight markets have settled.</p>
           </article>
         </div>
         <aside className="coverage-note">
@@ -163,17 +168,17 @@ export default async function AccountabilityPage({
       </section>
 
       <section aria-labelledby="upcoming-decisions">
-        <h2 id="upcoming-decisions">Upcoming decisions</h2>
+        <h2 id="upcoming-decisions">Upcoming settlements</h2>
         <p className="brief-meta">
           {overdue > 0
-            ? `${overdue} eligible claim${overdue === 1 ? '' : 's'} ${overdue === 1 ? 'is' : 'are'} past due. `
+            ? `${overdue} listed ${overdue === 1 ? 'market is past its due date' : 'markets are past their due date'}. `
             : ''}
           {nextDecision
-            ? `Next decision: ${formatDate(nextDecision)}. `
+            ? `Next dated settlement: ${formatDate(nextDecision)}. `
             : overdue === 0
-              ? 'No dated claims are pending. '
+              ? 'No dated markets are still open. '
               : ''}
-          Only eligible claims appear here.
+          Only listed markets appear here.
         </p>
         <ExpiryHorizon claims={scoreable} />
       </section>
@@ -182,15 +187,15 @@ export default async function AccountabilityPage({
         <section className="qualitative-note" aria-labelledby="qualitative-review">
           <h2 id="qualitative-review">Qualitative map review</h2>
           <p>
-            {qualitative.length} flip condition{qualitative.length === 1 ? '' : 's'} {qualitative.length === 1 ? 'needs' : 'need'} human review.
-            They stay out of performance stats.
+            {qualitative.length} map condition{qualitative.length === 1 ? '' : 's'} {qualitative.length === 1 ? 'has' : 'have'} no market that can settle {qualitative.length === 1 ? 'it' : 'them'}.
+            {qualitative.length === 1 ? ' It stays' : ' They stay'} off the scorecard.
           </p>
         </section>
       ) : null}
 
       <section aria-labelledby="claim-history">
         <h2 id="claim-history">Claim history</h2>
-        <p className="brief-meta">Eligible claims, oldest first.</p>
+        <p className="brief-meta">Listed markets, oldest first.</p>
         <ClaimsBook claims={scoreable} />
       </section>
 
