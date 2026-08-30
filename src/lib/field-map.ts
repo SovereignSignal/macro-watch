@@ -78,6 +78,7 @@ export const FIELD_W = 720;
 const X_MIN = 84;
 const X_MAX = 636;
 const EDGE = 10; // labels never cross this inset
+const PLOT_HEAD = 22; // strip above the high band for the x-axis title
 const BAND_H = 96; // default band height; grows when a column stacks deep
 const EMPTY_BAND_H = 48; // an unoccupied stratum stays labeled but thin
 const BAND_PAD_TOP = 28; // reserved strip for band label / annotations
@@ -91,8 +92,13 @@ const SHELF_PAD_TOP = 24;
 const SHELF_ROW_H = 20;
 const SHELF_PAD_BOT = 14;
 const SHELF_ITEM_GAP = 26;
-const SHELF_X0 = 88; // items start clear of the RETIRED shelf label
-const AXIS_H = 32;
+const SHELF_X0 = 88; // items start clear of the Retired shelf label
+const AXIS_H = 40;
+const BAND_TITLE: Record<'high' | 'medium' | 'low', string> = {
+  high: 'High',
+  medium: 'Medium',
+  low: 'Low',
+};
 
 export const PRESSURE_CLAMP = 3;
 
@@ -157,11 +163,23 @@ export function formatPressure(p: number): string {
   return p > 0 ? `+${p}` : `${p}`;
 }
 
+/** Plain-language x-axis reading for a clamped pressure score. */
+export function pressureReading(p: number): 'lowered' | 'raised' | 'no net move' {
+  if (p > 0) return 'raised';
+  if (p < 0) return 'lowered';
+  return 'no net move';
+}
+
+export function eventCountLabel(count: number): string {
+  if (count === 0) return 'no events in 30d';
+  return `${count} event${count === 1 ? '' : 's'} in 30d`;
+}
+
 // --- layout -------------------------------------------------------------------
 
 type Placed = FieldNode & { jitterY: number };
 
-function bandKeyOf(conviction: FieldThemeInput['conviction']): 'high' | 'medium' | 'low' {
+export function bandKeyOf(conviction: FieldThemeInput['conviction']): 'high' | 'medium' | 'low' {
   return conviction === 'high' ? 'high' : conviction === 'medium' ? 'medium' : 'low';
 }
 
@@ -211,7 +229,7 @@ export function buildFieldLayout(themes: FieldThemeInput[], asOf: string): Field
   // Bands stack top-down; each grows to fit its own collision sweep.
   const bands: FieldBand[] = [];
   const nodes: FieldNode[] = [];
-  let cursor = 0;
+  let cursor = PLOT_HEAD;
   for (const key of ['high', 'medium', 'low'] as const) {
     const members = plotted.filter((n) => bandKeyOf(n.conviction) === key);
     const usable = BAND_H - BAND_PAD_TOP - BAND_PAD_BOT;
@@ -234,7 +252,7 @@ export function buildFieldLayout(themes: FieldThemeInput[], asOf: string): Field
       const { jitterY: _drop, ...node } = n;
       nodes.push(node);
     }
-    bands.push({ key, label: key.toUpperCase(), top: cursor, height });
+    bands.push({ key, label: BAND_TITLE[key], top: cursor, height });
     cursor += height;
   }
 

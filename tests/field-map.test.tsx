@@ -6,6 +6,7 @@ import {
   fieldLabel,
   type FieldThemeInput,
   formatPressure,
+  pressureReading,
   pressureScore,
   windowStart,
   xForPressure,
@@ -90,6 +91,11 @@ it('places themes in their conviction band; unrated reads low', () => {
   within('unrated', low);
   const unrated = layout.nodes.find((n) => n.slug === 'unrated');
   expect(unrated?.lit).toBe(0);
+});
+
+it('labels conviction bands in title case so the axis reads as words', () => {
+  const layout = buildFieldLayout([theme('a'), theme('b')], ASOF);
+  expect(layout.bands.map((b) => b.label)).toEqual(['High', 'Medium', 'Low']);
 });
 
 it('keeps unoccupied bands labeled but thin', () => {
@@ -202,6 +208,12 @@ it('formatPressure signs the net move', () => {
   expect(formatPressure(0)).toBe('0');
 });
 
+it('pressureReading names the x-axis in plain language', () => {
+  expect(pressureReading(2)).toBe('raised');
+  expect(pressureReading(-0.5)).toBe('lowered');
+  expect(pressureReading(0)).toBe('no net move');
+});
+
 // --- the component ------------------------------------------------------------------
 
 it('FieldMap renders nodes as dossier links with tooltips', () => {
@@ -223,8 +235,32 @@ it('FieldMap renders nodes as dossier links with tooltips', () => {
   expect(markup).toContain('href="/map/rate-path"');
   expect(markup).toContain('Rate path: active, conviction high, 2 events in 30d, net +2, last event 2026-07-08');
   expect(markup).toContain('fn-cand'); // hollow candidate diamonds
-  expect(markup).toContain('RETIRED'); // the shelf label
-  expect(markup).toContain('← easing · pressure · building →');
+  expect(markup).toContain('Retired');
+  expect(markup).toContain('Lowered');
+  expect(markup).toContain('No net move');
+  expect(markup).toContain('Raised');
+  expect(markup).toContain('Conviction. High at the top, low at the bottom.');
+  expect(markup).toContain('field-lanes');
+  expect(markup).not.toContain('pressured');
+  expect(markup).not.toContain('easing · pressure');
+});
+
+it('FieldMap lane list keeps the full theme name', () => {
+  const markup = renderToStaticMarkup(
+    <FieldMap
+      themes={[
+        theme('long', {
+          name: 'Narrative rotation / defense-space industrials',
+          conviction: 'high',
+        }),
+        theme('other', { name: 'Other theme', conviction: 'medium' }),
+      ]}
+      asOf={ASOF}
+    />,
+  );
+  expect(markup).toContain('Narrative rotation / defense-space industrials');
+  expect(markup).toContain('High conviction');
+  expect(markup).toContain('field-meter');
 });
 
 it('FieldMap shows a designed empty state under two plottable themes', () => {

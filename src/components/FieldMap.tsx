@@ -1,9 +1,16 @@
 import {
+  bandKeyOf,
   buildFieldLayout,
+  eventCountLabel,
+  type FieldBand,
   type FieldNode,
+  type FieldLayout,
   type FieldThemeInput,
   formatPressure,
+  PRESSURE_CLAMP,
+  pressureReading,
 } from '@/lib/field-map';
+import { ConvictionScale } from './ConvictionScale';
 import { EmptyState } from './EmptyState';
 
 /** Rotated-square diamond path, the house conviction glyph. */
@@ -12,15 +19,12 @@ function diamond(cx: number, cy: number, r: number): string {
 }
 
 function nodeTitle(n: FieldNode): string {
-  const parts = [
-    `${n.name}: ${n.status}`,
-    `conviction ${n.conviction ?? 'unrated'}`,
-  ];
+  const parts = [`${n.name}: ${n.status}`, `conviction ${n.conviction ?? 'unrated'}`];
   if (!n.shelf) {
     parts.push(
       n.eventCount === 0
         ? 'no events in 30d'
-        : `${n.eventCount} event${n.eventCount === 1 ? '' : 's'} in 30d, net ${formatPressure(n.pressure)}`,
+        : `${eventCountLabel(n.eventCount)}, net ${formatPressure(n.pressure)}`,
     );
   }
   if (n.lastEventAt) parts.push(`last event ${n.lastEventAt}`);
@@ -45,12 +49,122 @@ function Cluster({ n }: { n: FieldNode }) {
   );
 }
 
+function FieldLegend() {
+  return (
+    <div className="field-legend">
+      <dl className="field-legend-axes">
+        <div>
+          <dt>Row</dt>
+          <dd>Conviction. High at the top, low at the bottom.</dd>
+        </div>
+        <div>
+          <dt>Left or right</dt>
+          <dd>Events in the last 30 days. Lowered pulls left, raised pushes right.</dd>
+        </div>
+      </dl>
+      <ul className="field-legend-marks">
+        <li>
+          <ConvictionScale conviction="high" /> high
+        </li>
+        <li>
+          <ConvictionScale conviction="medium" /> medium
+        </li>
+        <li>
+          <ConvictionScale conviction="low" /> low
+        </li>
+        <li>
+          <ConvictionScale conviction="medium" hollow /> candidate
+        </li>
+        <li>
+          <span className="field-legend-halo" aria-hidden="true" />
+          glow means recent events
+        </li>
+      </ul>
+    </div>
+  );
+}
+
+function PressureMeter({ pressure }: { pressure: number }) {
+  const pct = ((pressure + PRESSURE_CLAMP) / (2 * PRESSURE_CLAMP)) * 100;
+  return (
+    <span className="field-meter" aria-hidden="true">
+      <span className="field-meter-track" />
+      <span className="field-meter-zero" />
+      <span className="field-meter-dot" style={{ left: `${pct}%` }} />
+    </span>
+  );
+}
+
+function LaneRow({ n }: { n: FieldNode }) {
+  const reading = n.shelf ? 'retired' : pressureReading(n.pressure);
+  const events = n.shelf ? null : eventCountLabel(n.eventCount);
+  return (
+    <li>
+      <a href={`/map/${n.slug}`} aria-label={nodeTitle(n)}>
+        <ConvictionScale conviction={n.conviction} hollow={n.status === 'candidate'} />
+        <span className="field-lane-name">{n.name}</span>
+        <span className="field-lane-meta">
+          {n.status === 'candidate' ? 'candidate · ' : ''}
+          {reading}
+          {events ? ` · ${events}` : ''}
+        </span>
+        {n.shelf ? <span className="field-meter field-meter-empty" /> : <PressureMeter pressure={n.pressure} />}
+      </a>
+    </li>
+  );
+}
+
+function FieldLanes({ layout }: { layout: FieldLayout }) {
+  const plotted = layout.nodes.filter((n) => !n.shelf);
+  const retired = layout.nodes.filter((n) => n.shelf);
+  return (
+    <div className="field-lanes">
+      <p className="field-lanes-lead">
+        Right means raised by events in the last 30 days. Left means lowered.
+      </p>
+      <div className="field-lanes-axis" aria-hidden="true">
+        <span>Lowered</span>
+        <span>Raised</span>
+      </div>
+      {layout.bands.map((band: FieldBand) => {
+        const members = plotted
+          .filter((n) => bandKeyOf(n.conviction) === band.key)
+          .sort((a, b) => b.pressure - a.pressure || a.name.localeCompare(b.name));
+        if (members.length === 0) return null;
+        return (
+          <section key={band.key} className="field-lane">
+            <h3>{band.label} conviction</h3>
+            <ol>
+              {members.map((n) => (
+                <LaneRow key={n.slug} n={n} />
+              ))}
+            </ol>
+          </section>
+        );
+      })}
+      {retired.length > 0 ? (
+        <section className="field-lane is-shelf">
+          <h3>Retired</h3>
+          <ol>
+            {retired
+              .slice()
+              .sort((a, b) => a.name.localeCompare(b.name))
+              .map((n) => (
+                <LaneRow key={n.slug} n={n} />
+              ))}
+          </ol>
+        </section>
+      ) : null}
+    </div>
+  );
+}
+
 /**
- * The /map hero. A server-rendered SVG map of every theme:
- * conviction band (y) × 30-day directional pressure (x), lifecycle in the
- * mark (filled active / hollow candidate / faint retired shelf), 30-day
- * event count as a soft halo. Every node links to its dossier and carries
- * a native tooltip. Scrolls horizontally in its container on small screens.
+ * The /map hero. A server-rendered map of every theme: conviction band (y) ×
+ * 30-day directional pressure (x). Desktop keeps the field chart, with axes
+ * and a key that stay outside the scroll. Narrow screens swap the chart for
+ * a lane list that encodes the same placement. Every node links to its
+ * dossier and carries a native tooltip.
  */
 export function FieldMap({ themes, asOf }: { themes: FieldThemeInput[]; asOf: string }) {
   if (themes.length === 0) return null;
@@ -62,20 +176,38 @@ export function FieldMap({ themes, asOf }: { themes: FieldThemeInput[]; asOf: st
       </EmptyState>
     );
   }
+  const plotTop = layout.bands[0].top;
   const lowBand = layout.bands[2];
   const plotBottom = lowBand.top + lowBand.height;
+  const midY = (plotTop + plotBottom) / 2;
   return (
     <figure className="field">
+      <FieldLegend />
+      <FieldLanes layout={layout} />
       <div className="field-scroll">
         <svg
           viewBox={`0 0 ${layout.width} ${layout.height}`}
           width={layout.width}
           height={layout.height}
-          aria-label="The field: every theme placed by conviction band and 30-day directional pressure"
+          aria-label="Every theme placed by conviction band and 30-day directional pressure. High conviction at the top. Lowered events sit left of center, raised events sit right."
         >
-          {/* zero-pressure rule, behind everything */}
-          <line x1={layout.zeroX} x2={layout.zeroX} y1={0} y2={plotBottom} className="chart-grid" />
-          {/* band strata */}
+          {layout.bands.map((b) => (
+            <rect
+              key={`${b.key}-fill`}
+              x={0}
+              y={b.top}
+              width={layout.width}
+              height={b.height}
+              className={`field-band-fill field-band-fill-${b.key}`}
+            />
+          ))}
+          <line
+            x1={layout.zeroX}
+            x2={layout.zeroX}
+            y1={plotTop}
+            y2={plotBottom}
+            className="field-zero"
+          />
           {layout.bands.map((b) => (
             <g key={b.key}>
               <line
@@ -85,29 +217,51 @@ export function FieldMap({ themes, asOf }: { themes: FieldThemeInput[]; asOf: st
                 y2={b.top + b.height}
                 className="chart-grid"
               />
-              <text x={14} y={b.top + 17} className="field-band-label">
+              <text x={36} y={b.top + 18} className="field-band-label">
                 {b.label}
               </text>
             </g>
           ))}
-          {/* quadrant whispers: two annotations, no grid */}
-          <text x={layout.width - 16} y={layout.bands[0].top + 17} textAnchor="end" className="field-quad">
-            pressured
+          <text
+            className="field-axis-title"
+            textAnchor="middle"
+            transform={`rotate(-90 14 ${midY})`}
+            x={14}
+            y={midY}
+          >
+            Conviction
           </text>
-          <text x={layout.width - 16} y={lowBand.top + 17} textAnchor="end" className="field-quad">
-            building
+          <text x={layout.width - 16} y={16} textAnchor="end" className="field-axis-title">
+            Last 30 days
           </text>
-          {/* the retired shelf */}
           {layout.shelf ? (
-            <text x={14} y={layout.shelf.top + 17} className="field-band-label">
-              RETIRED
+            <text x={36} y={layout.shelf.top + 17} className="field-band-label">
+              Retired
             </text>
           ) : null}
-          {/* pressure axis */}
-          <text x={layout.zeroX} y={layout.axisTop + 21} textAnchor="middle" className="field-axis-label">
-            ← easing · pressure · building →
+          <line
+            x1={layout.xMin}
+            x2={layout.xMax}
+            y1={layout.axisTop + 4}
+            y2={layout.axisTop + 4}
+            className="field-axis-rule"
+          />
+          <line
+            x1={layout.zeroX}
+            x2={layout.zeroX}
+            y1={layout.axisTop}
+            y2={layout.axisTop + 8}
+            className="field-tick"
+          />
+          <text x={layout.xMin} y={layout.axisTop + 22} textAnchor="start" className="field-axis-label">
+            Lowered
           </text>
-          {/* nodes: halo (weight) + gauge cluster + direct label, linked */}
+          <text x={layout.zeroX} y={layout.axisTop + 22} textAnchor="middle" className="field-axis-label">
+            No net move
+          </text>
+          <text x={layout.xMax} y={layout.axisTop + 22} textAnchor="end" className="field-axis-label">
+            Raised
+          </text>
           {layout.nodes.map((n) => (
             <a
               key={n.slug}
@@ -140,10 +294,7 @@ export function FieldMap({ themes, asOf }: { themes: FieldThemeInput[]; asOf: st
           ))}
         </svg>
       </div>
-      <figcaption>
-        Diamonds show conviction. Hollow marks candidates. Halos show recent activity. Select a
-        theme for its record.
-      </figcaption>
+      <figcaption>Select a theme for its record.</figcaption>
     </figure>
   );
 }
