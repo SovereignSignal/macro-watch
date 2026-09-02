@@ -40,8 +40,8 @@ export default async function BriefsPage({
       <h1>Brief archive</h1>
       {items.length === 0 ? (
         <EmptyState>
-          No briefs yet. Daily briefs publish weekdays at 14:00 UTC. Weekend reviews publish
-          Saturday at 12:00 UTC.
+          No briefs yet. Daily briefs publish weekdays at 14:00 UTC, the Weekend Review Saturday
+          at 17:00 UTC, and the Week Ahead Sunday at 23:00 UTC.
         </EmptyState>
       ) : (
         <ul className="archive-list">

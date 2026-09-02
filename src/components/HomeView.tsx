@@ -22,8 +22,8 @@ export function HomeView(props: {
         <BriefArticle brief={props.brief} stripDuplicatePanels />
       ) : (
         <EmptyState>
-          No brief yet. Daily briefs publish weekdays at 14:00 UTC. Weekend reviews publish
-          Saturday at 12:00 UTC.
+          No brief yet. Daily briefs publish weekdays at 14:00 UTC, the Weekend Review Saturday
+          at 17:00 UTC, and the Week Ahead Sunday at 23:00 UTC.
         </EmptyState>
       )}
       <section aria-label="Market dashboard">

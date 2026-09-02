@@ -56,16 +56,17 @@ change.
 2. **CI green → review → merge.** Tests + typecheck + build must pass
    (`npm test` runs on PGlite, no database needed). For anything touching data
    *meaning*, sovsclaw reviews; for structure/infra/design, M5 reviews.
-3. **Merge ≠ deploy.** macro-watch does not auto-deploy. Someone runs
-   `railway up` explicitly, then `scripts/smoke.mjs` verifies the live URL.
-   This is deliberate fail-closed discipline.
+3. **Merge is deploy.** Merging to `main` auto-deploys the Railway web
+   service, so CI green plus review happens before merge, never after.
+   `railway up` is a hotfix path only; `scripts/smoke.mjs` still verifies the
+   live URL after any deploy.
 4. **Contract changes are two coordinated PRs** — one to `sovs-macro`
    (publisher), one here (schema + page) — landed together, validated with real
    data.
 
-The real safety net, given no enforced gates: **push ≠ deploy**, CI on every
-push, and a manual verified deploy. A bad commit on main is recoverable and
-reaches no visitor until someone deploys.
+The real safety net, given no enforced gates: **merge is deploy**, so CI on
+every push and review before merge are the gate. A bad commit on main reaches
+visitors within seconds; revert it fast, with `railway up` as the hotfix path.
 
 ## Invariants neither agent violates
 
