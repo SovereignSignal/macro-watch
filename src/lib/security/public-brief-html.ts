@@ -115,7 +115,9 @@ const DEAD_POINTER_TEXT_RE = /^\s*(?:Full decision memo|Research log\s*:.*)$/is;
 const DEAD_POINTER_RUN_RE = /(?:Full decision memo|Research log\s*:[^<\n]*?)(?:\.|$|\n)/gi;
 // The pipeline fills an empty Prediction Market Lens cell with a lone em dash.
 // Blank those cells before the em-dash pass would turn them into a stray ", ".
-const EMPTY_DASH_CELL_RE = /<(t[dh])(\s[^>]*)?>\s*(?:\u2014|&mdash;|&#8212;|&#x2014;)\s*<\/\1\s*>/gi;
+// A cell holding only an em dash (pipeline placeholder) or only a comma (what the
+// copy pass made of that dash in briefs stored before 2026-09-02) carries nothing.
+const EMPTY_DASH_CELL_RE = /<(t[dh])(\s[^>]*)?>\s*(?:\u2014|&mdash;|&#8212;|&#x2014;|,)\s*<\/\1\s*>/gi;
 const PUBLIC_ORIGIN = 'https://web-production-cb2e81.up.railway.app';
 
 function hasPrivateFooter(text: string): boolean {
