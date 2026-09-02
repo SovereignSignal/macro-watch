@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { ThemeCard } from '@/lib/queries/map';
+import { isDormant } from '@/lib/theme-lifecycle';
 import { ConvictionScale } from './ConvictionScale';
 import { EmptyState } from './EmptyState';
 import { Sparkline } from './Sparkline';
@@ -8,11 +9,14 @@ import { Sparkline } from './Sparkline';
 export function ThemeStrip({
   cards,
   sparks,
+  asOf,
 }: {
   cards: ThemeCard[];
   sparks?: Record<string, number[]>;
+  /** YYYY-MM-DD; when given, dormant candidates (no event for 45+ days) stay off the strip. */
+  asOf?: string;
 }) {
-  const live = cards.filter((c) => c.status !== 'retired');
+  const live = cards.filter((c) => c.status !== 'retired' && !(asOf && isDormant(c, asOf)));
   if (live.length === 0) {
     return <EmptyState>No themes yet.</EmptyState>;
   }
