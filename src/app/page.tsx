@@ -23,6 +23,7 @@ export default async function HomePage() {
   const oddsPanel = await safeQuery(() => getLatestVerifiedPanel(db, 'odds_lens'), null);
   const map = await safeQuery(() => getThemeMapCards(db), { takenAt: null, cards: [] });
   const sparks = await safeQuery(() => getConvictionSparks(db), {});
+  const asOf = new Date().toISOString().slice(0, 10);
   return (
     <HomeView
       brief={brief}
@@ -34,6 +35,7 @@ export default async function HomePage() {
       } : null}
       cards={map.cards}
       sparks={sparks}
+      asOf={asOf}
     />
   );
 }

@@ -13,6 +13,7 @@ export function HomeView(props: {
   oddsPanel?: { takenAt: string; rows: PanelRowItem[]; summary?: string | null } | null;
   cards: ThemeCard[];
   sparks?: Record<string, number[]>;
+  asOf?: string;
 }) {
   const dashboard = presentDashboardRows(props.panel?.rows ?? []);
   const oddsRows = presentPanelRows(props.oddsPanel?.rows ?? []);
@@ -47,7 +48,7 @@ export function HomeView(props: {
       ) : null}
       <section aria-label="Theme map">
         <h2>Theme map</h2>
-        <ThemeStrip cards={props.cards} sparks={props.sparks} />
+        <ThemeStrip cards={props.cards} sparks={props.sparks} asOf={props.asOf} />
       </section>
       <p className="home-footer-links">
         <a href="/briefs">Brief archive</a> · <a href="/feed.xml">RSS</a>

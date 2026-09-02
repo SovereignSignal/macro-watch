@@ -154,3 +154,30 @@ it('links theme strip entries to their theme pages', () => {
   expect(markup).toContain('expected path of policy rates');
   expect(markup).toContain('conv-high');
 });
+
+it('keeps dormant candidates off the home strip when an as-of date is given', () => {
+  const card = (slug: string, status: string, lastEventAt: string) => ({
+    slug,
+    name: slug,
+    description: 'd',
+    status,
+    firstSeen: '2026-01-05',
+    lastEventAt,
+    conviction: null,
+    read: null,
+    triggers: [],
+    raiseConditions: [],
+    lowerConditions: [],
+  });
+  const cards = [
+    card('fresh-candidate', 'candidate', '2026-08-20'),
+    card('stale-candidate', 'candidate', '2026-07-01'),
+    card('quiet-active', 'active', '2026-05-01'),
+  ];
+  const withAsOf = renderToStaticMarkup(<HomeView brief={null} panel={null} cards={cards} asOf="2026-09-02" />);
+  expect(withAsOf).toContain('fresh-candidate');
+  expect(withAsOf).toContain('quiet-active');
+  expect(withAsOf).not.toContain('stale-candidate');
+  const withoutAsOf = renderToStaticMarkup(<HomeView brief={null} panel={null} cards={cards} />);
+  expect(withoutAsOf).toContain('stale-candidate');
+});
