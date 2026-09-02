@@ -12,6 +12,14 @@ describe('public copy contract', () => {
     expect(publicText('Rates&#x2014;hold')).toBe('Rates, hold');
   });
 
+  it('empties a lone em dash placeholder but keeps sentence dashes', () => {
+    for (const value of ['\u2014', ' \u2014 ', '&mdash;', '&#8212;', '&#x2014;', '\n&#x2014;\n']) {
+      expect(publicText(value)).toBe('');
+    }
+    expect(publicText('Rates \u2014 hold')).toBe('Rates, hold');
+    expect(publicValue({ odds: '\u2014', read: 'Oil \u2014 easing' })).toEqual({ odds: '', read: 'Oil, easing' });
+  });
+
   it('normalizes nested public payloads', () => {
     expect(publicValue({ title: 'Oil \u2014 easing', rows: ['Fed&mdash;hold'] })).toEqual({
       title: 'Oil, easing',

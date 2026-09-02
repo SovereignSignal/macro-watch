@@ -1,7 +1,10 @@
 const EM_DASH_RE = /\s*(?:\u2014|&mdash;|&#8212;|&#x2014;)\s*/gi;
+const LONE_EM_DASH_RE = /^\s*(?:\u2014|&mdash;|&#8212;|&#x2014;)\s*$/i;
 
 /** Public copy contract: em dashes are normalized at ingest and render boundaries. */
 export function publicText(value: string): string {
+  // A lone em dash is the pipeline's empty-cell placeholder, not punctuation.
+  if (LONE_EM_DASH_RE.test(value)) return '';
   return value.replace(EM_DASH_RE, ', ').replace(/,\s{2,}/g, ', ');
 }
 

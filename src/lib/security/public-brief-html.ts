@@ -113,6 +113,9 @@ const DEAD_POINTER_TEXT_RE = /^\s*(?:Full decision memo|Research log\s*:.*)$/is;
 // frame-level filter cannot see it. Bounded to the text run: stops at the
 // sentence end or line end so surrounding analysis is untouched.
 const DEAD_POINTER_RUN_RE = /(?:Full decision memo|Research log\s*:[^<\n]*?)(?:\.|$|\n)/gi;
+// The pipeline fills an empty Prediction Market Lens cell with a lone em dash.
+// Blank those cells before the em-dash pass would turn them into a stray ", ".
+const EMPTY_DASH_CELL_RE = /<(t[dh])(\s[^>]*)?>\s*(?:\u2014|&mdash;|&#8212;|&#x2014;)\s*<\/\1\s*>/gi;
 const PUBLIC_ORIGIN = 'https://web-production-cb2e81.up.railway.app';
 
 function hasPrivateFooter(text: string): boolean {
@@ -135,12 +138,15 @@ function scrubPrivateText(text: string): string {
 }
 
 function decodeTextEntities(text: string): string {
+  // `mdash` decodes here so a sentence's em dash stays inside its text run;
+  // left to the parser, the entity reaches textFilter as its own chunk and
+  // reads as a lone placeholder.
   const named: Record<string, string> = {
-    amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ',
+    amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ', mdash: '\u2014',
   };
   let out = text;
   for (let pass = 0; pass < 32; pass += 1) {
-    const decoded = out.replace(/&(#x[0-9a-f]+|#\d+|amp|lt|gt|quot|apos|nbsp);/gi, (_, token: string) => {
+    const decoded = out.replace(/&(#x[0-9a-f]+|#\d+|amp|lt|gt|quot|apos|nbsp|mdash);/gi, (_, token: string) => {
       const lower = token.toLowerCase();
       const codePoint = lower.startsWith('#x')
         ? Number.parseInt(lower.slice(2), 16)
@@ -430,6 +436,10 @@ function dedupeForwardEventEchoes(html: string): string {
   );
 }
 
+function blankPlaceholderCells(html: string): string {
+  return html.replace(EMPTY_DASH_CELL_RE, (_, tag: string, attribs = '') => `<${tag}${attribs}></${tag}>`);
+}
+
 /**
  * Sanitizes publisher HTML for public display and storage.
  *
@@ -439,7 +449,7 @@ function dedupeForwardEventEchoes(html: string): string {
 export function sanitizePublicBriefHtml(dirtyHtml: string): string {
   // Canonicalize nested entities before parsing so double-encoded markup and
   // private text cannot survive as recoverable entities in stored HTML.
-  const canonical = decodeTextEntities(dirtyHtml);
+  const canonical = blankPlaceholderCells(decodeTextEntities(dirtyHtml));
   return dedupeForwardEventEchoes(
     publicText(sanitizeHtml(sanitizeHtml(canonical, options), options)),
   ).trim();

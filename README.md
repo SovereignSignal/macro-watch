@@ -118,11 +118,12 @@ Full contract, payload shapes, and schema: `docs/specs/2026-07-11-macro-watch-de
 
 ## Deploy
 
-Railway project `macro-watch`: one Next.js web service + Railway Postgres. **Deploy is not
-automatic** — the GitHub repo is not wired to Railway, so a push to `main` does **not**
-deploy. Deploys are explicit: `railway up` per house practice (not the Railway MCP tools,
-which are unreliable here). This is deliberate fail-closed discipline — merge ≠ deploy, so
-`main` can move freely and nothing reaches visitors until someone runs a verified deploy.
+Railway project `macro-watch`: one Next.js web service + Railway Postgres. **Merging to
+`main` deploys.** The GitHub repo is wired to Railway, so each merge auto-deploys the `web`
+service within seconds (deployments carry the commit hash and `branch=main`). CI
+(`.github/workflows/ci.yml`: typecheck, test, build) must be green before merge, because merge
+is the deploy. `railway up` remains available only as a manual hotfix path (not the Railway
+MCP tools, which are unreliable here).
 `npm run start` runs `db:migrate` before `next start`, so every deploy migrates the
 database on boot. Railway's own healthcheck hits `GET /api/health`
 (`src/app/api/health/route.ts`, `railway.json`'s `healthcheckPath`) — a readiness
@@ -137,9 +138,9 @@ listings — see `docs/architecture.md`).
 **Read [`OWNERS.md`](./OWNERS.md) first** — it's the collaboration model (who owns what,
 the ingest-contract rule, how a change lands). Trunk-based: work lands on `main`. The repo
 is private on the free tier, so branch protection isn't available — PR-and-review is by
-agreement between the maintainers, and the safety net is that push ≠ deploy (deploys are a
-manual `railway up`). Treat `main` as the thing that's always deployable. Before
-merging anything, `npm run typecheck`, `npm test`, and `npm run build` must all pass (this
-is also CI, see `.github/workflows/ci.yml`). `.superpowers/` is orchestration scratch
-(agent task briefs, review diffs, progress notes) — it's checked in for provenance but is
-not project documentation; ignore it when getting oriented.
+agreement between the maintainers. Merging to `main` auto-deploys to Railway, so `main` must
+always be deployable: before merging anything, `npm run typecheck`, `npm test`, and
+`npm run build` must all pass (this is also CI, see `.github/workflows/ci.yml`).
+`.superpowers/` is orchestration scratch (agent task briefs, review diffs, progress notes) —
+it's checked in for provenance but is not project documentation; ignore it when getting
+oriented.
