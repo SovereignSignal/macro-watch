@@ -147,8 +147,8 @@ export default async function AccountabilityPage({
             floor={OVERALL_MIN_SAMPLE}
           />
           <GradeMeter
-            title="Map-derived markets"
-            description="Market leans cited in the weekly theme map."
+            title="Map-derived checks"
+            description="Dated conditions the theme map stated in its daily Next check lines, settled by stored daily closes, plus market leans cited in the weekly map."
             board={scoreClaims(mapClaims)}
             floor={OVERALL_MIN_SAMPLE}
           />
