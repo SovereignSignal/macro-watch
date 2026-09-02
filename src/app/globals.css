@@ -1605,6 +1605,11 @@ figure {
   font-size: 0.78rem;
 }
 
+/* The ledger pager shares the archive layout; its row-range readout sits between the links. */
+.ledger-pagination .ledger-range {
+  color: var(--muted);
+}
+
 /* --- accountability: orientation ---------------------------------------------------------- */
 
 .accountability-lede {

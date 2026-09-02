@@ -9,7 +9,7 @@ import {
   statusLabel,
 } from '@/lib/claim-display';
 import { formatDate } from '@/lib/format';
-import type { ClaimFilters, ClaimRecord } from '@/lib/queries/accountability';
+import type { ClaimFilters, ClaimsPage } from '@/lib/queries/accountability';
 import { openingProbability, qualityClass } from '@/lib/scoring';
 import { EmptyState } from './EmptyState';
 import { StatusMark } from './StatusMark';
@@ -26,17 +26,37 @@ const RESULT_FALLBACK: Record<string, string> = {
   void: 'Excluded from stats.',
 };
 
-/** Filterable claims ledger. Plain GET form with no client JS. */
+/** Ledger URL for a page, carrying the active filters. Page 1 stays canonical. */
+function ledgerHref(filters: ClaimFilters, page: number): string {
+  const params = new URLSearchParams();
+  if (filters.kind) params.set('kind', filters.kind);
+  if (filters.status) params.set('status', filters.status);
+  if (filters.theme) params.set('theme', filters.theme);
+  if (filters.qualityClass) params.set('class', filters.qualityClass);
+  if (page > 1) params.set('page', String(page));
+  const qs = params.toString();
+  return qs ? `/accountability?${qs}` : '/accountability';
+}
+
+/**
+ * Filterable claims ledger, one page at a time. Plain GET form and plain
+ * links, no client JS. The filter form omits `page`, so changing a filter
+ * lands on that filter's first page.
+ */
 export function ClaimsTable(props: {
-  claims: ClaimRecord[];
+  page: ClaimsPage;
   filters: ClaimFilters;
   themeOptions: string[];
   classOptions: string[];
   themeNames: Record<string, string>;
 }) {
+  const { rows, total, page, pageSize } = props.page;
   const hasFilters = Boolean(
     props.filters.kind || props.filters.status || props.filters.theme || props.filters.qualityClass,
   );
+  const from = (page - 1) * pageSize + 1;
+  const to = Math.min(page * pageSize, total);
+  const hasOlder = to < total;
   return (
     <>
       <form method="get" action="/accountability" className="filters">
@@ -87,7 +107,7 @@ export function ClaimsTable(props: {
         <button type="submit">Filter</button>
         {hasFilters ? <Link href="/accountability">Clear filters</Link> : null}
       </form>
-      {props.claims.length === 0 ? (
+      {rows.length === 0 ? (
         <EmptyState>No claims match these filters.</EmptyState>
       ) : (
         <div className="table-scroll">
@@ -105,7 +125,7 @@ export function ClaimsTable(props: {
             </tr>
           </thead>
           <tbody>
-            {props.claims.map((c) => {
+            {rows.map((c) => {
               const source = claimSource(c);
               const probability = openingProbability(c.payload);
               const resolution = payloadStr(c.payload, 'resolution_note');
@@ -160,6 +180,25 @@ export function ClaimsTable(props: {
           </table>
         </div>
       )}
+      {total > 0 ? (
+        <nav className="archive-pagination ledger-pagination" aria-label="Ledger pagination">
+          {page > 1 ? (
+            <Link rel="prev" href={ledgerHref(props.filters, page - 1)}>
+              ← Newer entries
+            </Link>
+          ) : (
+            <span />
+          )}
+          <span className="ledger-range">{`rows ${from}–${to} of ${total}`}</span>
+          {hasOlder ? (
+            <Link rel="next" href={ledgerHref(props.filters, page + 1)}>
+              Older entries →
+            </Link>
+          ) : (
+            <span />
+          )}
+        </nav>
+      ) : null}
     </>
   );
 }
