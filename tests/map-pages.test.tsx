@@ -1,7 +1,8 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { expect, it } from 'vitest';
-import { upsertThemeState } from '@/lib/ingest/themes';
-import { getThemeDetail } from '@/lib/queries/map';
+import { ThemeGrid } from '@/components/ThemeGrid';
+import { upsertThemeEvents, upsertThemeState } from '@/lib/ingest/themes';
+import { getThemeDetail, type ThemeCard } from '@/lib/queries/map';
 import { seedAll } from '@/lib/seed';
 import { createTestDb } from './helpers/db';
 
@@ -114,4 +115,100 @@ it('/map/[theme] 404s for an unknown slug', async () => {
   const db = await createTestDb();
   await seedAll(db);
   await expect(ThemePage({ params: Promise.resolve({ theme: 'nope' }) })).rejects.toThrow();
+});
+
+// --- dormant candidates ---------------------------------------------------------
+
+function card(slug: string, over: Partial<ThemeCard> = {}): ThemeCard {
+  return {
+    slug,
+    name: slug,
+    description: `Tracks ${slug}.`,
+    status: 'active',
+    firstSeen: null,
+    lastEventAt: null,
+    conviction: 'medium',
+    read: null,
+    triggers: [],
+    raiseConditions: [],
+    lowerConditions: [],
+    ...over,
+  };
+}
+
+it('ThemeGrid folds a stale candidate into a collapsed Dormant section, out of Candidates', () => {
+  const markup = renderToStaticMarkup(
+    <ThemeGrid
+      cards={[
+        card('live-theme', { lastEventAt: '2026-08-30' }),
+        card('fresh-idea', { status: 'candidate', lastEventAt: '2026-08-20' }),
+        card('stale-idea', { status: 'candidate', lastEventAt: '2026-06-01' }),
+        card('gone', { status: 'retired', lastEventAt: '2026-05-01' }),
+      ]}
+      asOf="2026-09-01"
+    />,
+  );
+  const [above, rest] = markup.split('<details');
+  expect(above).toContain('Active <span class="section-count">1</span>');
+  expect(above).toContain('Candidates <span class="section-count">1</span>');
+  expect(above).toContain('href="/map/fresh-idea"');
+  expect(above).not.toContain('stale-idea');
+  const [fold, below] = rest.split('</details>');
+  expect(fold).toContain('Dormant (1): candidates with no event for 45+ days');
+  expect(fold).toContain('href="/map/stale-idea"');
+  expect(fold).toContain('badge-dormant');
+  expect(fold).toContain('>dormant<');
+  expect(fold).not.toContain('badge-candidate');
+  expect(below).toContain('Retired <span class="section-count">1</span>');
+  expect(markup).not.toContain('<details open'); // folded shut by default
+});
+
+it('ThemeGrid keeps a live candidate in Candidates and shows no Dormant fold', () => {
+  const markup = renderToStaticMarkup(
+    <ThemeGrid
+      cards={[card('a'), card('idea', { status: 'candidate', lastEventAt: '2026-07-18' })]}
+      asOf="2026-09-01"
+    />,
+  );
+  expect(markup).toContain('Candidates <span class="section-count">1</span>');
+  expect(markup).toContain('badge-candidate');
+  expect(markup).not.toContain('Dormant');
+  expect(markup).not.toContain('<details');
+});
+
+// The pages read as-of from today's date. A candidate flagged in January 2026
+// is dormant on every date from mid-February 2026 on, so these hold for any
+// present or future run.
+const STALE_CANDIDATE = {
+  event_id: 'te-2026-01-05-stale-1',
+  date: '2026-01-05',
+  theme_slug: 'stale-idea',
+  theme_name: 'Stale idea',
+  direction: 'candidate' as const,
+  evidence: 'Flagged once in January and never followed up.',
+  source: 'weekly' as const,
+};
+
+it('/map keeps a stale candidate off the field and inside the Dormant fold', async () => {
+  const db = await createTestDb();
+  await seedAll(db);
+  await upsertThemeEvents(db, [STALE_CANDIDATE]);
+  const markup = renderToStaticMarkup(await MapPage());
+  const field = markup.slice(0, markup.indexOf('theme-grid'));
+  expect(field).toContain('href="/map/rate-path-repricing"');
+  expect(field).not.toContain('stale-idea');
+  expect(markup).toContain('Dormant (1): candidates with no event for 45+ days');
+  expect(markup).toContain('href="/map/stale-idea"');
+});
+
+it('/map/[theme] badges a stale candidate as dormant', async () => {
+  const db = await createTestDb();
+  await seedAll(db);
+  await upsertThemeEvents(db, [STALE_CANDIDATE]);
+  const markup = renderToStaticMarkup(
+    await ThemePage({ params: Promise.resolve({ theme: 'stale-idea' }) }),
+  );
+  expect(markup).toContain('Stale idea');
+  expect(markup).toContain('badge-dormant');
+  expect(markup).not.toContain('badge-candidate');
 });

@@ -10,6 +10,7 @@ import { getDb } from '@/db/client';
 import { formatDate } from '@/lib/format';
 import { pageMetadata } from '@/lib/metadata';
 import { getThemeDetail } from '@/lib/queries/map';
+import { displayStatus } from '@/lib/theme-lifecycle';
 import { statusLabel } from '@/lib/claim-display';
 
 export const dynamic = 'force-dynamic';
@@ -44,6 +45,9 @@ export default async function ThemePage({ params }: { params: Promise<{ theme: s
   const detail = await getThemeDetail(getDb(), theme);
   if (!detail) notFound();
   const card = detail.card;
+  // Same as-of read as /map: a stale candidate shows as dormant here too.
+  const asOf = new Date().toISOString().slice(0, 10);
+  const status = displayStatus(detail, asOf);
   const sparkLevels = detail.conviction.map((p) => p.level);
   return (
     <main className="container">
@@ -63,7 +67,7 @@ export default async function ThemePage({ params }: { params: Promise<{ theme: s
           <span className={card?.conviction ? `conv conv-${card.conviction}` : 'conv'}>
             {card?.conviction ?? 'unrated'}
           </span>
-          <span className={`badge badge-${detail.status}`}>{detail.status}</span>
+          <span className={`badge badge-${status}`}>{status}</span>
           {detail.firstSeen ? (
             <span className="since">on the map since {formatDate(detail.firstSeen)}</span>
           ) : null}

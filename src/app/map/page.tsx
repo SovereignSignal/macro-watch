@@ -50,7 +50,7 @@ export default async function MapPage() {
           <FieldMap themes={fieldThemes} asOf={asOf} />
         </section>
       ) : null}
-      <ThemeGrid cards={cards} sparks={sparks} />
+      <ThemeGrid cards={cards} sparks={sparks} asOf={asOf} />
     </main>
   );
 }
