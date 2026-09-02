@@ -16,8 +16,9 @@ export default function AboutPage() {
       </p>
       <h2>How it works</h2>
       <p>
-        <strong>Briefs.</strong> Weekday briefs publish at 14:00 UTC. The weekend review publishes
-        Saturday at 12:00 UTC.
+        <strong>Briefs.</strong> Weekday briefs publish Monday to Friday at 14:00 UTC, with research
+        memos on weekday mornings after 07:00 UTC. The Weekend Review publishes Saturday at 17:00
+        UTC and the Week Ahead on Sunday at 23:00 UTC.
       </p>
       <p>
         <strong>Checks.</strong> Brief HTML is sanitized before publication. Optional source blocks may

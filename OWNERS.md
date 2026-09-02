@@ -1,6 +1,6 @@
 # Ownership & collaboration — macro-watch
 
-macro.watch is the public site for the SovsMacro intelligence system. Two agents
+Sovs Macro (repo `macro-watch`) is the public site for the SovsMacro intelligence system; the `macro.watch` domain is not ours. Two agents
 plus the owner build it; this file is how they coordinate. Its pipeline-side
 cousin is [`sovs-macro/OWNERS.md`]; the fuller narrative lives in Notion
 ("macro.watch — Docs → How We Build It Together").

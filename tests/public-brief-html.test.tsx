@@ -226,6 +226,18 @@ describe('sanitizePublicBriefHtml', () => {
     expect(html).not.toContain('\u2014');
     expect(html).not.toMatch(/&mdash;|&#8212;|&#x2014;/i);
   });
+
+  it('blanks table cells whose only content is an em dash placeholder', () => {
+    const html = sanitizePublicBriefHtml(
+      '<table><thead><tr><th scope="col">Market</th><th> &mdash; </th></tr></thead>' +
+        '<tbody><tr><td>YES 0%</td><td>\u2014</td><td colspan="2">\n&#8212;\n</td><td>&#x2014;</td>' +
+        '<td>Rates \u2014 hold</td></tr></tbody></table>',
+    );
+
+    expect(html).toContain('<th scope="col">Market</th><th></th>');
+    expect(html).toContain('<td>YES 0%</td><td></td><td colspan="2"></td><td></td><td>Rates, hold</td>');
+    expect(html).not.toContain(', <');
+  });
 });
 
 it('sanitizes legacy database HTML immediately before dangerouslySetInnerHTML', () => {
