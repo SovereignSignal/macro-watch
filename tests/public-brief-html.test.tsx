@@ -255,6 +255,13 @@ it('sanitizes legacy database HTML immediately before dangerouslySetInnerHTML', 
 });
 
 describe('legacy email chrome cleanup (2026-07-27 live-site defects)', () => {
+  it('blanks table cells that hold only a comma left by an earlier copy pass', () => {
+    const html = sanitizePublicBriefHtml('<table><tr><td>YES 0%</td><td>, </td><td>,</td></tr></table>');
+    expect(html).not.toMatch(/<td>\s*,\s*<\/td>/);
+    expect(html).toContain('<td></td><td></td>');
+    expect(html).toContain('YES 0%');
+  });
+
   it('removes the flattened wordmark+date masthead from legacy stored rows', () => {
     // Stored rows ingested before the producer fix carry the email header as
     // unwrapped text; on the page it rendered as `SOV'S MACROMonday, ...`.
