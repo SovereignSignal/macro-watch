@@ -6,12 +6,12 @@ import { getDb } from '@/db/client';
 import { humanizeSlug, isQualitativeClaim, isScoreableClaim, qualityLabel } from '@/lib/claim-display';
 import { formatDate } from '@/lib/format';
 import { pageMetadata } from '@/lib/metadata';
-import { getClaims, getThemeNames } from '@/lib/queries/accountability';
+import { getClaims, getClaimsPage, getThemeNames, LEDGER_PAGE_SIZE } from '@/lib/queries/accountability';
 import { safeQuery } from '@/lib/safe';
 import { decisionHorizon } from '@/lib/decision-horizon';
 import { GROUP_MIN_SAMPLE, groupBoards, OVERALL_MIN_SAMPLE, qualityClass, scoreClaims } from '@/lib/scoring';
 
-// Reads searchParams (filters), so this page renders per-request.
+// Reads searchParams (ledger filters and page), so this page renders per-request.
 export const dynamic = 'force-dynamic';
 export const metadata = pageMetadata({
   title: 'Accountability',
@@ -21,6 +21,12 @@ export const metadata = pageMetadata({
 
 function one(v: string | string[] | undefined): string | undefined {
   return typeof v === 'string' && v.length > 0 ? v : undefined;
+}
+
+function pageNumber(value: string | string[] | undefined): number {
+  const raw = Array.isArray(value) ? value[0] : value;
+  const parsed = Number(raw);
+  return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : 1;
 }
 
 export default async function AccountabilityPage({
@@ -35,11 +41,13 @@ export default async function AccountabilityPage({
     theme: one(sp.theme),
     qualityClass: one(sp.class),
   };
+  const page = pageNumber(sp.page);
   const db = getDb();
-  // Filters only narrow the public ledger. They never change performance math.
-  const [all, filtered, themeNames] = await Promise.all([
+  // Filters and paging only narrow the public ledger. Everything else on the
+  // page (counts, boards, the book, the horizon) reads the whole record.
+  const [all, ledger, themeNames] = await Promise.all([
     safeQuery(() => getClaims(db), []),
-    safeQuery(() => getClaims(db, filters), []),
+    safeQuery(() => getClaimsPage(db, filters, page), { rows: [], total: 0, page: 1, pageSize: LEDGER_PAGE_SIZE }),
     safeQuery(() => getThemeNames(db), {}),
   ]);
   const scoreable = all.filter(isScoreableClaim);
@@ -203,7 +211,7 @@ export default async function AccountabilityPage({
         <h2 id="public-ledger">Public ledger</h2>
         <p className="brief-meta">Filters only affect this ledger.</p>
         <ClaimsTable
-          claims={filtered}
+          page={ledger}
           filters={filters}
           themeOptions={themeOptions}
           classOptions={classOptions}

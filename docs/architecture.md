@@ -126,7 +126,9 @@ language; do not reintroduce that vocabulary.
 
 `src/app/accountability/page.tsx` leads with orientation before statistics. Every section
 above the public ledger is computed from the **whole** record (`getClaims(db)`, no filters).
-Query-string filters only narrow the ledger table.
+Query-string filters only narrow the ledger table, which is served 25 rows at a time
+(`getClaimsPage`, `?page=N`, newest first); the pager links carry the active filters, and the
+filter form omits `page` so a new filter starts on its first page.
 
 - **Record status** states whether the system is tracking, early, or ready to publish a
   headline rate. It separates total rows, mechanically eligible claims, final decisions,
@@ -143,7 +145,8 @@ Query-string filters only narrow the ledger table.
   performance statistics.
 - **Claim history** (`src/components/ClaimsBook.tsx`) shows one mark per mechanically eligible
   claim. **Public ledger** (`src/components/ClaimsTable.tsx`) preserves every row with readable
-  labels, source links, opening probabilities, evidence types, and verified results.
+  labels, source links, opening probabilities, evidence types, and verified results, paginated
+  so the page's HTML weight no longer grows with the record.
 
 ## Field-map position semantics
 
