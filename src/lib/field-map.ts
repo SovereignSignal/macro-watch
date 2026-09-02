@@ -7,12 +7,17 @@
  *       directions (raise +1, lower −1, candidate +0.5, invalidate −0.5,
  *       hold 0, retire −1), clamped to [−3, +3].
  * Retired themes are not plotted; they pin to a thin shelf below the bands.
+ * Dormant candidates (no event for more than DORMANT_AFTER_DAYS as of the
+ * render date, see theme-lifecycle.ts) are not drawn at all: neither
+ * plotted nor shelved.
  *
  * Everything here is pure and deterministic: same inputs → same layout.
  * Within-band placement is a jitter keyed on a slug hash; a single top-down
  * sweep then nudges any nodes whose label footprints overlap apart, growing
  * the band when a column stacks deep. No Date.now, no randomness.
  */
+
+import { isDormant } from '@/lib/theme-lifecycle';
 
 export type FieldEvent = { direction: string; date: string };
 
@@ -67,7 +72,7 @@ export type FieldLayout = {
   xMin: number;
   xMax: number;
   zeroX: number;
-  /** Themes that plot on the field (active + candidate). */
+  /** Themes that plot on the field (active + live candidates). */
   plottable: number;
   nodes: FieldNode[];
 };
@@ -198,6 +203,8 @@ export function buildFieldLayout(themes: FieldThemeInput[], asOf: string): Field
       retired.push(t);
       continue;
     }
+    // A stale candidate leaves the field: not plotted, not shelved.
+    if (isDormant(t, asOf)) continue;
     const recent = t.events.filter((e) => e.date >= start && e.date <= asOf);
     const pressure = pressureScore(recent);
     const x = xForPressure(pressure);

@@ -170,6 +170,10 @@ field). Same inputs always produce the same layout — no `Date.now()`, no rando
 - **Retired themes never plot on the field.** They're excluded from the pressure/band
   layout entirely and instead pinned to a thin "shelf" below the bands, sorted by name,
   wrapping into rows as needed (`SHELF_*` constants).
+- **Dormant candidates leave the field.** A `candidate` whose last event is more than
+  45 days before the as-of date (`DORMANT_AFTER_DAYS`, `src/lib/theme-lifecycle.ts`)
+  is dormant: not plotted, not shelved, listed only in the grid's collapsed Dormant
+  section. The stored status never changes; any new event revives it.
 - **Conviction gauge:** `lit` is the number of filled positions on the diamond gauge —
   `high → 3, medium → 2, low → 1, unrated → 0` (`LEVEL` map).
 - **Labels shorten, never truncate meaning:** the `"new theme candidate — "` prefix is

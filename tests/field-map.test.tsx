@@ -272,3 +272,37 @@ it('FieldMap shows a designed empty state under two plottable themes', () => {
 it('FieldMap renders nothing with no themes (the grid owns that empty state)', () => {
   expect(renderToStaticMarkup(<FieldMap themes={[]} asOf={ASOF} />)).toBe('');
 });
+
+// --- dormant candidates ---------------------------------------------------------
+
+it('drops a dormant candidate from the field: not plotted, not shelved', () => {
+  const layout = buildFieldLayout(
+    [
+      theme('a'),
+      theme('b'),
+      theme('fresh', { status: 'candidate', lastEventAt: '2026-06-01' }), // 40 days before
+      theme('stale', { status: 'candidate', lastEventAt: '2026-05-01' }), // 71 days before
+    ],
+    ASOF,
+  );
+  expect(layout.nodes.map((n) => n.slug).sort()).toEqual(['a', 'b', 'fresh']);
+  expect(layout.nodes.find((n) => n.slug === 'fresh')?.shelf).toBe(false);
+  expect(layout.plottable).toBe(3); // dormant never counts as plottable
+  expect(layout.shelf).toBeNull(); // and never lands on the retired shelf
+});
+
+it('FieldMap leaves a dormant candidate off both the chart and the lane list', () => {
+  const markup = renderToStaticMarkup(
+    <FieldMap
+      themes={[
+        theme('a', { conviction: 'high' }),
+        theme('b'),
+        theme('stale', { name: 'Stale idea', status: 'candidate', lastEventAt: '2026-05-01' }),
+      ]}
+      asOf={ASOF}
+    />,
+  );
+  expect(markup).toContain('href="/map/a"');
+  expect(markup).not.toContain('href="/map/stale"');
+  expect(markup).not.toContain('Stale idea');
+});

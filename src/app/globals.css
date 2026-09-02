@@ -332,6 +332,12 @@ a:focus-visible {
   color: var(--faint);
 }
 
+/* A dormant candidate: still dashed (a candidate underneath), gone faint. */
+.badge-dormant {
+  border-style: dashed;
+  color: var(--faint);
+}
+
 .updated-ago {
   color: var(--muted);
 }
@@ -653,6 +659,25 @@ a:focus-visible {
   gap: 1rem;
   padding: 0;
   list-style: none;
+}
+
+/* Stale candidates fold shut below the live sections: native disclosure, no JS. */
+.theme-dormant {
+  margin: 2.6rem 0 0;
+}
+
+.theme-dormant > summary {
+  cursor: pointer;
+  font-family: var(--font-display, Georgia, serif);
+  font-weight: 500;
+  font-size: 1.3rem;
+  line-height: 1.22;
+  letter-spacing: -0.015em;
+  color: var(--muted);
+}
+
+.theme-dormant[open] > summary {
+  margin-bottom: 0.8rem;
 }
 
 .theme-card {
