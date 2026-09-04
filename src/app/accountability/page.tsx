@@ -148,7 +148,7 @@ export default async function AccountabilityPage({
           />
           <GradeMeter
             title="Map-derived checks"
-            description="Dated conditions the theme map stated in its daily Next check lines, settled by stored daily closes, plus market leans cited in the weekly map."
+            description="Dated conditions from the daily Next check lines and the reaction rules behind each Forward Event Checkpoint, settled on stored daily closes, plus market leans cited in the weekly map."
             board={scoreClaims(mapClaims)}
             floor={OVERALL_MIN_SAMPLE}
           />
