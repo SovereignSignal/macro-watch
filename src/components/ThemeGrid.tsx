@@ -116,7 +116,8 @@ function DormantSection({
 
 /**
  * The living theme map grid, grouped by lifecycle (spec §5 /map). `asOf`
- * (YYYY-MM-DD) is the render date that decides which candidates are dormant.
+ * (YYYY-MM-DD) is the map's clock (the snapshot's newest event date, today
+ * only as a fallback) that decides which candidates are dormant.
  */
 export function ThemeGrid({
   cards,

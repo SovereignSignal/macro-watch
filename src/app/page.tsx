@@ -21,9 +21,10 @@ export default async function HomePage() {
   const brief = await safeQuery(() => getLatestBrief(db), null);
   const panel = await safeQuery(() => getLatestPanel(db, 'dashboard'), null);
   const oddsPanel = await safeQuery(() => getLatestVerifiedPanel(db, 'odds_lens'), null);
-  const map = await safeQuery(() => getThemeMapCards(db), { takenAt: null, cards: [] });
+  const map = await safeQuery(() => getThemeMapCards(db), { takenAt: null, cards: [], asOf: null });
   const sparks = await safeQuery(() => getConvictionSparks(db), {});
-  const asOf = new Date().toISOString().slice(0, 10);
+  // The home strip keeps dormant candidates off the field on the map's own clock, like /map.
+  const asOf = map.asOf ?? new Date().toISOString().slice(0, 10);
   return (
     <HomeView
       brief={brief}
