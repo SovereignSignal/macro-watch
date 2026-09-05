@@ -1,7 +1,7 @@
 import type { ClaimRecord } from '@/lib/queries/accountability';
 import { payloadStr } from '@/lib/claim-display';
 import { EmptyState } from './EmptyState';
-import { STATUS_LABEL, STATUS_ORDER, StatusMark } from './StatusMark';
+import { STATUS_LABEL, STATUS_ORDER, StatusMark, StatusMarkDefs } from './StatusMark';
 
 function cellTitle(c: ClaimRecord): string {
   const predicate = payloadStr(c.payload, 'predicate') || c.claimId;
@@ -36,6 +36,7 @@ export function ClaimsBook({ claims }: { claims: ClaimRecord[] }) {
   ];
   return (
     <div className="book">
+      <StatusMarkDefs />
       <div className="book-legend">
         {STATUS_ORDER.map((s) => {
           const n = counts.get(s) ?? 0;
@@ -58,7 +59,7 @@ export function ClaimsBook({ claims }: { claims: ClaimRecord[] }) {
             ) : (
               <div className="book-grid">
                 {list.map((c) => (
-                  <StatusMark key={c.claimId} status={c.status} size={16} title={cellTitle(c)} />
+                  <StatusMark key={c.claimId} status={c.status} size={16} title={cellTitle(c)} symbol />
                 ))}
               </div>
             )}

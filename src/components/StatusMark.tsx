@@ -64,34 +64,69 @@ function shape(status: string): React.ReactNode {
   }
 }
 
+function symbolId(status: string): string {
+  return (STATUS_ORDER as readonly string[]).includes(status) ? `mk-${status}` : 'mk-unknown';
+}
+
+/**
+ * The shape library, drawn once per page. A grid of hundreds of marks (the
+ * claim book) then references these with `<use>` instead of repeating every
+ * path, which is what halved the accountability page (2026-09-05). Styling
+ * still comes from the classes on the shapes: a `<use>` instance inherits
+ * them. Render it once, before the first `symbol` mark.
+ */
+export function StatusMarkDefs() {
+  return (
+    <svg width="0" height="0" className="status-mark-defs" aria-hidden="true" focusable="false">
+      <defs>
+        {STATUS_ORDER.map((s) => (
+          <symbol key={s} id={`mk-${s}`} viewBox="0 0 16 16">
+            {shape(s)}
+          </symbol>
+        ))}
+        <symbol id="mk-unknown" viewBox="0 0 16 16">
+          {shape('unknown')}
+        </symbol>
+      </defs>
+    </svg>
+  );
+}
+
 /**
  * One status mark. With `title`, the SVG carries its own native tooltip
  * (the RSC-friendly hover layer, with no client JS). With `decorative`, the
- * mark is hidden from AT because a text label sits right beside it.
+ * mark is hidden from AT because a text label sits right beside it. With
+ * `symbol`, the mark references the shape from `StatusMarkDefs` instead of
+ * inlining it (use inside large grids).
  */
 export function StatusMark({
   status,
   size = 16,
   title,
   decorative = false,
+  symbol = false,
 }: {
   status: string;
   size?: number;
   title?: string;
   decorative?: boolean;
+  symbol?: boolean;
 }) {
+  // With a <title> the SVG already has its accessible name; repeating it as
+  // aria-label doubled the text of every cell in the claim book. Symbol cells
+  // also take their size from CSS (.status-mark-ref) instead of attributes.
   return (
     <svg
       viewBox="0 0 16 16"
-      width={size}
-      height={size}
-      className="status-mark"
+      width={symbol ? undefined : size}
+      height={symbol ? undefined : size}
+      className={symbol ? 'status-mark status-mark-ref' : 'status-mark'}
       role={decorative ? undefined : 'img'}
       aria-hidden={decorative ? true : undefined}
-      aria-label={decorative ? undefined : (title ?? status)}
+      aria-label={decorative || title ? undefined : status}
     >
       {title ? <title>{title}</title> : null}
-      {shape(status)}
+      {symbol ? <use href={`#${symbolId(status)}`} /> : shape(status)}
     </svg>
   );
 }

@@ -92,9 +92,33 @@ function stateCardsOf(payload: unknown): Map<string, ThemeStateCard> {
  * the latest theme_state snapshot's curated card fields (spec §5 /map).
  * Ordered: active, then candidate, then retired; newest activity first.
  */
+/**
+ * The map's clock: the newest event date in the pipeline's latest snapshot
+ * (`last_event_date`). The pipeline dates dormancy from its own newest event,
+ * never the wall clock, so a replay is deterministic and a quiet weekend does
+ * not retire anything. The site reads the same clock so both sides count the
+ * same candidates as dormant (2026-09-05: housing/residential was dormant on
+ * the site at 46 days by the wall clock and a candidate in the pipeline at
+ * 45 days by its own clock).
+ */
+export function mapClockOf(payload: unknown): string | null {
+  const v = (payload as { last_event_date?: unknown } | null)?.last_event_date;
+  return typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : null;
+}
+
+/** Latest snapshot's map clock, or null when no snapshot carries one. */
+export async function getMapClock(db: Db): Promise<string | null> {
+  const snaps = await db
+    .select({ payload: themeState.payload })
+    .from(themeState)
+    .orderBy(desc(themeState.takenAt))
+    .limit(1);
+  return snaps[0] ? mapClockOf(snaps[0].payload) : null;
+}
+
 export async function getThemeMapCards(
   db: Db,
-): Promise<{ takenAt: Date | null; cards: ThemeCard[] }> {
+): Promise<{ takenAt: Date | null; cards: ThemeCard[]; asOf: string | null }> {
   const themeRows = await db.select().from(themes);
   const snaps = await db
     .select({ takenAt: themeState.takenAt, payload: themeState.payload })
@@ -146,7 +170,7 @@ export async function getThemeMapCards(
       (order[a.status] ?? 3) - (order[b.status] ?? 3) ||
       (b.lastEventAt ?? '').localeCompare(a.lastEventAt ?? ''),
   );
-  return { takenAt: snap?.takenAt ?? null, cards };
+  return { takenAt: snap?.takenAt ?? null, cards, asOf: snap ? mapClockOf(snap.payload) : null };
 }
 
 /**

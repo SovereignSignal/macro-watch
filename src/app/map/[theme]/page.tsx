@@ -9,7 +9,8 @@ import { TriggerList } from '@/components/TriggerList';
 import { getDb } from '@/db/client';
 import { formatDate } from '@/lib/format';
 import { pageMetadata } from '@/lib/metadata';
-import { getThemeDetail } from '@/lib/queries/map';
+import { getMapClock, getThemeDetail } from '@/lib/queries/map';
+import { safeQuery } from '@/lib/safe';
 import { displayStatus } from '@/lib/theme-lifecycle';
 import { statusLabel } from '@/lib/claim-display';
 
@@ -45,8 +46,10 @@ export default async function ThemePage({ params }: { params: Promise<{ theme: s
   const detail = await getThemeDetail(getDb(), theme);
   if (!detail) notFound();
   const card = detail.card;
-  // Same as-of read as /map: a stale candidate shows as dormant here too.
-  const asOf = new Date().toISOString().slice(0, 10);
+  // Same as-of read as /map: the map's own clock, so a stale candidate shows
+  // as dormant here exactly when the map and the pipeline say so.
+  const asOf =
+    (await safeQuery(() => getMapClock(getDb()), null)) ?? new Date().toISOString().slice(0, 10);
   const status = displayStatus(detail, asOf);
   const sparkLevels = detail.conviction.map((p) => p.level);
   return (

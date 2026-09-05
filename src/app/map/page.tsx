@@ -16,12 +16,20 @@ export const metadata = pageMetadata({
 
 export default async function MapPage() {
   const db = getDb();
-  const { takenAt, cards } = await safeQuery(() => getThemeMapCards(db), {
+  const {
+    takenAt,
+    cards,
+    asOf: mapClock,
+  } = await safeQuery(() => getThemeMapCards(db), {
     takenAt: null,
     cards: [],
+    asOf: null,
   });
   const sparks = await safeQuery(() => getConvictionSparks(db), {});
-  const asOf = new Date().toISOString().slice(0, 10);
+  // Dormancy and the 30-day field window run on the map's own clock (the
+  // snapshot's newest event date), the same clock the pipeline uses; today
+  // is only the fallback when no snapshot has arrived yet.
+  const asOf = mapClock ?? new Date().toISOString().slice(0, 10);
   const recent = await safeQuery(() => getRecentThemeEvents(db, asOf), {});
   const present = new Set(cards.map((c) => c.slug));
   const fieldThemes = cards

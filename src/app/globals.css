@@ -1774,6 +1774,13 @@ figure {
   display: block;
 }
 
+/* Claim-book cells reference the shape library (StatusMarkDefs) and take
+   their size from here, so hundreds of cells carry no size attributes. */
+.status-mark-ref {
+  width: 16px;
+  height: 16px;
+}
+
 .mk-hit {
   fill: var(--mark-hit);
 }
