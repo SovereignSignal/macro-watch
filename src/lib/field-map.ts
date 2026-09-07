@@ -19,7 +19,7 @@
 
 import { isDormant } from '@/lib/theme-lifecycle';
 
-export type FieldEvent = { direction: string; date: string };
+export type FieldEvent = { direction: string; date: string; source?: string };
 
 export type FieldThemeInput = {
   slug: string;
@@ -123,9 +123,9 @@ const round1 = (v: number): number => Math.round(v * 10) / 10;
 // --- pure pieces (unit-tested directly) --------------------------------------
 
 /** Net directional pressure of a set of events, clamped to [−3, +3]. */
-export function pressureScore(events: { direction: string }[]): number {
+export function pressureScore(events: { direction: string; source?: string }[]): number {
   let s = 0;
-  for (const e of events) s += DIRECTION_WEIGHT[e.direction] ?? 0;
+  for (const e of events) if (e.source !== 'weekly') s += DIRECTION_WEIGHT[e.direction] ?? 0;
   return Math.max(-PRESSURE_CLAMP, Math.min(PRESSURE_CLAMP, s));
 }
 

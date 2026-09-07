@@ -2,6 +2,7 @@ import { z } from 'zod';
 import type { Db } from '@/db/client';
 import { researchMemos } from '@/db/schema';
 import { sanitizePublicBriefText } from '@/lib/security/public-brief-html';
+import { isPlaceholderResearch } from '@/lib/research-public';
 
 const publicTextSchema = z
   .string()
@@ -26,12 +27,13 @@ export const researchSchema = z.object({
   watch: publicTextSchema,
   citations: z.array(citationSchema).max(15).default([]),
   generated_at: z.string().datetime({ offset: true }),
-});
+}).refine((row) => !isPlaceholderResearch(row), 'placeholder research is not publishable');
 
 export type ResearchPayload = z.infer<typeof researchSchema>;
 
 /** Idempotent upsert on the natural key `date` (one memo per day). */
 export async function upsertResearch(db: Db, p: ResearchPayload): Promise<number> {
+  p = researchSchema.parse(p);
   const row = {
     topic: sanitizePublicBriefText(p.topic),
     finding: sanitizePublicBriefText(p.finding),

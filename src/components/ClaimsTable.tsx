@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { requiresForecastReview } from '@/lib/scoring';
 import {
   claimSource,
   claimTrackLabel,
@@ -166,7 +167,7 @@ export function ClaimsTable(props: {
                   <td data-label="State">
                     <span className={`status-chip status-chip--${c.status}`}>
                       <StatusMark status={c.status} size={12} decorative />
-                      {statusLabel(c.status)}
+                      {requiresForecastReview(c.payload) ? 'Excluded from forecast score' : statusLabel(c.status)}
                     </span>
                   </td>
                   <td data-label="Result">

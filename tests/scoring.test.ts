@@ -9,6 +9,17 @@ import {
   scoreClaims,
 } from '@/lib/scoring';
 
+it('excludes retrospectively extracted conditions from forecast accuracy', () => {
+  const board = scoreClaims([
+    { status: 'hit', payload: { claim_kind: 'series-check' } },
+    { status: 'hit', payload: { claim_kind: 'release-reaction' } },
+    { status: 'hit', payload: { claim_kind: 'series-check', scoring_version: 2,
+      scoring_eligible: true, cohort: 'prospective' } },
+  ]);
+  expect(board.resolved).toBe(1);
+  expect(board.judgmentRequired).toBe(2);
+});
+
 // Pipeline vocabulary throughout: pending|hit|miss|partial|expired|
 // judgment-required|void (controller override — not the site-plan draft's
 // open/resolved_correct/resolved_incorrect/invalidated).

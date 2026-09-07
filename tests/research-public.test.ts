@@ -4,6 +4,7 @@ import { upsertResearch } from '@/lib/ingest/research';
 import { getResearchByDate, listResearch } from '@/lib/queries/research';
 import { searchAll } from '@/lib/queries/search';
 import { createTestDb } from './helpers/db';
+import { researchMemos } from '@/db/schema';
 
 it('detects dummy claim/finding rows and example.com-only citations', () => {
   expect(
@@ -32,7 +33,8 @@ it('strips leftover footnote markers from research copy', () => {
 
 it('hides placeholder memos from listings, search, and permalinks', async () => {
   const db = await createTestDb();
-  await upsertResearch(db, {
+  // Seed a legacy bad row directly; the ingest boundary now rejects this.
+  await db.insert(researchMemos).values({
     date: '2026-08-28',
     topic: 'Claim',
     finding: 'Finding',
@@ -40,7 +42,7 @@ it('hides placeholder memos from listings, search, and permalinks', async () => 
     decision: 'Hold',
     watch: 'Watch trigger',
     citations: [{ url: 'https://example.com/x' }],
-    generated_at: '2026-08-28T07:00:00Z',
+    generatedAt: new Date('2026-08-28T07:00:00Z'),
   });
   await upsertResearch(db, {
     date: '2026-08-29',

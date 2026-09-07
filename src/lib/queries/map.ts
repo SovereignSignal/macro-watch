@@ -12,6 +12,7 @@ export type ThemeCard = {
   name: string;
   description: string;
   status: string;
+  phase?: string | null;
   firstSeen: string | null;
   lastEventAt: string | null;
   conviction: 'low' | 'medium' | 'high' | null;
@@ -135,9 +136,10 @@ export async function getThemeMapCards(
       slug: t.slug,
       name: displayThemeName(t.slug, publicText(t.name)),
       description: themeDescription(t.slug, t.name, s?.description),
-      status: t.status,
+      status: s?.status === 'invalidated' ? 'retired' : s?.status ?? t.status,
+      phase: s?.cell_phase ?? null,
       firstSeen: t.firstSeen,
-      lastEventAt: t.lastEventAt,
+      lastEventAt: [t.lastEventAt, s?.last_seen].filter(Boolean).sort().at(-1) ?? null,
       conviction: s?.conviction ?? null,
       read: s?.current_read ?? null,
       triggers: s?.triggers ?? [],
@@ -152,9 +154,10 @@ export async function getThemeMapCards(
         slug,
         name: displayThemeName(slug, s.name),
         description: themeDescription(slug, s.name, s.description),
-        status: 'active',
-        firstSeen: null,
-        lastEventAt: null,
+        status: s.status === 'invalidated' ? 'retired' : s.status ?? 'active',
+        phase: s.cell_phase ?? null,
+        firstSeen: s.first_seen ?? null,
+        lastEventAt: s.last_seen ?? null,
         conviction: s.conviction ?? null,
         read: s.current_read ?? null,
         triggers: s.triggers ?? [],
@@ -185,12 +188,13 @@ export async function getRecentThemeEvents(
     .select({
       slug: themeEvents.themeSlug,
       direction: themeEvents.direction,
+      source: themeEvents.source,
       date: themeEvents.date,
     })
     .from(themeEvents)
     .where(gte(themeEvents.date, windowStart(asOf)));
   const out: Record<string, FieldEvent[]> = {};
-  for (const r of rows) (out[r.slug] ??= []).push({ direction: r.direction, date: r.date });
+  for (const r of rows) (out[r.slug] ??= []).push({ direction: r.direction, date: r.date, source: r.source });
   return out;
 }
 

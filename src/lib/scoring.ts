@@ -53,6 +53,12 @@ export function openingProbability(payload: unknown): number | null {
 }
 
 /** Scoreboard math over claim statuses (pipeline vocabulary). */
+export function requiresForecastReview(payload: unknown): boolean {
+  const body = record(payload);
+  return (body.claim_kind === 'series-check' || body.claim_kind === 'release-reaction')
+    && (body.scoring_version !== 2 || body.scoring_eligible !== true || body.cohort !== 'prospective');
+}
+
 export function scoreClaims(rows: { status: string; payload?: unknown }[]): ScoreBoard {
   const b: ScoreBoard = {
     pending: 0,
@@ -72,6 +78,11 @@ export function scoreClaims(rows: { status: string; payload?: unknown }[]): Scor
   let impliedTotal = 0;
   let brierTotal = 0;
   for (const r of rows) {
+    if (requiresForecastReview(r.payload)) {
+      if (r.status === 'void') b.void += 1;
+      else b.judgmentRequired += 1;
+      continue;
+    }
     switch (r.status) {
       case 'pending':
         b.pending += 1;

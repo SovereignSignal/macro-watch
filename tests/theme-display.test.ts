@@ -14,6 +14,7 @@ it('humanizes slug-as-name themes', () => {
 it('hides retired aliases when the standing slug is present', () => {
   const present = new Set(['gold-miners-real-assets', 'gold-and-silver']);
   expect(isRetiredAlias('gold-and-silver', 'retired', present)).toBe(true);
+  expect(isRetiredAlias('gold-and-silver', 'candidate', present)).toBe(true);
   expect(isRetiredAlias('gold-miners-real-assets', 'active', present)).toBe(false);
   expect(isRetiredAlias('gold-and-silver', 'retired', new Set(['gold-and-silver']))).toBe(false);
 });

@@ -1,4 +1,4 @@
-import { sql } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import type { Db } from '@/db/client';
 import { themeEvents, themes, themeState } from '@/db/schema';
@@ -11,11 +11,11 @@ export const themeEventSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'expected YYYY-MM-DD'),
   theme_slug: z.string().min(1),
   theme_name: z.string().min(1),
-  direction: z.enum(['raise', 'lower', 'hold', 'candidate', 'invalidate', 'retire']),
+  direction: z.enum(['raise', 'lower', 'hold', 'candidate', 'invalidate', 'retire', 'measured']),
   evidence: z.string().min(1),
   trigger_state: z.string().nullish(),
   next_check: z.string().nullish(),
-  source: z.enum(['daily', 'weekly']),
+  source: z.enum(['daily', 'weekly', 'measured']),
 });
 
 export type ThemeEventPayload = z.infer<typeof themeEventSchema>;
@@ -43,7 +43,12 @@ export async function upsertThemeEvents(db: Db, events: ThemeEventPayload[]): Pr
     for (const e of events) {
       const clean = publicValue(e);
       const status = statusFor(clean.direction);
-      await tx
+      if (clean.direction === 'measured') {
+        const existing = await tx.select({ slug: themes.slug }).from(themes)
+          .where(eq(themes.slug, clean.theme_slug)).limit(1);
+        if (existing.length === 0) continue;
+      }
+      if (clean.direction !== 'measured') await tx
         .insert(themes)
         .values({
           slug: clean.theme_slug,
@@ -93,6 +98,10 @@ const themeStateCardSchema = z
     name: z.string().min(1),
     description: z.string().min(1).nullish(),
     conviction: z.enum(['low', 'medium', 'high']).nullish(),
+    status: z.enum(['active', 'candidate', 'dormant', 'retired', 'invalidated']).nullish(),
+    cell_phase: z.string().nullish(),
+    first_seen: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullish(),
+    last_seen: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullish(),
     current_read: z.string().nullish(),
     raise_conditions: z.union([z.string(), z.array(z.string())]).nullish(),
     lower_conditions: z.union([z.string(), z.array(z.string())]).nullish(),

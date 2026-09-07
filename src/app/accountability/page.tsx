@@ -71,7 +71,8 @@ export default async function AccountabilityPage({
     <main className="container-wide">
       <h1>Accountability</h1>
       <p className="accountability-lede">
-        A public scorecard. Listed markets settle the calls. Nobody grades anything on this page.
+        A public record of calls and outcomes. Forecast accuracy includes only eligible calls recorded before their outcome.
+        Historical conditions and ambiguous tests remain visible for review and are excluded from that score.
       </p>
 
       <section className="accountability-summary" aria-labelledby="record-status">

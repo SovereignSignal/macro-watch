@@ -11,6 +11,17 @@ const { POST: postState } = await import('@/app/api/ingest/theme-state/route');
 
 const TOKEN = 'test-token';
 
+it('measured observations preserve candidate lifecycle', async () => {
+  expect((await postEvents(post('theme-events', { ...EVENT, direction: 'candidate' }))).status).toBe(200);
+  expect((await postEvents(post('theme-events', { ...EVENT, event_id: 'measured-1',
+    date: '2026-06-25', direction: 'measured', source: 'measured',
+    trigger_state: null, next_check: null }))).status).toBe(200);
+  const [row] = await db.select().from(themes);
+  expect(row.status).toBe('candidate');
+  expect(row.lastEventAt).toBe(EVENT.date);
+  expect(await db.select().from(themeEvents)).toHaveLength(2);
+});
+
 function post(path: string, body: unknown, token: string | null = TOKEN): Request {
   return new Request(`http://localhost/api/ingest/${path}`, {
     method: 'POST',
