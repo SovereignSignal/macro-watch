@@ -43,6 +43,7 @@ function Card({
         {spark ? <Sparkline levels={spark} /> : null}
       </div>
       {card.read ? <p className="read">{card.read}</p> : null}
+      {card.phase ? <p>Evidence phase: {card.phase.replaceAll('_', ' ')}</p> : null}
       <TriggerList triggers={card.triggers} />
     </li>
   );

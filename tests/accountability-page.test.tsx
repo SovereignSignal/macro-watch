@@ -75,7 +75,7 @@ it('honest empty state with zero claims', async () => {
   const markup = renderToStaticMarkup(await page());
   expect(markup).toContain('Tracking phase');
   expect(markup).toContain('Waiting for markets to settle.');
-  expect(markup).toContain('Nobody grades anything on this page');
+  expect(markup).toContain('Historical conditions and ambiguous tests remain visible for review');
   expect(markup).toContain('There is no decide button');
 });
 

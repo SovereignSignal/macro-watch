@@ -20,7 +20,7 @@ const THEME_NAMES: Record<string, string> = {
   'demographic-fiscal-drag': 'Demographic fiscal drag',
 };
 
-/** Retired slugs that are aliases of a standing theme still on the map. */
+/** Historical aliases of a standing theme still on the map. */
 const ALIAS_OF: Record<string, string> = {
   'gold-and-silver': 'gold-miners-real-assets',
   'dollar-plumbing-vs-gold': 'dollar-plumbing-versus-gold',
@@ -51,8 +51,7 @@ export function displayThemeName(slug: string, name: string): string {
   return titleCaseSlug(slug);
 }
 
-export function isRetiredAlias(slug: string, status: string, present: Set<string>): boolean {
-  if (status !== 'retired') return false;
+export function isRetiredAlias(slug: string, _status: string, present: Set<string>): boolean {
   const canonical = ALIAS_OF[slug];
   return Boolean(canonical && present.has(canonical));
 }

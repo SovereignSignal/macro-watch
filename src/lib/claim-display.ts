@@ -1,5 +1,6 @@
 import type { ClaimRecord } from '@/lib/queries/accountability';
 import { publicHttpsUrl, publicText } from '@/lib/public-copy';
+import { requiresForecastReview } from '@/lib/scoring';
 
 export type ClaimSource = { label: string; href: string | null };
 
@@ -65,6 +66,7 @@ export function payloadStr(payload: unknown, key: string): string {
 export function isQualitativeClaim(claim: ClaimRecord): boolean {
   const payload = payloadRecord(claim.payload);
   return (
+    requiresForecastReview(claim.payload) ||
     claim.status === 'judgment-required' ||
     payload.checkable === false ||
     payload.claim_kind === 'flip-condition'
@@ -76,6 +78,7 @@ export function isScoreableClaim(claim: ClaimRecord): boolean {
 }
 
 export function claimTrackLabel(claim: ClaimRecord): string {
+  if (requiresForecastReview(claim.payload)) return 'historical condition; excluded from forecast accuracy';
   if (isQualitativeClaim(claim)) return 'qualitative map review';
   return claim.kind === 'smart_money' ? 'smart-money market' : 'map-derived market';
 }

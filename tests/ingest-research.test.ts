@@ -58,3 +58,12 @@ it('rejects non-https citations and malformed dates', async () => {
   expect((await POST(post(badCite))).status).toBe(422);
   expect((await POST(post({ ...VALID, date: '17-08-2026' }))).status).toBe(422);
 });
+
+it('rejects a fixture overwrite and preserves the genuine memo', async () => {
+  expect((await POST(post(VALID))).status).toBe(200);
+  expect((await POST(post({ ...VALID, topic: 'Claim', finding: 'Finding',
+    changed: 'Changed', watch: 'Watch trigger', citations: [{ url: 'https://example.com/x' }] }))).status).toBe(422);
+  const rows = await db.select().from(researchMemos);
+  expect(rows).toHaveLength(1);
+  expect(rows[0].finding).toBe(VALID.finding);
+});
