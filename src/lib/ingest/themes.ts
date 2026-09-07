@@ -1,4 +1,4 @@
-import { eq, sql } from 'drizzle-orm';
+import { desc, eq, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import type { Db } from '@/db/client';
 import { themeEvents, themes, themeState } from '@/db/schema';
@@ -46,7 +46,23 @@ export async function upsertThemeEvents(db: Db, events: ThemeEventPayload[]): Pr
       if (clean.direction === 'measured') {
         const existing = await tx.select({ slug: themes.slug }).from(themes)
           .where(eq(themes.slug, clean.theme_slug)).limit(1);
-        if (existing.length === 0) continue;
+        if (existing.length === 0) {
+          const [snapshot] = await tx.select().from(themeState).orderBy(desc(themeState.takenAt)).limit(1);
+          const parsed = snapshot && themeStateSchema.safeParse({
+            taken_at: snapshot.takenAt.toISOString(), payload: snapshot.payload,
+          });
+          const card = parsed && parsed.success
+            ? parsed.data.payload.themes.find((t) => t.slug === clean.theme_slug) : undefined;
+          if (!card) throw new Error('Measured event awaits a canonical theme snapshot');
+          // Materialize an already tracked theme. Evidence cannot invent a theme
+          // or choose its lifecycle; those come from the canonical snapshot.
+          await tx.insert(themes).values({
+            slug: card.slug, name: card.name,
+            status: card.status === 'invalidated' ? 'retired' : card.status ?? 'active',
+            firstSeen: card.first_seen ?? clean.date,
+            lastEventAt: card.last_seen ?? clean.date,
+          }).onConflictDoNothing();
+        }
       }
       if (clean.direction !== 'measured') await tx
         .insert(themes)

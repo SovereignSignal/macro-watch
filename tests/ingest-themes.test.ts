@@ -11,6 +11,19 @@ const { POST: postState } = await import('@/app/api/ingest/theme-state/route');
 
 const TOKEN = 'test-token';
 
+it('projects a measured event for a snapshot-only theme without promoting it', async () => {
+  const snapshot = { ...STATE, payload: { ...STATE.payload,
+    themes: STATE.payload.themes.map((t) => ({ ...t, status: 'candidate' })) } };
+  expect((await postState(post('theme-state', snapshot))).status).toBe(200);
+  expect(await db.select().from(themes)).toHaveLength(0);
+  expect((await postEvents(post('theme-events', { ...EVENT, direction: 'measured',
+    source: 'measured', next_check: null, trigger_state: null }))).status).toBe(200);
+  const [theme] = await db.select().from(themes);
+  expect(theme.status).toBe('candidate');
+  expect(theme.slug).toBe(EVENT.theme_slug);
+  expect(await db.select().from(themeEvents)).toHaveLength(1);
+});
+
 it('measured observations preserve candidate lifecycle', async () => {
   expect((await postEvents(post('theme-events', { ...EVENT, direction: 'candidate' }))).status).toBe(200);
   expect((await postEvents(post('theme-events', { ...EVENT, event_id: 'measured-1',
