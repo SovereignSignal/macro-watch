@@ -15,7 +15,7 @@
 ## 2. Architecture
 
 ```
-sovsclaw (pipeline)                          Railway project: macro-watch
+sovsclaw (pipeline)                          Railway project: sovs-macro-site
 ┌──────────────────────────────┐             ┌──────────────────────────────┐
 │ run_email_cron_job           │   HTTPS     │  Next.js app (SSR + ISR)     │
 │  └─ post-Sent-verification ──┼──POST──────▶│   /api/ingest/* (bearer)     │
@@ -122,8 +122,10 @@ implementation time. No app-dashboard aesthetics.
 
 ## 10. Ops
 
-- Railway project `macro-watch`: web service (Next.js, deploy on push to main) + Postgres.
-  Env: `DATABASE_URL` (Railway-injected), `MACRO_WATCH_INGEST_TOKEN`.
+- Railway project `sovs-macro-site` (`production` environment): `macro-watch` service
+  (Next.js, deploys from Railway's GitHub source on `main`) + Railway Postgres.
+  Env: `DATABASE_URL` (reference variable to the Postgres service's private-network
+  `DATABASE_URL`), `MACRO_WATCH_INGEST_TOKEN`, `SITE_URL`.
 - sovsclaw env additions (`.env.secrets`): `MACRO_WATCH_INGEST_URL`, `MACRO_WATCH_INGEST_TOKEN`.
 - Domain: `macro.watch` → Railway custom domain (Sov owns DNS).
 - Railway operations via the authenticated CLI (per house railway-ops practice), not MCP.

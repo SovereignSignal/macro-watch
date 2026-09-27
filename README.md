@@ -1,6 +1,6 @@
 # Sovs Macro
 
-**Live:** https://web-production-cb2e81.up.railway.app
+**Live:** https://macro-watch-production.up.railway.app
 
 Sovs Macro is a Sovereign Signal project. It publishes the
 sovs-macro pipeline's output as a free, public macro-intelligence site: the daily/weekend
@@ -16,7 +16,7 @@ Push-only ingest from the pipeline, a Postgres projection, and server-rendered p
 Railway never reaches back into the pipeline host — the arrow only goes one way.
 
 ```
-sovsclaw (pipeline host)                       Railway project: macro-watch
+sovsclaw (pipeline host)                       Railway project: sovs-macro-site
 ┌───────────────────────────────┐             ┌────────────────────────────────┐
 │ run_email_cron_job.py         │   HTTPS     │  Next.js app (dynamic SSR)      │
 │  └─ post-Sent-verification ───┼──POST──────▶│   /api/ingest/* (bearer auth)   │
@@ -91,6 +91,12 @@ publish.
 Full contract, payload shapes, and schema: `docs/specs/2026-07-11-macro-watch-design.md`
 (§3–§4) and `docs/architecture.md`.
 
+**Ordering on an empty database:** the pipeline must send `theme-state` before any
+`measured` theme events. A measured event can only attach to a theme that already exists,
+or one it can take from the latest canonical theme snapshot. Otherwise ingest returns 500
+`Measured event awaits a canonical theme snapshot`. When backfilling a fresh database,
+publish theme state first, then theme events.
+
 ## Design system
 
 - **Type:** Fraunces (display/headings, self-hosted via `next/font/google`) + Georgia/Times
@@ -118,14 +124,26 @@ Full contract, payload shapes, and schema: `docs/specs/2026-07-11-macro-watch-de
 
 ## Deploy
 
-Railway project `macro-watch`: one Next.js web service + Railway Postgres. **Merging to
-`main` deploys.** The GitHub repo is wired to Railway, so each merge auto-deploys the `web`
-service within seconds (deployments carry the commit hash and `branch=main`). CI
-(`.github/workflows/ci.yml`: typecheck, test, build) must be green before merge, because merge
-is the deploy. `railway up` remains available only as a manual hotfix path (not the Railway
-MCP tools, which are unreliable here).
-`npm run start` runs `db:migrate` before `next start`, so every deploy migrates the
-database on boot. Railway's own healthcheck hits `GET /api/health`
+Railway project `sovs-macro-site`, `production` environment:
+
+- **`macro-watch`** — this repo's Next.js service, live at
+  https://macro-watch-production.up.railway.app.
+- **Postgres** — a Railway Postgres service in the same project.
+
+Variables on the `macro-watch` service:
+
+| Variable | Value |
+|---|---|
+| `DATABASE_URL` | Railway reference variable pointing at the Postgres service's `DATABASE_URL` (private-network URL) |
+| `MACRO_WATCH_INGEST_TOKEN` | Shared secret with the sovs-macro pipeline publisher (bearer token for `/api/ingest/*`) |
+| `SITE_URL` | Public origin for RSS, metadata, and canonical links — `https://macro-watch-production.up.railway.app` |
+
+Deploys come from Railway's GitHub source on `main`, so treat a merge to `main` as a
+deploy. CI (`.github/workflows/ci.yml`: typecheck, test, build) must be green before
+merge. `railway up` remains available only as a manual hotfix path (not the Railway MCP
+tools, which are unreliable here).
+`npm run start` runs `db:migrate` (`scripts/migrate.mjs`) before `next start`, so every
+deploy migrates the database on boot. Railway's own healthcheck hits `GET /api/health`
 (`src/app/api/health/route.ts`, `railway.json`'s `healthcheckPath`) — a readiness
 check (`{ok, ready, service, database}`, `force-dynamic`) that probes Postgres. After a deploy,
 `node scripts/smoke.mjs <url>` runs read-only checks
@@ -138,8 +156,8 @@ listings — see `docs/architecture.md`).
 **Read [`OWNERS.md`](./OWNERS.md) first** — it's the collaboration model (who owns what,
 the ingest-contract rule, how a change lands). Trunk-based: work lands on `main`. The repo
 is private on the free tier, so branch protection isn't available — PR-and-review is by
-agreement between the maintainers. Merging to `main` auto-deploys to Railway, so `main` must
-always be deployable: before merging anything, `npm run typecheck`, `npm test`, and
+agreement between the maintainers. Railway deploys from `main`, so `main` must always be
+deployable: before merging anything, `npm run typecheck`, `npm test`, and
 `npm run build` must all pass (this is also CI, see `.github/workflows/ci.yml`).
 `.superpowers/` is orchestration scratch (agent task briefs, review diffs, progress notes) —
 it's checked in for provenance but is not project documentation; ignore it when getting
