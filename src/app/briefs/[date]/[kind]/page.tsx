@@ -43,6 +43,9 @@ export default async function BriefKindPage({
 }) {
   const { date, kind } = await params;
   if (!DATE_RE.test(date) || !isBriefKind(kind)) notFound();
+  // Deliberately NOT safeQuery: if the DB is briefly down during background
+  // revalidation, throwing keeps the previously rendered page serving
+  // (ISR stale-on-error) instead of replacing it with a 404.
   const rows = await listBriefsForDate(getDb(), date);
   if (rows.length === 0) notFound();
   const brief = pickBriefForKind(rows, kind);
