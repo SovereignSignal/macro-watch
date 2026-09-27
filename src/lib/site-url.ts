@@ -1,5 +1,5 @@
 /** Canonical public origin while macro.watch still points at a different site. */
-export const RAILWAY_ORIGIN = 'https://web-production-cb2e81.up.railway.app';
+export const RAILWAY_ORIGIN = 'https://macro-watch-production.up.railway.app';
 
 const REJECTED_HOSTS = new Set(['macro.watch', 'www.macro.watch']);
 
