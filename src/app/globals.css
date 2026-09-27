@@ -1621,6 +1621,46 @@ figure {
   font-size: 0.95rem;
 }
 
+.archive-month {
+  margin: 1.6rem 0 0.15rem;
+  font-size: 1.02rem;
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 0.25rem;
+}
+
+.archive > section:first-child .archive-month {
+  margin-top: 0.35rem;
+}
+
+.kind-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.9rem 0 0.2rem;
+}
+
+.kind-filters a {
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 0.28rem 0.55rem;
+  color: var(--muted);
+}
+
+.kind-filters a[aria-current='true'] {
+  color: var(--ink);
+  border-color: var(--ink);
+}
+
+.spark-cell {
+  width: 4.75rem;
+  text-align: right;
+  vertical-align: middle;
+}
+
 .archive-pagination {
   display: flex;
   justify-content: space-between;

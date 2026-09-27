@@ -1,5 +1,7 @@
+import { briefPath } from './brief-kind';
 import { xmlEscape } from './format';
 import type { BriefListItem } from './queries/briefs';
+import { mentionsBlockedPublisher } from './security/blocked-publishers';
 import { sanitizePublicBriefText } from './security/public-brief-html';
 import { siteUrl } from './site-url';
 
@@ -9,8 +11,9 @@ export { siteUrl } from './site-url';
 export function buildFeed(items: BriefListItem[]): string {
   const base = siteUrl();
   const entries = items
+    .filter((b) => !mentionsBlockedPublisher(b.subject) && !mentionsBlockedPublisher(b.ping))
     .map((b) => {
-      const link = `${base}/briefs/${b.date}`;
+      const link = `${base}${briefPath(b.date, b.kind, b.subject)}`;
       return [
         '    <item>',
         `      <title>${xmlEscape(sanitizePublicBriefText(b.subject))}</title>`,

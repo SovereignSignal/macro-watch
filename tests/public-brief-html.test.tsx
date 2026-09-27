@@ -56,6 +56,9 @@ describe('sanitizePublicBriefHtml', () => {
     expect(clean).toContain('<tbody><tr><th scope="row">2Y</th><td>+9bp</td>');
     expect(clean).toContain('href="https://www.federalreserve.gov/newsevents.htm"');
     expect(clean).toContain('href="/briefs/2026-07-11#rates"');
+    expect(sanitizePublicBriefHtml('<p><a href="/briefs/2026-09-17/week-ahead">Week ahead</a></p>')).toContain(
+      'href="/briefs/2026-09-17/week-ahead"',
+    );
     expect(clean).not.toContain('notion-table');
     expect(clean).not.toContain('arbitrary');
   });
@@ -188,6 +191,17 @@ describe('sanitizePublicBriefHtml', () => {
     const clean = sanitizePublicBriefHtml(dirty);
     expect(clean).not.toMatch(/analyst|example|\/home|&amp;#|&#/i);
     expect(sanitizePublicBriefHtml(clean)).toBe(clean);
+  });
+
+  it('drops paywalled publisher blocks and redacts any leftover name', () => {
+    const clean = sanitizePublicBriefHtml(
+      '<p>See <a href="https://www.bloomberg.com/news/story">the wire</a> for the auction.</p>' +
+        '<p>The two-year rose nine basis points.</p>' +
+        '<p>A &#66;loomberg desk note.</p>',
+    );
+    expect(clean.toLowerCase()).not.toContain('bloomberg');
+    expect(clean).toContain('The two-year rose nine basis points.');
+    expect(clean).not.toContain('the wire');
   });
 
   it('drops embedded h1 titles because the page owns the article heading', () => {

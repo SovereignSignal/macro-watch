@@ -1,4 +1,4 @@
-import type { PanelRowItem } from '@/lib/panel-contract';
+import { finiteSpark, type PanelRowItem } from '@/lib/panel-contract';
 
 const ETF_LABELS: Record<string, string> = {
   'S&P 500 (SPY)': 'SPY (S&P 500 ETF)',
@@ -33,6 +33,11 @@ function splitAsOf(value: string): { core: string; suffix: string | null } {
     core: value.slice(0, match.index).trim(),
     suffix: match[1].replace(/\s+/g, ' ').trim(),
   };
+}
+
+export function panelSeriesNumber(value: string): number | null {
+  const { core } = splitAsOf(value);
+  return parseNumber(core);
 }
 
 function parseNumber(value: string): number | null {
@@ -89,12 +94,24 @@ export function presentPanelRow(row: PanelRowItem, options?: PresentPanelOptions
   const label = ETF_LABELS[row.label] ?? row.label;
   const value = tidyCell(row.value) ?? row.value;
   const formatted = formatPanelValue(label, value);
+  const spark = finiteSpark(row.spark);
   return {
     label,
     value: options?.omitAsOf ? (splitAsOf(formatted).core || formatted) : formatted,
     change: formatPanelChange(label, row.change),
     note: tidyCell(row.note),
+    ...(spark ? { spark } : {}),
   };
+}
+
+/** Inline `spark` wins. Otherwise use snapshot history for the original label. */
+export function dashboardSpark(row: PanelRowItem, history?: Record<string, number[]>): number[] | undefined {
+  const inline = finiteSpark(row.spark);
+  if (inline) return inline;
+  const series = history?.[row.label];
+  if (!series) return undefined;
+  const cleaned = series.filter((value) => Number.isFinite(value)).slice(-120);
+  return cleaned.length >= 2 ? cleaned : undefined;
 }
 
 export function presentPanelRows(rows: PanelRowItem[], options?: PresentPanelOptions): PanelRowItem[] {
@@ -104,11 +121,15 @@ export function presentPanelRows(rows: PanelRowItem[], options?: PresentPanelOpt
 const HORIZON_7D = /\s*\(7d\)\s*$/i;
 
 /** Homepage tape: one as-of in the header, one 7d label on the column. */
-export function presentDashboardRows(rows: PanelRowItem[]): {
+export function presentDashboardRows(rows: PanelRowItem[], history?: Record<string, number[]>): {
   rows: PanelRowItem[];
   changeColumn: string;
 } {
-  const presented = presentPanelRows(rows, { omitAsOf: true });
+  const presented = rows.map((row) => {
+    const spark = dashboardSpark(row, history);
+    const next = presentPanelRow(row, { omitAsOf: true });
+    return spark ? { ...next, spark } : next;
+  });
   const changes = presented.map((row) => row.change).filter((change): change is string => Boolean(change));
   const all7d = changes.length > 0 && changes.every((change) => HORIZON_7D.test(change));
   if (!all7d) return { rows: presented, changeColumn: 'Change' };

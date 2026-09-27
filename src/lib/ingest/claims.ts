@@ -3,6 +3,7 @@ import { z } from 'zod';
 import type { Db } from '@/db/client';
 import { claims, forwardEvents } from '@/db/schema';
 import { publicHttpsUrl, publicValue } from '@/lib/public-copy';
+import { rejectBlockedPublishers } from '@/lib/security/blocked-publishers';
 
 // ---------------------------------------------------------------- claims ---
 
@@ -68,10 +69,10 @@ export const claimSchema = z
 
 export type ClaimPayload = z.infer<typeof claimSchema>;
 
-export const claimsBodySchema = z.union([
+export const claimsBodySchema = rejectBlockedPublishers(z.union([
   z.array(claimSchema).min(1),
   claimSchema.transform((c) => [c]),
-]);
+]));
 
 /** Idempotent upsert on claim_id; the full body rides in payload jsonb. */
 export async function upsertClaims(db: Db, list: ClaimPayload[]): Promise<number> {

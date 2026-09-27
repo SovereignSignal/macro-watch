@@ -7,19 +7,36 @@ export function Sparkline({
   levels,
   width = 88,
   height = 22,
+  scale = 'ordinal',
+  label = 'Conviction trend',
 }: {
   levels: number[];
   width?: number;
   height?: number;
+  /** Ordinal keeps the 1–3 conviction step trace. Linear scales to the series. */
+  scale?: 'ordinal' | 'linear';
+  label?: string;
 }) {
-  if (levels.length < 2) return null;
+  const points = levels.filter((value) => Number.isFinite(value)).slice(-120);
+  if (points.length < 2) return null;
   const pad = 3;
-  const x = (i: number): number => pad + (i / (levels.length - 1)) * (width - 2 * pad);
-  const y = (lv: number): number => height - pad - ((lv - 1) / 2) * (height - 2 * pad);
-  let d = `M ${x(0).toFixed(1)} ${y(levels[0]).toFixed(1)}`;
-  for (let i = 1; i < levels.length; i++) {
-    d += ` H ${x(i).toFixed(1)} V ${y(levels[i]).toFixed(1)}`;
+  const x = (i: number): number => pad + (i / (points.length - 1)) * (width - 2 * pad);
+  const min = Math.min(...points);
+  const max = Math.max(...points);
+  const y = (value: number): number => {
+    if (scale === 'linear') {
+      if (max === min) return height / 2;
+      return height - pad - ((value - min) / (max - min)) * (height - 2 * pad);
+    }
+    return height - pad - ((value - 1) / 2) * (height - 2 * pad);
+  };
+  let d = `M ${x(0).toFixed(1)} ${y(points[0]).toFixed(1)}`;
+  for (let i = 1; i < points.length; i++) {
+    d += scale === 'linear'
+      ? ` L ${x(i).toFixed(1)} ${y(points[i]).toFixed(1)}`
+      : ` H ${x(i).toFixed(1)} V ${y(points[i]).toFixed(1)}`;
   }
+  const last = points.length - 1;
   return (
     <svg
       className="spark"
@@ -27,10 +44,10 @@ export function Sparkline({
       width={width}
       height={height}
       role="img"
-      aria-label="Conviction trend"
+      aria-label={label}
     >
       <path d={d} className="spark-line" />
-      <circle cx={x(levels.length - 1)} cy={y(levels[levels.length - 1])} r={2} className="spark-dot" />
+      <circle cx={x(last)} cy={y(points[last])} r={2} className="spark-dot" />
     </svg>
   );
 }

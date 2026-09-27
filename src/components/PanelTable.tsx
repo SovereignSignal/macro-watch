@@ -1,5 +1,6 @@
-import type { PanelRowItem } from '@/lib/panel-contract';
+import { finiteSpark, type PanelRowItem } from '@/lib/panel-contract';
 import { EmptyState } from './EmptyState';
+import { Sparkline } from './Sparkline';
 import { UpdatedAgo } from './UpdatedAgo';
 
 function changeClass(change: string): string {
@@ -16,6 +17,7 @@ export function PanelTable(props: {
   columns?: [string, string, string];
 }) {
   const columns = props.columns ?? ['Market', 'Value', 'Change'];
+  const showTrend = props.rows.some((row) => finiteSpark(row.spark));
   return (
     <div className="panel">
       <div className="panel-head">
@@ -32,10 +34,13 @@ export function PanelTable(props: {
             <thead>
               <tr>
                 {columns.map((column) => <th key={column} scope="col">{column}</th>)}
+                {showTrend ? <th scope="col">Trend</th> : null}
               </tr>
             </thead>
             <tbody>
-              {props.rows.map((row) => (
+              {props.rows.map((row) => {
+                const spark = finiteSpark(row.spark);
+                return (
                 <tr key={row.label}>
                   <th scope="row">
                     {row.label}
@@ -43,8 +48,22 @@ export function PanelTable(props: {
                   </th>
                   <td className="num">{row.value}</td>
                   <td className={row.change ? changeClass(row.change) : 'num'}>{row.change ?? ''}</td>
+                  {showTrend ? (
+                    <td className="spark-cell">
+                      {spark ? (
+                        <Sparkline
+                          levels={spark}
+                          scale="linear"
+                          width={72}
+                          height={18}
+                          label={`${row.label} trend`}
+                        />
+                      ) : null}
+                    </td>
+                  ) : null}
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>

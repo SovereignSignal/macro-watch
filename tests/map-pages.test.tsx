@@ -1,8 +1,9 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { expect, it } from 'vitest';
 import { ThemeGrid } from '@/components/ThemeGrid';
+import { upsertClaims } from '@/lib/ingest/claims';
 import { upsertThemeEvents, upsertThemeState } from '@/lib/ingest/themes';
-import { getThemeDetail, type ThemeCard } from '@/lib/queries/map';
+import { getThemeDetail, getThemeMapCards, type ThemeCard } from '@/lib/queries/map';
 import { seedAll } from '@/lib/seed';
 import { createTestDb } from './helpers/db';
 
@@ -199,6 +200,50 @@ it('/map keeps a stale candidate off the field and inside the Dormant fold', asy
   expect(field).not.toContain('stale-idea');
   expect(markup).toContain('Dormant (1): candidates with no event for 45+ days');
   expect(markup).toContain('href="/map/stale-idea"');
+});
+
+it('hides a duplicate theme and folds its events into the canonical dossier', async () => {
+  const db = await createTestDb();
+  await upsertThemeEvents(db, [
+    {
+      event_id: 'te-gold-alias',
+      date: '2026-07-02',
+      theme_slug: 'gold-and-silver',
+      theme_name: 'Gold and silver',
+      direction: 'raise',
+      evidence: 'The older gold name was raised on the metals bid.',
+      source: 'weekly',
+    },
+    {
+      event_id: 'te-gold-canonical',
+      date: '2026-07-09',
+      theme_slug: 'gold-miners-real-assets',
+      theme_name: 'Gold / miners / real assets',
+      direction: 'hold',
+      evidence: 'The standing gold theme held.',
+      source: 'daily',
+    },
+  ]);
+  await upsertClaims(db, [{
+    claim_id: 'cl-gold-alias',
+    kind: 'map',
+    themes: ['gold-and-silver'],
+    predicate: 'Miners hold the breakout through July.',
+    opened_at: '2026-07-02',
+    status: 'pending',
+  }]);
+  const { cards } = await getThemeMapCards(db);
+  expect(cards.map((card) => card.slug)).not.toContain('gold-and-silver');
+  expect(cards.map((card) => card.slug)).toContain('gold-miners-real-assets');
+  const detail = await getThemeDetail(db, 'gold-miners-real-assets');
+  expect(detail?.events.map((event) => event.eventId)).toEqual(['te-gold-canonical', 'te-gold-alias']);
+  expect(detail?.relatedClaims.map((claim) => claim.claimId)).toContain('cl-gold-alias');
+  const markup = renderToStaticMarkup(await MapPage());
+  expect(markup).toContain('href="/map/gold-miners-real-assets"');
+  expect(markup).not.toContain('href="/map/gold-and-silver"');
+  await expect(ThemePage({ params: Promise.resolve({ theme: 'gold-and-silver' }) })).rejects.toMatchObject({
+    digest: 'NEXT_REDIRECT;replace;/map/gold-miners-real-assets;308;',
+  });
 });
 
 it('/map/[theme] badges a stale candidate as dormant', async () => {

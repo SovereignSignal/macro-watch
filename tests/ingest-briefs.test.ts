@@ -70,7 +70,7 @@ it('upserts and reports revalidated paths', async () => {
   expect(await res.json()).toEqual({
     ok: true,
     upserted: 1,
-    revalidated: ['/', '/briefs', '/briefs/2026-07-10', '/feed.xml'],
+    revalidated: ['/', '/briefs', '/briefs/2026-07-10', '/briefs/2026-07-10/daily', '/feed.xml'],
   });
 });
 
@@ -94,10 +94,22 @@ it('rejects HTML with no public content after sanitization', async () => {
   expect(res.status).toBe(422);
 });
 
-it('re-POST updates in place (idempotent on date)', async () => {
+it('re-POST updates in place (idempotent on date and kind)', async () => {
   await POST(post(VALID));
   await POST(post({ ...VALID, subject: 'Front-end repricing (revised)' }));
   const rows = await db.select().from(briefs);
   expect(rows).toHaveLength(1);
   expect(rows[0].subject).toBe('Front-end repricing (revised)');
+});
+
+it('keeps a daily and a week-ahead on the same date', async () => {
+  expect((await POST(post(VALID))).status).toBe(200);
+  expect((await POST(post({
+    ...VALID,
+    kind: 'week-ahead',
+    subject: 'Week ahead: auctions and CPI',
+    telegram_ping: 'The week opens into supply.',
+  }))).status).toBe(200);
+  const rows = await db.select().from(briefs);
+  expect(rows.map((row) => row.kind).sort()).toEqual(['daily', 'week-ahead']);
 });

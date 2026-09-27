@@ -2,7 +2,8 @@ import { and, desc, eq, lt } from 'drizzle-orm';
 import type { Db } from '@/db/client';
 import { panelSnapshots } from '@/db/schema';
 import type { PanelKind } from '@/lib/ingest/panels';
-import { panelView, type PanelView } from '@/lib/panel-contract';
+import { panelRows, panelView, type PanelView } from '@/lib/panel-contract';
+import { panelSeriesNumber } from '@/lib/panel-present';
 
 export async function getLatestPanel(
   db: Db,
@@ -43,4 +44,38 @@ export async function getLatestVerifiedPanel(
     if (rows.length < pageSize) return null;
     before = rows[rows.length - 1].takenAt;
   }
+}
+
+const DASHBOARD_HISTORY_MAX = 120;
+
+/**
+ * Numeric dashboard levels, oldest to newest, keyed by row label.
+ * Series shorter than two points are omitted so a single snapshot renders
+ * the table without an empty trend column.
+ */
+export async function getDashboardHistory(
+  db: Db,
+  limit = DASHBOARD_HISTORY_MAX,
+): Promise<Record<string, number[]>> {
+  const cap = Math.min(DASHBOARD_HISTORY_MAX, Math.max(1, Math.trunc(limit)));
+  const rows = await db
+    .select({ payload: panelSnapshots.payload })
+    .from(panelSnapshots)
+    .where(eq(panelSnapshots.kind, 'dashboard'))
+    .orderBy(desc(panelSnapshots.takenAt))
+    .limit(cap);
+  rows.reverse();
+  const series: Record<string, number[]> = {};
+  for (const row of rows) {
+    for (const item of panelRows(row.payload)) {
+      const value = panelSeriesNumber(item.value);
+      if (value === null) continue;
+      (series[item.label] ??= []).push(value);
+    }
+  }
+  const out: Record<string, number[]> = {};
+  for (const [label, points] of Object.entries(series)) {
+    if (points.length >= 2) out[label] = points.slice(-DASHBOARD_HISTORY_MAX);
+  }
+  return out;
 }

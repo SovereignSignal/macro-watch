@@ -9,13 +9,13 @@ import { ThemeStrip } from './ThemeStrip';
 
 export function HomeView(props: {
   brief: BriefRow | null;
-  panel: { takenAt: string; rows: PanelRowItem[] } | null;
+  panel: { takenAt: string; rows: PanelRowItem[]; history?: Record<string, number[]> } | null;
   oddsPanel?: { takenAt: string; rows: PanelRowItem[]; summary?: string | null } | null;
   cards: ThemeCard[];
   sparks?: Record<string, number[]>;
   asOf?: string;
 }) {
-  const dashboard = presentDashboardRows(props.panel?.rows ?? []);
+  const dashboard = presentDashboardRows(props.panel?.rows ?? [], props.panel?.history);
   const oddsRows = presentPanelRows(props.oddsPanel?.rows ?? []);
   return (
     <main className="container">

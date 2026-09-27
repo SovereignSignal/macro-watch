@@ -1,3 +1,5 @@
+import { isBlockedPublisherHost, mentionsBlockedPublisher, redactBlockedPublisherText } from '@/lib/security/blocked-publishers';
+
 const EM_DASH_RE = /\s*(?:\u2014|&mdash;|&#8212;|&#x2014;)\s*/gi;
 const LONE_EM_DASH_RE = /^\s*(?:\u2014|&mdash;|&#8212;|&#x2014;)\s*$/i;
 
@@ -5,7 +7,7 @@ const LONE_EM_DASH_RE = /^\s*(?:\u2014|&mdash;|&#8212;|&#x2014;)\s*$/i;
 export function publicText(value: string): string {
   // A lone em dash is the pipeline's empty-cell placeholder, not punctuation.
   if (LONE_EM_DASH_RE.test(value)) return '';
-  return value.replace(EM_DASH_RE, ', ').replace(/,\s{2,}/g, ', ');
+  return redactBlockedPublisherText(value.replace(EM_DASH_RE, ', ').replace(/,\s{2,}/g, ', '));
 }
 
 /** Accepts only public HTTPS links for source attribution. */
@@ -17,6 +19,7 @@ export function publicHttpsUrl(value: string): string | null {
     return null;
   }
   if (url.protocol !== 'https:' || url.username || url.password) return null;
+  if (isBlockedPublisherHost(url.hostname) || mentionsBlockedPublisher(url.toString())) return null;
 
   const hostname = url.hostname.toLowerCase().replace(/^\[|\]$/g, '').replace(/\.$/, '');
   if (

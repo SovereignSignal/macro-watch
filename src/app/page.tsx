@@ -3,7 +3,7 @@ import { getDb } from '@/db/client';
 import { panelRows } from '@/lib/panel-contract';
 import { getLatestBrief } from '@/lib/queries/briefs';
 import { getConvictionSparks, getThemeMapCards } from '@/lib/queries/map';
-import { getLatestPanel, getLatestVerifiedPanel } from '@/lib/queries/panels';
+import { getDashboardHistory, getLatestPanel, getLatestVerifiedPanel } from '@/lib/queries/panels';
 import { safeQuery } from '@/lib/safe';
 import { pageMetadata } from '@/lib/metadata';
 
@@ -20,6 +20,7 @@ export default async function HomePage() {
   const db = getDb();
   const brief = await safeQuery(() => getLatestBrief(db), null);
   const panel = await safeQuery(() => getLatestPanel(db, 'dashboard'), null);
+  const dashboardHistory = await safeQuery(() => getDashboardHistory(db), {});
   const oddsPanel = await safeQuery(() => getLatestVerifiedPanel(db, 'odds_lens'), null);
   const map = await safeQuery(() => getThemeMapCards(db), { takenAt: null, cards: [], asOf: null });
   const sparks = await safeQuery(() => getConvictionSparks(db), {});
@@ -28,7 +29,11 @@ export default async function HomePage() {
   return (
     <HomeView
       brief={brief}
-      panel={panel ? { takenAt: panel.takenAt.toISOString(), rows: panelRows(panel.payload) } : null}
+      panel={panel ? {
+        takenAt: panel.takenAt.toISOString(),
+        rows: panelRows(panel.payload),
+        history: dashboardHistory,
+      } : null}
       oddsPanel={oddsPanel ? {
         takenAt: oddsPanel.takenAt.toISOString(),
         rows: oddsPanel.view.rows,

@@ -1,11 +1,11 @@
-import { asc, desc, eq, gte, inArray, sql } from 'drizzle-orm';
+import { asc, desc, eq, gte, inArray, or, sql } from 'drizzle-orm';
 import { cache } from 'react';
 import type { Db } from '@/db/client';
 import { briefs, claims, themeEvents, themes, themeState } from '@/db/schema';
 import { type FieldEvent, windowStart } from '@/lib/field-map';
 import type { ThemeStateCard } from '@/lib/ingest/themes';
 import { publicText, publicValue } from '@/lib/public-copy';
-import { displayThemeName } from '@/lib/theme-display';
+import { canonicalThemeSlug, displayThemeName, themeFamily, visibleThemeCards } from '@/lib/theme-display';
 
 export type ThemeCard = {
   slug: string;
@@ -168,7 +168,7 @@ export async function getThemeMapCards(
   }
 
   const order: Record<string, number> = { active: 0, candidate: 1, retired: 2 };
-  const cards = [...bySlug.values()].sort(
+  const cards = visibleThemeCards([...bySlug.values()]).sort(
     (a, b) =>
       (order[a.status] ?? 3) - (order[b.status] ?? 3) ||
       (b.lastEventAt ?? '').localeCompare(a.lastEventAt ?? ''),
@@ -222,6 +222,24 @@ export type ThemeDetail = {
 
 const CONVICTION_LEVEL: Record<string, 1 | 2 | 3> = { low: 1, medium: 2, high: 3 };
 
+function convictionLevel(card: ThemeStateCard | undefined): 1 | 2 | 3 | undefined {
+  return card?.conviction ? CONVICTION_LEVEL[card.conviction] : undefined;
+}
+
+/** Prefer a family card that has a conviction, canonical name first. */
+function familyStateCard(cards: Map<string, ThemeStateCard>, slug: string): ThemeStateCard | undefined {
+  const members = themeFamily(slug);
+  for (const member of members) {
+    const card = cards.get(member);
+    if (card?.conviction) return card;
+  }
+  for (const member of members) {
+    const card = cards.get(member);
+    if (card) return card;
+  }
+  return undefined;
+}
+
 /** Conviction-over-time from theme_state history (spec §5 /map/[theme]). */
 export async function getConvictionSeries(db: Db, slug: string): Promise<ConvictionPoint[]> {
   const snaps = await db
@@ -230,8 +248,7 @@ export async function getConvictionSeries(db: Db, slug: string): Promise<Convict
     .orderBy(asc(themeState.takenAt));
   const out: ConvictionPoint[] = [];
   for (const s of snaps) {
-    const card = stateCardsOf(s.payload).get(slug);
-    const level = card?.conviction ? CONVICTION_LEVEL[card.conviction] : undefined;
+    const level = convictionLevel(familyStateCard(stateCardsOf(s.payload), slug));
     if (level) out.push({ takenAt: s.takenAt.toISOString(), level });
   }
   return out;
@@ -252,21 +269,49 @@ export async function getConvictionSparks(
     .orderBy(desc(themeState.takenAt))
     .limit(limit);
   snaps.reverse();
+  const parsed = snaps.map((s) => stateCardsOf(s.payload));
+  const seen = new Set(parsed.flatMap((cards) => [...cards.keys()]));
   const out: Record<string, number[]> = {};
-  for (const s of snaps) {
-    for (const [slug, card] of stateCardsOf(s.payload)) {
-      const level = card.conviction ? CONVICTION_LEVEL[card.conviction] : undefined;
-      if (level) (out[slug] ??= []).push(level);
+  for (const cards of parsed) {
+    const used = new Set<string>();
+    const entries = [...cards.entries()].sort((a, b) => {
+      const aAlias = a[0] === canonicalThemeSlug(a[0]) ? 0 : 1;
+      const bAlias = b[0] === canonicalThemeSlug(b[0]) ? 0 : 1;
+      return aAlias - bAlias;
+    });
+    for (const [slug, card] of entries) {
+      const canonical = canonicalThemeSlug(slug);
+      const key = canonical !== slug && seen.has(canonical) ? canonical : slug;
+      if (used.has(key)) continue;
+      const level = convictionLevel(card);
+      if (!level) continue;
+      used.add(key);
+      (out[key] ??= []).push(level);
     }
   }
   return out;
 }
 
+/** True when the canonical slug has its own theme row or snapshot card. */
+export async function hasCanonicalTheme(db: Db, slug: string): Promise<boolean> {
+  const canonical = canonicalThemeSlug(slug);
+  if (canonical === slug) return false;
+  const rows = await db.select({ slug: themes.slug }).from(themes).where(eq(themes.slug, canonical)).limit(1);
+  if (rows.length > 0) return true;
+  const snaps = await db
+    .select({ payload: themeState.payload })
+    .from(themeState)
+    .orderBy(desc(themeState.takenAt))
+    .limit(1);
+  return snaps[0] ? stateCardsOf(snaps[0].payload).has(canonical) : false;
+}
+
 // cache() dedupes generateMetadata + the page component's fetch into one
 // query per request (Next.js request-scoped memoization).
 export const getThemeDetail = cache(async (db: Db, slug: string): Promise<ThemeDetail | null> => {
-  const themeRows = await db.select().from(themes).where(eq(themes.slug, slug)).limit(1);
-  const themeRow = themeRows[0] ?? null;
+  const family = themeFamily(slug);
+  const themeRows = await db.select().from(themes).where(inArray(themes.slug, family));
+  const themeRow = themeRows.find((row) => row.slug === slug) ?? null;
   const { cards } = await getThemeMapCards(db);
   const card = cards.find((c) => c.slug === slug) ?? null;
   if (!themeRow && !card) return null;
@@ -274,14 +319,14 @@ export const getThemeDetail = cache(async (db: Db, slug: string): Promise<ThemeD
   const events = publicValue(await db
     .select()
     .from(themeEvents)
-    .where(eq(themeEvents.themeSlug, slug))
+    .where(inArray(themeEvents.themeSlug, family))
     .orderBy(desc(themeEvents.date), desc(themeEvents.eventId)));
 
   const eventDates = [...new Set(events.map((e) => e.date))];
   const briefRows = eventDates.length
     ? await db.select({ date: briefs.date }).from(briefs).where(inArray(briefs.date, eventDates))
     : [];
-  const briefDates = briefRows.map((b) => b.date);
+  const briefDates = [...new Set(briefRows.map((b) => b.date))];
 
   const claimRows = await db
     .select({
@@ -291,7 +336,7 @@ export const getThemeDetail = cache(async (db: Db, slug: string): Promise<ThemeD
       status: claims.status,
     })
     .from(claims)
-    .where(sql`${slug} = any(${claims.themes})`)
+    .where(or(...family.map((member) => sql`${member} = any(${claims.themes})`)))
     .orderBy(desc(claims.openedAt));
   const relatedClaims: RelatedClaim[] = claimRows.map((c) => {
     const predicate = (c.payload as Record<string, unknown>).predicate;
@@ -307,8 +352,10 @@ export const getThemeDetail = cache(async (db: Db, slug: string): Promise<ThemeD
     slug,
     name: displayThemeName(slug, publicText(themeRow?.name ?? card?.name ?? slug)),
     status: themeRow?.status ?? card?.status ?? 'active',
-    firstSeen: themeRow?.firstSeen ?? null,
-    lastEventAt: themeRow?.lastEventAt ?? null,
+    firstSeen: themeRows.map((row) => row.firstSeen).filter(Boolean).sort()[0] ?? themeRow?.firstSeen ?? null,
+    lastEventAt: themeRows.map((row) => row.lastEventAt).filter((value): value is string => Boolean(value)).sort().at(-1)
+      ?? themeRow?.lastEventAt
+      ?? null,
     card,
     events,
     relatedClaims,

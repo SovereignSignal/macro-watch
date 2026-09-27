@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import type { Db } from '@/db/client';
 import { briefs } from '@/db/schema';
+import { rejectBlockedPublishers } from '@/lib/security/blocked-publishers';
 import { sanitizePublicBriefHtml, sanitizePublicBriefText } from '@/lib/security/public-brief-html';
 
 const publicHtmlSchema = z
@@ -15,18 +16,18 @@ const publicTextSchema = z
   .transform(sanitizePublicBriefText)
   .refine((text) => text.length > 0, 'field has no public content after sanitization');
 
-export const briefSchema = z.object({
+export const briefSchema = rejectBlockedPublishers(z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'expected YYYY-MM-DD'),
-  kind: z.enum(['daily', 'weekend']),
+  kind: z.enum(['daily', 'weekend', 'week-ahead']),
   subject: publicTextSchema,
   telegram_ping: publicTextSchema,
   html: publicHtmlSchema,
   sent_verified_at: z.string().datetime({ offset: true }),
-});
+}));
 
 export type BriefPayload = z.infer<typeof briefSchema>;
 
-/** Idempotent upsert on the natural key `date` (spec §4: briefs(date pk)). */
+/** Idempotent upsert on (date, kind). A second kind on the same date is inserted. */
 export async function upsertBrief(db: Db, p: BriefPayload): Promise<number> {
   const row = {
     kind: p.kind,
@@ -40,6 +41,9 @@ export async function upsertBrief(db: Db, p: BriefPayload): Promise<number> {
   await db
     .insert(briefs)
     .values({ date: p.date, ...row })
-    .onConflictDoUpdate({ target: briefs.date, set: { ...row, ingestedAt: new Date() } });
+    .onConflictDoUpdate({
+      target: [briefs.date, briefs.kind],
+      set: { ...row, ingestedAt: new Date() },
+    });
   return 1;
 }

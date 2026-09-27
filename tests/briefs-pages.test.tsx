@@ -11,9 +11,9 @@ it('archive lists every brief newest-first with weekend labels', async () => {
   const db = await createTestDb();
   await seedAll(db);
   const markup = renderToStaticMarkup(await BriefsPage({}));
-  expect(markup).toContain('href="/briefs/2026-07-11"');
-  expect(markup).toContain('href="/briefs/2026-07-09"');
-  expect(markup).toContain('href="/briefs/2026-07-08"');
+  expect(markup).toContain('href="/briefs/2026-07-11/weekend"');
+  expect(markup).toContain('href="/briefs/2026-07-09/daily"');
+  expect(markup).toContain('href="/briefs/2026-07-08/daily"');
   expect(markup).toContain('Weekend review');
   expect(markup.indexOf('2026-07-11')).toBeLessThan(markup.indexOf('2026-07-08')); // newest first
 });
@@ -37,7 +37,7 @@ it('archive paginates bounded reads with next and previous links', async () => {
   expect(first).not.toContain('Brief 2026-06-01');
   const second = renderToStaticMarkup(await BriefsPage({ searchParams: Promise.resolve({ page: '2' }) }));
   expect(second).toContain('Brief 2026-06-01');
-  expect(second).toContain('href="/briefs?page=1"');
+  expect(second).toContain('← Newer briefs');
 });
 
 it('brief metadata exposes canonical, description, and article publication time', async () => {
@@ -86,6 +86,102 @@ it('permalink 404s for a missing or malformed date', async () => {
   await seedAll(db);
   await expect(BriefPage({ params: Promise.resolve({ date: '1900-01-01' }) })).rejects.toThrow();
   await expect(BriefPage({ params: Promise.resolve({ date: 'not-a-date' }) })).rejects.toThrow();
+});
+
+it('kind permalink renders the matching brief and redirects an unknown kind', async () => {
+  const db = await createTestDb();
+  const { upsertBrief } = await import('@/lib/ingest/briefs');
+  await upsertBrief(db, {
+    date: '2026-09-17',
+    kind: 'daily',
+    subject: 'Thursday tape',
+    telegram_ping: 'The daily read.',
+    html: '<p>Daily body.</p>',
+    sent_verified_at: '2026-09-17T14:00:00Z',
+  });
+  await upsertBrief(db, {
+    date: '2026-09-17',
+    kind: 'week-ahead',
+    subject: 'Week ahead: supply',
+    telegram_ping: 'The week opens into supply.',
+    html: '<p>Week ahead body.</p>',
+    sent_verified_at: '2026-09-17T23:00:00Z',
+  });
+  const { default: BriefKindPage, generateMetadata: kindMetadata } = await import('@/app/briefs/[date]/[kind]/page');
+  const markup = renderToStaticMarkup(
+    await BriefKindPage({ params: Promise.resolve({ date: '2026-09-17', kind: 'week-ahead' }) }),
+  );
+  expect(markup).toContain('Week ahead body.');
+  expect(markup).not.toContain('Daily body.');
+  const metadata = await kindMetadata({ params: Promise.resolve({ date: '2026-09-17', kind: 'daily' }) });
+  expect(metadata.alternates?.canonical).toBe('/briefs/2026-09-17/daily');
+  await expect(
+    BriefKindPage({ params: Promise.resolve({ date: '2026-09-17', kind: 'weekend' }) }),
+  ).rejects.toMatchObject({ digest: 'NEXT_REDIRECT;replace;/briefs/2026-09-17;308;' });
+  await expect(
+    BriefKindPage({ params: Promise.resolve({ date: '2026-09-17', kind: 'monthly' }) }),
+  ).rejects.toThrow();
+});
+
+it('a date with several kinds shows a chooser and a legacy week-ahead subject still resolves', async () => {
+  const db = await createTestDb();
+  const { upsertBrief } = await import('@/lib/ingest/briefs');
+  await upsertBrief(db, {
+    date: '2026-08-23',
+    kind: 'weekend',
+    subject: 'Week Ahead, Sunday, August 23, 2026',
+    telegram_ping: 'Watch CPI.',
+    html: '<p>Sunday note.</p>',
+    sent_verified_at: '2026-08-23T23:00:00Z',
+  });
+  await upsertBrief(db, {
+    date: '2026-08-23',
+    kind: 'daily',
+    subject: 'Saturday shadow',
+    telegram_ping: 'A second note.',
+    html: '<p>Shadow body.</p>',
+    sent_verified_at: '2026-08-23T16:00:00Z',
+  });
+  const chooser = renderToStaticMarkup(await BriefPage({ params: Promise.resolve({ date: '2026-08-23' }) }));
+  expect(chooser).toContain('Choose a kind');
+  expect(chooser).toContain('href="/briefs/2026-08-23/week-ahead"');
+  expect(chooser).toContain('href="/briefs/2026-08-23/daily"');
+  const { default: BriefKindPage } = await import('@/app/briefs/[date]/[kind]/page');
+  const ahead = renderToStaticMarkup(
+    await BriefKindPage({ params: Promise.resolve({ date: '2026-08-23', kind: 'week-ahead' }) }),
+  );
+  expect(ahead).toContain('Sunday note.');
+});
+
+it('archive groups months, filters by kind, and pages a large set', async () => {
+  const db = await createTestDb();
+  const { upsertBrief } = await import('@/lib/ingest/briefs');
+  for (let day = 1; day <= 120; day += 1) {
+    const date = new Date(Date.UTC(2026, 0, day)).toISOString().slice(0, 10);
+    const kind = day % 7 === 0 ? 'weekend' : day % 7 === 6 ? 'week-ahead' : 'daily';
+    await upsertBrief(db, {
+      date,
+      kind,
+      subject: kind === 'week-ahead' ? `Week ahead ${date}` : `Brief ${date}`,
+      telegram_ping: `Ping ${date}`,
+      html: `<p>Body ${date}</p>`,
+      sent_verified_at: `${date}T14:00:00Z`,
+    });
+  }
+  const first = renderToStaticMarkup(await BriefsPage({}));
+  expect(first).toContain('April 2026');
+  expect(first).toContain('href="/briefs?page=2"');
+  expect(first).toContain('href="/briefs?kind=week-ahead"');
+  const filtered = renderToStaticMarkup(
+    await BriefsPage({ searchParams: Promise.resolve({ kind: 'week-ahead' }) }),
+  );
+  expect(filtered).toContain('Week ahead 2026-04-28');
+  expect(filtered).not.toContain('Brief 2026-');
+  const last = renderToStaticMarkup(await BriefsPage({ searchParams: Promise.resolve({ page: '5' }) }));
+  expect(last).toContain('Brief 2026-01-01');
+  expect(last).toContain('January 2026');
+  expect(last).toContain('href="/briefs?page=4"');
+  expect(last).not.toContain('href="/briefs?page=6"');
 });
 
 it('pre-2000 sentinel briefs never appear in listings or latest, but permalink still renders', async () => {

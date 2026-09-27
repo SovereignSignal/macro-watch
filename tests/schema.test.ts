@@ -19,6 +19,16 @@ it('applies migrations and round-trips a brief', async () => {
   expect(rows).toEqual([{ date: '2026-07-10', kind: 'daily' }]);
 });
 
+it('keeps two brief kinds on one date after the composite key migration', async () => {
+  const db = await createTestDb();
+  await db.insert(briefs).values([
+    BRIEF,
+    { ...BRIEF, kind: 'week-ahead', subject: 'Week ahead', ping: 'The week ahead.' },
+  ]);
+  const rows = await db.select({ date: briefs.date, kind: briefs.kind }).from(briefs);
+  expect(rows.map((row) => row.kind).sort()).toEqual(['daily', 'week-ahead']);
+});
+
 it('generates a searchable tsvector from subject + tag-stripped html', async () => {
   const db = await createTestDb();
   await db.insert(briefs).values(BRIEF);

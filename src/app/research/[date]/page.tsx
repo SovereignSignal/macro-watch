@@ -4,6 +4,7 @@ import { getDb } from '@/db/client';
 import { formatDate } from '@/lib/format';
 import { getResearchByDate } from '@/lib/queries/research';
 import { publicResearchText } from '@/lib/research-public';
+import { mentionsBlockedPublisher } from '@/lib/security/blocked-publishers';
 import { sanitizePublicBriefText } from '@/lib/security/public-brief-html';
 
 export const dynamic = 'force-dynamic';
@@ -16,6 +17,7 @@ function publicCitations(value: unknown): { url: string; title: string }[] {
   if (!Array.isArray(value)) return [];
   return (value as Citation[])
     .filter((c) => typeof c?.url === 'string' && c.url.startsWith('https://') && !/example\.com/i.test(c.url))
+    .filter((c) => !mentionsBlockedPublisher(c.url ?? '') && !mentionsBlockedPublisher(c.title ?? ''))
     .slice(0, 15)
     .map((c) => {
       const url = c.url as string;

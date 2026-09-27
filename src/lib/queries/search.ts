@@ -3,6 +3,8 @@ import type { Db } from '@/db/client';
 import { briefs, claims, researchMemos, themeEvents } from '@/db/schema';
 import { PUBLIC_BRIEF_MIN_DATE } from '@/lib/queries/briefs';
 import { isPlaceholderResearch, publicResearchText } from '@/lib/research-public';
+import { briefPath } from '@/lib/brief-kind';
+import { mentionsBlockedPublisher } from '@/lib/security/blocked-publishers';
 import { sanitizePublicBriefText } from '@/lib/security/public-brief-html';
 import { publicText } from '@/lib/public-copy';
 
@@ -24,10 +26,10 @@ const LIMIT = 20;
  */
 export async function searchAll(db: Db, q: string): Promise<SearchResult[]> {
   const query = q.trim();
-  if (query === '') return [];
+  if (query === '' || mentionsBlockedPublisher(query)) return [];
 
   const briefHits = await db
-    .select({ date: briefs.date, subject: briefs.subject, ping: briefs.ping })
+    .select({ date: briefs.date, kind: briefs.kind, subject: briefs.subject, ping: briefs.ping })
     .from(briefs)
     .where(sql`${briefs.search} @@ websearch_to_tsquery('english', ${query}) AND ${briefs.date} >= ${PUBLIC_BRIEF_MIN_DATE}`)
     .orderBy(sql`ts_rank(${briefs.search}, websearch_to_tsquery('english', ${query})) desc`)
@@ -71,16 +73,20 @@ export async function searchAll(db: Db, q: string): Promise<SearchResult[]> {
     .limit(LIMIT);
 
   return [
-    ...briefHits.map(
+    ...briefHits
+      .filter((b) => !mentionsBlockedPublisher(b.subject) && !mentionsBlockedPublisher(b.ping))
+      .map(
       (b): SearchResult => ({
         type: 'brief',
         title: sanitizePublicBriefText(b.subject),
-        href: `/briefs/${b.date}`,
+        href: briefPath(b.date, b.kind, b.subject),
         snippet: sanitizePublicBriefText(b.ping),
         date: b.date,
       }),
     ),
-    ...eventHits.map(
+    ...eventHits
+      .filter((e) => !mentionsBlockedPublisher(e.evidence))
+      .map(
       (e): SearchResult => ({
         type: 'theme-event',
         title: `${e.slug}: ${e.direction}`,
@@ -89,7 +95,13 @@ export async function searchAll(db: Db, q: string): Promise<SearchResult[]> {
         date: e.date,
       }),
     ),
-    ...claimHits.map((c): SearchResult => {
+    ...claimHits
+      .filter((c) => {
+        const predicate = (c.payload as Record<string, unknown>).predicate;
+        const anchor = (c.payload as Record<string, unknown>).data_anchor;
+        return !mentionsBlockedPublisher(`${typeof predicate === 'string' ? predicate : ''} ${typeof anchor === 'string' ? anchor : ''}`);
+      })
+      .map((c): SearchResult => {
       const predicate = (c.payload as Record<string, unknown>).predicate;
       return {
         type: 'claim',
@@ -101,6 +113,7 @@ export async function searchAll(db: Db, q: string): Promise<SearchResult[]> {
     }),
     ...researchHits
       .filter((row) => !isPlaceholderResearch(row))
+      .filter((row) => !mentionsBlockedPublisher(`${row.topic} ${row.finding}`))
       .map(
         (row): SearchResult => ({
           type: 'research',

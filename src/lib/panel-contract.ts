@@ -5,7 +5,23 @@ export type PanelRowItem = {
   value: string;
   change: string | null;
   note: string | null;
+  /** Optional history from the pipeline. Absent rows fall back to panel snapshots. */
+  spark?: number[];
 };
+
+const SPARK_MAX = 120;
+
+/** Keep a spark only when it is two or more finite numbers, capped at 120. */
+export function finiteSpark(values: unknown): number[] | undefined {
+  if (!Array.isArray(values)) return undefined;
+  const slice = values.slice(-SPARK_MAX);
+  const nums: number[] = [];
+  for (const value of slice) {
+    if (typeof value !== 'number' || !Number.isFinite(value)) return undefined;
+    nums.push(value);
+  }
+  return nums.length >= 2 ? nums : undefined;
+}
 
 export type PanelView = {
   rows: PanelRowItem[];
@@ -37,11 +53,13 @@ export function panelView(payload: unknown): PanelView {
         rowsValid = false;
         continue;
       }
+      const spark = finiteSpark((raw as Record<string, unknown>).spark);
       rows.push({
         label: publicText(label),
         value: typeof value === 'string' ? publicText(value) : typeof value === 'number' ? String(value) : 'n/a',
         change: typeof change === 'string' ? publicText(change) : null,
         note: typeof note === 'string' ? publicText(note) : null,
+        ...(spark ? { spark } : {}),
       });
     }
   }
