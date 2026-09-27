@@ -5,7 +5,7 @@ import { getDb } from '@/db/client';
 import { getConvictionSparks, getRecentThemeEvents, getThemeMapCards } from '@/lib/queries/map';
 import { pageMetadata } from '@/lib/metadata';
 import { safeQuery } from '@/lib/safe';
-import { isRetiredAlias } from '@/lib/theme-display';
+import { isRetiredAlias, themeFamily } from '@/lib/theme-display';
 
 export const dynamic = 'force-dynamic';
 export const metadata = pageMetadata({
@@ -40,7 +40,7 @@ export default async function MapPage() {
       status: c.status,
       conviction: c.conviction,
       lastEventAt: c.lastEventAt,
-      events: recent[c.slug] ?? [],
+      events: themeFamily(c.slug).flatMap((member) => recent[member] ?? []),
     }));
   return (
     <main className="container-wide">

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { ArchiveByMonth } from '@/components/ArchiveByMonth';
 import { EmptyState } from '@/components/EmptyState';
 import { getDb } from '@/db/client';
 import { formatDate } from '@/lib/format';
@@ -47,21 +48,25 @@ export default async function ResearchPage({
       {items.length === 0 ? (
         <EmptyState>No research memos yet. Memos publish weekday mornings at 07:00 UTC.</EmptyState>
       ) : (
-        <ul className="archive-list">
-          {items.map((m) => (
-            <li key={m.date}>
-              <span className="date">{formatDate(m.date)}</span>
-              <div>
-                <Link href={`/research/${m.date}`}>
-                  {publicResearchText(sanitizePublicBriefText(m.topic)) || 'Research memo'}
-                </Link>
-              </div>
-              <p className="excerpt">
-                {publicResearchText(sanitizePublicBriefText(m.finding)).slice(0, 280)}
-              </p>
-            </li>
-          ))}
-        </ul>
+        <ArchiveByMonth
+          items={items.map((m) => ({
+            key: m.date,
+            date: m.date,
+            node: (
+              <>
+                <span className="date">{formatDate(m.date)}</span>
+                <div>
+                  <Link href={`/research/${m.date}`}>
+                    {publicResearchText(sanitizePublicBriefText(m.topic)) || 'Research memo'}
+                  </Link>
+                </div>
+                <p className="excerpt">
+                  {publicResearchText(sanitizePublicBriefText(m.finding)).slice(0, 280)}
+                </p>
+              </>
+            ),
+          }))}
+        />
       )}
       {page > 1 || hasNext ? (
         <nav className="archive-pagination" aria-label="Archive pagination">

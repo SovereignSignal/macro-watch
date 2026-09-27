@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import { ConvictionChart } from '@/components/ConvictionChart';
 import { ConvictionScale } from '@/components/ConvictionScale';
 import { EmptyState } from '@/components/EmptyState';
@@ -9,7 +9,8 @@ import { TriggerList } from '@/components/TriggerList';
 import { getDb } from '@/db/client';
 import { formatDate } from '@/lib/format';
 import { pageMetadata } from '@/lib/metadata';
-import { getMapClock, getThemeDetail } from '@/lib/queries/map';
+import { getMapClock, getThemeDetail, hasCanonicalTheme } from '@/lib/queries/map';
+import { canonicalThemeSlug } from '@/lib/theme-display';
 import { safeQuery } from '@/lib/safe';
 import { displayStatus } from '@/lib/theme-lifecycle';
 import { statusLabel } from '@/lib/claim-display';
@@ -41,6 +42,10 @@ export async function generateMetadata({ params }: { params: Promise<{ theme: st
 export default async function ThemePage({ params }: { params: Promise<{ theme: string }> }) {
   const { theme } = await params;
   if (!SLUG_RE.test(theme)) notFound();
+  const canonical = canonicalThemeSlug(theme);
+  if (canonical !== theme && (await hasCanonicalTheme(getDb(), theme))) {
+    permanentRedirect(`/map/${canonical}`);
+  }
   // Deliberately NOT safeQuery: mirrors /briefs/[date]. A DB blip during
   // background revalidation should keep serving the stale page, not 404 it.
   const detail = await getThemeDetail(getDb(), theme);

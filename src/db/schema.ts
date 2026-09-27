@@ -7,6 +7,7 @@ import {
   serial,
   text,
   timestamp,
+  primaryKey,
   uniqueIndex,
 } from 'drizzle-orm/pg-core';
 
@@ -20,9 +21,9 @@ const tsvector = customType<{ data: string }>({
 export const briefs = pgTable(
   'briefs',
   {
-    // YYYY-MM-DD. Natural key: one brief per day (daily Mon–Fri, weekend Sat).
-    date: text('date').primaryKey(),
-    kind: text('kind').notNull(), // 'daily' | 'weekend'
+    // YYYY-MM-DD. Together with kind, the primary key. One row per date and kind.
+    date: text('date').notNull(),
+    kind: text('kind').notNull(), // 'daily' | 'weekend' | 'week-ahead'
     subject: text('subject').notNull(),
     ping: text('ping').notNull(), // telegram_ping
     html: text('html').notNull(), // sanitized publisher-side (spec §3), body-inner HTML
@@ -35,7 +36,10 @@ export const briefs = pgTable(
         sql`to_tsvector('english', coalesce(${briefs.subject}, '') || ' ' || regexp_replace(coalesce(${briefs.html}, ''), '<[^>]*>', ' ', 'g'))`,
     ),
   },
-  (t) => [index('briefs_search_idx').using('gin', t.search)],
+  (t) => [
+    primaryKey({ columns: [t.date, t.kind], name: 'briefs_date_kind_pk' }),
+    index('briefs_search_idx').using('gin', t.search),
+  ],
 );
 
 export const themes = pgTable('themes', {

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import type { Db } from '@/db/client';
 import { researchMemos } from '@/db/schema';
+import { rejectBlockedPublishers } from '@/lib/security/blocked-publishers';
 import { sanitizePublicBriefText } from '@/lib/security/public-brief-html';
 import { isPlaceholderResearch } from '@/lib/research-public';
 
@@ -18,7 +19,7 @@ const citationSchema = z.object({
   title: z.string().max(300).optional(),
 });
 
-export const researchSchema = z.object({
+export const researchSchema = rejectBlockedPublishers(z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'expected YYYY-MM-DD'),
   topic: publicTextSchema,
   finding: publicTextSchema,
@@ -27,7 +28,7 @@ export const researchSchema = z.object({
   watch: publicTextSchema,
   citations: z.array(citationSchema).max(15).default([]),
   generated_at: z.string().datetime({ offset: true }),
-}).refine((row) => !isPlaceholderResearch(row), 'placeholder research is not publishable');
+}).refine((row) => !isPlaceholderResearch(row), 'placeholder research is not publishable'));
 
 export type ResearchPayload = z.infer<typeof researchSchema>;
 

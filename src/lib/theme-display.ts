@@ -4,6 +4,7 @@ const THEME_NAMES: Record<string, string> = {
   'cross-asset-crowded-calm': 'Cross-asset crowded calm',
   'grid-hardware-bottleneck': 'Grid hardware bottleneck',
   'housing-residential': 'Housing / residential',
+  'housing-residential-construction': 'Housing / residential construction',
   'japan-repatriation': 'Japan repatriation',
   'official-currency-defense': 'Official currency defense',
   'official-currency-defense-yen-funded-leverage': 'Official currency defense / yen-funded leverage',
@@ -20,15 +21,41 @@ const THEME_NAMES: Record<string, string> = {
   'demographic-fiscal-drag': 'Demographic fiscal drag',
 };
 
-/** Historical aliases of a standing theme still on the map. */
+/**
+ * Retired or duplicate slugs that should read as one theme. Six clusters:
+ * dollar plumbing, official currency defense / yen-funded leverage,
+ * Red Sea export, housing, crowded calm, and gold.
+ * Rows stay in the database; the map hides the alias when the canonical
+ * slug is present and the dossier folds the alias's events and claims in.
+ */
 const ALIAS_OF: Record<string, string> = {
-  'gold-and-silver': 'gold-miners-real-assets',
   'dollar-plumbing-vs-gold': 'dollar-plumbing-versus-gold',
   'official-currency-defense': 'official-currency-defense-yen-funded-leverage',
   'yen-funded-leverage': 'official-currency-defense-yen-funded-leverage',
+  'official-currency-defense-of-the-treasury-market': 'official-currency-defense-yen-funded-leverage',
   'red-sea-export-chokepoint': 'red-sea-bab-al-mandab-export-chokepoint',
+  'housing-residential': 'housing-residential-construction',
   'crowded-calm': 'cross-asset-crowded-calm',
+  'gold-and-silver': 'gold-miners-real-assets',
 };
+
+export function canonicalThemeSlug(slug: string): string {
+  return ALIAS_OF[slug] ?? slug;
+}
+
+/** Canonical slug plus every alias that points at it. */
+export function themeFamily(slug: string): string[] {
+  const canonical = canonicalThemeSlug(slug);
+  const aliases = Object.entries(ALIAS_OF)
+    .filter(([, target]) => target === canonical)
+    .map(([alias]) => alias);
+  return [canonical, ...aliases];
+}
+
+export function visibleThemeCards<T extends { slug: string; status: string }>(cards: T[]): T[] {
+  const present = new Set(cards.map((card) => card.slug));
+  return cards.filter((card) => !isRetiredAlias(card.slug, card.status, present));
+}
 
 function titleCaseSlug(slug: string): string {
   return slug

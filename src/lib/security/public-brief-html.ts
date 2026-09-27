@@ -3,6 +3,7 @@ import 'server-only';
 import { isIP } from 'node:net';
 import sanitizeHtml, { type Attributes, type IOptions } from 'sanitize-html';
 import { publicText } from '@/lib/public-copy';
+import { isBlockedPublisherHost, mentionsBlockedPublisher, stripBlockedPublisherHtml } from '@/lib/security/blocked-publishers';
 
 const ALLOWED_TAGS = [
   'section',
@@ -84,10 +85,13 @@ const SAFE_RELATIVE_ROUTES = [
   /^\/about$/,
   /^\/accountability$/,
   /^\/briefs(?:\/\d{4}-\d{2}-\d{2})?$/,
+  /^\/briefs\/\d{4}-\d{2}-\d{2}\/(?:daily|weekend|week-ahead)$/,
   /^\/catalysts$/,
   /^\/feed\.xml$/,
   /^\/map(?:\/[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)?$/,
+  /^\/robots\.txt$/,
   /^\/search$/,
+  /^\/sitemap\.xml$/,
   /^\/research(?:\/\d{4}-\d{2}-\d{2})?$/,
 ];
 
@@ -253,6 +257,7 @@ function normalizePublicUrl(rawValue: string | undefined, allowImagePath = false
     return null;
   }
   if (parsed.protocol !== 'https:' || parsed.username || parsed.password || isPrivateHostname(parsed.hostname)) return null;
+  if (isBlockedPublisherHost(parsed.hostname) || mentionsBlockedPublisher(parsed.toString())) return null;
   let decodedUrl: string;
   try {
     decodedUrl = decodeURIComponent(parsed.toString());
@@ -451,7 +456,9 @@ function blankPlaceholderCells(html: string): string {
 export function sanitizePublicBriefHtml(dirtyHtml: string): string {
   // Canonicalize nested entities before parsing so double-encoded markup and
   // private text cannot survive as recoverable entities in stored HTML.
-  const canonical = blankPlaceholderCells(decodeTextEntities(dirtyHtml));
+  // Paywalled-publisher blocks are dropped before the allowlist pass, and
+  // publicText redacts any name that still reaches a text node.
+  const canonical = stripBlockedPublisherHtml(blankPlaceholderCells(decodeTextEntities(dirtyHtml)));
   return dedupeForwardEventEchoes(
     publicText(sanitizeHtml(sanitizeHtml(canonical, options), options)),
   ).trim();

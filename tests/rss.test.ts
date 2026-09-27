@@ -19,9 +19,9 @@ it('builds RSS with title = subject and body = ping + link', () => {
   expect(xml).toContain('<title>Sovs Macro</title>');
   expect(xml).toContain('Sovs Macro, a Sovereign Signal project.');
   expect(xml).toContain('<title>Rates &amp; the &quot;long&quot; end</title>');
-  expect(xml).toContain('<link>https://macro-watch-production.up.railway.app/briefs/2026-07-10</link>');
+  expect(xml).toContain('<link>https://macro-watch-production.up.railway.app/briefs/2026-07-10/daily</link>');
   expect(xml).toContain('Front-end yields snapped higher.');
-  expect(xml).toContain('https://macro-watch-production.up.railway.app/briefs/2026-07-10</description>');
+  expect(xml).toContain('https://macro-watch-production.up.railway.app/briefs/2026-07-10/daily</description>');
   expect(xml).toContain('<pubDate>Fri, 10 Jul 2026 14:05:00 GMT</pubDate>');
 });
 

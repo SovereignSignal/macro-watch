@@ -41,7 +41,7 @@ export async function listResearch(
   db: Db,
   options: { limit?: number; offset?: number } = {},
 ): Promise<ResearchListItem[]> {
-  const limit = Math.min(100, Math.max(1, Math.trunc(options.limit ?? 50)));
+  const limit = Math.min(500, Math.max(1, Math.trunc(options.limit ?? 50)));
   const offset = Math.max(0, Math.trunc(options.offset ?? 0));
   const rows = await db
     .select({

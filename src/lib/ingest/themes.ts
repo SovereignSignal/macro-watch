@@ -3,6 +3,7 @@ import { z } from 'zod';
 import type { Db } from '@/db/client';
 import { themeEvents, themes, themeState } from '@/db/schema';
 import { publicValue } from '@/lib/public-copy';
+import { rejectBlockedPublishers } from '@/lib/security/blocked-publishers';
 
 // ---------------------------------------------------------------- events ---
 
@@ -21,10 +22,10 @@ export const themeEventSchema = z.object({
 export type ThemeEventPayload = z.infer<typeof themeEventSchema>;
 
 /** Accepts one event or a batch (backfill); always parses to an array. */
-export const themeEventsBodySchema = z.union([
+export const themeEventsBodySchema = rejectBlockedPublishers(z.union([
   z.array(themeEventSchema).min(1),
   themeEventSchema.transform((e) => [e]),
-]);
+]));
 
 function statusFor(direction: ThemeEventPayload['direction']): string {
   if (direction === 'candidate') return 'candidate';

@@ -13,7 +13,7 @@ replays) and never duplicate a row.
 
 | Table | Primary/natural key | Notes |
 |---|---|---|
-| `briefs` | `date` (text, `YYYY-MM-DD`) | One row per day (daily Mon–Fri, weekend Sat). `search` is a generated `tsvector` over `subject` + HTML-stripped `html`. |
+| `briefs` | `(date, kind)` | `date` is `YYYY-MM-DD`. `kind` is `daily`, `weekend`, or `week-ahead`. A daily and a week-ahead on the same date both persist. `search` is a generated `tsvector` over `subject` + HTML-stripped `html`. |
 | `themes` | `slug` | Not written directly by ingest — maintained as a side effect of `theme-events` upserts (see below). `status`: `active \| candidate \| retired`. |
 | `theme_events` | `event_id` | FK `theme_slug → themes.slug`. `direction`: `raise \| lower \| hold \| candidate \| invalidate \| retire`. `search` is a generated `tsvector` over `evidence`. |
 | `theme_state` | `taken_at` (unique) | Snapshot table; `payload` is the full `theme-state.json` passthrough (curated conviction/read/conditions/triggers per theme). History accumulates — nothing is deleted; `/map` reads the latest row. |
@@ -75,7 +75,7 @@ Revalidation targets by endpoint:
 
 | Endpoint | Revalidates |
 |---|---|
-| `briefs` | `/`, `/briefs`, `/briefs/[date]` (the specific date just written), `/feed.xml` |
+| `briefs` | `/`, `/briefs`, `/briefs/[date]`, `/briefs/[date]/[kind]`, `/feed.xml` |
 | `theme-events` | `/`, `/map` (layout — cascades to all `/map/[theme]`) |
 | `theme-state` | `/`, `/map` (layout) |
 | `panels` | `/accountability` if `kind === 'scoreboard'`, otherwise `/` |

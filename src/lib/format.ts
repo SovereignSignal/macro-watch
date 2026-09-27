@@ -21,6 +21,13 @@ export function formatDate(isoDate: string): string {
   return `${MONTHS[m - 1]} ${d}, ${y}`;
 }
 
+/** Renders a YYYY-MM-DD date as e.g. "July 2026". */
+export function formatMonth(isoDate: string): string {
+  const [y, m] = isoDate.split('-').map(Number);
+  if (!y || !m || m < 1 || m > 12) return isoDate;
+  return `${MONTHS[m - 1]} ${y}`;
+}
+
 /** Stable UTC stamp for SSR freshness chips, e.g. "29 Aug 16:08 UTC". */
 export function formatUtcStamp(iso: string): string {
   const d = new Date(iso);

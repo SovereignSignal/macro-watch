@@ -12,7 +12,7 @@ it('finds briefs by words in the html body', async () => {
   await seedAll(db);
   const results = await searchAll(db, 'term premium');
   const brief = results.find((r) => r.type === 'brief');
-  expect(brief?.href).toBe('/briefs/2026-07-08');
+  expect(brief?.href).toBe('/briefs/2026-07-08/daily');
 });
 
 it('finds theme events by evidence and claims by predicate', async () => {
@@ -43,7 +43,7 @@ it('never interpolates the query into SQL — quotes and injection attempts are 
   await expect(searchAll(db, "o'brien")).resolves.toEqual([]);
   // Confirm the table really does survive: a legitimate search still works.
   const results = await searchAll(db, 'term premium');
-  expect(results.find((r) => r.type === 'brief')?.href).toBe('/briefs/2026-07-08');
+  expect(results.find((r) => r.type === 'brief')?.href).toBe('/briefs/2026-07-08/daily');
 });
 
 it('search page renders results for ?q=', async () => {
@@ -52,7 +52,7 @@ it('search page renders results for ?q=', async () => {
   const markup = renderToStaticMarkup(
     await SearchPage({ searchParams: Promise.resolve({ q: 'auction' }) }),
   );
-  expect(markup).toContain('href="/briefs/2026-07-08"');
+  expect(markup).toContain('href="/briefs/2026-07-08/daily"');
   expect(markup).toMatch(/\d+ results?/);
 });
 
@@ -75,4 +75,7 @@ it('about page explains the product and carries the disclaimer', () => {
   expect(markup).toContain('Verified panels disclose source coverage and freshness');
   expect(markup).toContain('No investment advice');
   expect(markup).toContain('href="/accountability"');
+  expect(markup).toContain('Week ahead');
+  expect(markup).toContain('Paywalled sources are never republished');
+  expect(markup).toContain('hit rate counts hits divided by hits plus misses');
 });

@@ -1,8 +1,10 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { BriefArticle } from '@/components/BriefArticle';
+import { BriefArticle, BriefKindChip } from '@/components/BriefArticle';
 import { getDb } from '@/db/client';
-import { getBriefByDate } from '@/lib/queries/briefs';
+import { briefPath } from '@/lib/brief-kind';
+import { listBriefsForDate } from '@/lib/queries/briefs';
 import { sanitizePublicBriefText } from '@/lib/security/public-brief-html';
 
 export const revalidate = 900;
@@ -16,8 +18,23 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { date } = await params;
   if (!DATE_RE.test(date)) return { title: 'Brief' };
-  const brief = await getBriefByDate(getDb(), date);
-  if (!brief) return { title: 'Brief' };
+  const rows = await listBriefsForDate(getDb(), date);
+  if (rows.length === 0) return { title: 'Brief' };
+  if (rows.length > 1) {
+    const description = `Briefs published for ${date}.`;
+    return {
+      title: `Briefs for ${date}`,
+      description,
+      alternates: { canonical: `/briefs/${date}` },
+      openGraph: {
+        type: 'website',
+        title: `Briefs for ${date}`,
+        description,
+        url: `/briefs/${date}`,
+      },
+    };
+  }
+  const brief = rows[0];
   const publicSubject = sanitizePublicBriefText(brief.subject) || 'Brief';
   const description = sanitizePublicBriefText(brief.ping).slice(0, 220) || publicSubject;
   return {
@@ -40,11 +57,32 @@ export default async function BriefPage({ params }: { params: Promise<{ date: st
   // Deliberately NOT safeQuery: if the DB is briefly down during background
   // revalidation, throwing keeps the previously rendered page serving
   // (ISR stale-on-error) instead of replacing it with a 404.
-  const brief = await getBriefByDate(getDb(), date);
-  if (!brief) notFound();
+  const rows = await listBriefsForDate(getDb(), date);
+  if (rows.length === 0) notFound();
+  if (rows.length === 1) {
+    return (
+      <main className="container">
+        <BriefArticle brief={rows[0]} />
+      </main>
+    );
+  }
   return (
     <main className="container">
-      <BriefArticle brief={brief} />
+      <h1>Briefs for {date}</h1>
+      <p className="brief-meta">This date has more than one brief. Choose a kind.</p>
+      <ul className="archive-list">
+        {rows.map((brief) => (
+          <li key={brief.kind}>
+            <BriefKindChip kind={brief.kind} subject={brief.subject} />
+            <div>
+              <Link href={briefPath(brief.date, brief.kind, brief.subject)}>
+                {sanitizePublicBriefText(brief.subject) || 'Brief'}
+              </Link>
+            </div>
+            <p className="excerpt">{sanitizePublicBriefText(brief.ping)}</p>
+          </li>
+        ))}
+      </ul>
     </main>
   );
 }

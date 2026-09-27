@@ -36,14 +36,15 @@ projection were dropped, re-publishing from pipeline state would rebuild it.
 | Route | What renders |
 |---|---|
 | `/` | Today's brief in full, the dashboard panel, a compact theme-map strip |
-| `/briefs`, `/briefs/[date]` | Brief archive with permalinks (daily + weekend) |
+| `/briefs`, `/briefs/[date]`, `/briefs/[date]/[kind]` | Brief archive with permalinks (`daily`, `weekend`, `week-ahead`) |
 | `/map`, `/map/[theme]` | The living theme map (see below) + per-theme event timeline, related claims, conviction-over-time |
 | `/accountability` | Method and coverage, track-specific performance, upcoming decisions, qualitative review, and a source-linked public ledger |
 | `/catalysts` | Upcoming forward events (what-would-surprise framing) and resolved events (expectation vs. outcome) |
 | `/research`, `/research/[date]` | Daily decision-research memos |
 | `/search` | Postgres full-text search across briefs, theme events, claims, and research |
 | `/feed.xml` | RSS feed of briefs |
-| `/about` | What Sovs Macro is and how it works, plus the disclaimer |
+| `/about` | What Sovs Macro is, the methodology, the sources policy, and the disclaimer |
+| `/sitemap.xml`, `/robots.txt` | Public URL list and crawler rules |
 
 `/map` is the flagship view: a field where each theme is placed by conviction band
 (y-axis) and 30-day directional pressure (x-axis) — see `docs/architecture.md` for the
