@@ -56,8 +56,9 @@ change.
 2. **CI green → review → merge.** Tests + typecheck + build must pass
    (`npm test` runs on PGlite, no database needed). For anything touching data
    *meaning*, sovsclaw reviews; for structure/infra/design, M5 reviews.
-3. **Merge is deploy.** Merging to `main` auto-deploys the Railway web
-   service, so CI green plus review happens before merge, never after.
+3. **Merge is deploy.** The `macro-watch` service (Railway project
+   `sovs-macro-site`, `production`) deploys from Railway's GitHub source on
+   `main`, so CI green plus review happens before merge, never after.
    `railway up` is a hotfix path only; `scripts/smoke.mjs` still verifies the
    live URL after any deploy.
 4. **Contract changes are two coordinated PRs** — one to `sovs-macro`
