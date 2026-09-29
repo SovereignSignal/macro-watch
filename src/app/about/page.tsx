@@ -18,19 +18,20 @@ export default function AboutPage() {
 
       <h2>Daily brief</h2>
       <p>
-        Weekday briefs publish Monday to Friday at 14:00 UTC. Each brief states the day&rsquo;s macro
-        read, what changed, and what would change the view. Brief HTML is sanitized before publication.
+        Weekday briefs publish Monday to Friday around 7:00 a.m. Pacific time. Each brief states the
+        day&rsquo;s macro read, what changed, and what would change the view. Brief HTML is sanitized
+        before publication.
       </p>
 
       <h2>Weekend review</h2>
       <p>
-        The Weekend Review publishes Saturday at 17:00 UTC. It looks back at the week on the theme
+        The Weekend Review publishes on Saturday. It looks back at the week on the theme
         map: which themes held, which moved, and which calls reached an outcome.
       </p>
 
       <h2>Week ahead</h2>
       <p>
-        The Week Ahead publishes Sunday at 23:00 UTC. It names the scheduled events and the
+        The Week Ahead publishes Sunday afternoon Pacific time. It names the scheduled events and the
         observations that would matter for the themes still on the map.
       </p>
 
@@ -66,7 +67,7 @@ export default function AboutPage() {
 
       <h2>Sources</h2>
       <p>
-        The site links to public primary sources. Paywalled sources are never republished. Text
+        The site links to public primary sources. Paid sources are paraphrased, not republished. Text
         and links from licensed news are rejected when a brief, memo, claim, or theme event is
         submitted, and stripped again when a stored page is rendered. Optional source blocks may
         be omitted when unavailable. Verified panels disclose source coverage and freshness.

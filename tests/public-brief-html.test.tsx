@@ -352,6 +352,43 @@ describe('legacy email chrome cleanup (2026-07-27 live-site defects)', () => {
     expect(clean).toContain('Forward Event Checkpoints');
   });
 
+  it('keeps a delta label and its status apart with a middle dot', () => {
+    const dirty = [
+      '<div class="delta-block"><p class="delta-title"><strong>Leverage</strong> &mdash; <span style="color:#53606f;font-weight:700;">Held</span></p>',
+      '<p class="delta-evidence">Evidence stays.</p></div>',
+      '<p class="delta-title"><strong>Private Markets</strong><span>Held</span></p>',
+      '<p class="delta-title"><strong>Leverage</strong>Held</p>',
+      '<p class="delta-title"><strong>Rates</strong> &#8212; <span>&#8593; Raised</span></p>',
+      '<p class="delta-title">Rates \u2014 hold</p>',
+    ].join('');
+    const clean = sanitizePublicBriefHtml(dirty);
+    expect(clean).toContain('Leverage · Held');
+    expect(clean).toContain('Private Markets · Held');
+    expect(clean).toContain('Rates · ↑ Raised');
+    expect(clean).toContain('Rates, hold');
+    expect(clean).not.toContain('LeverageHeld');
+    expect(clean).not.toContain('Private MarketsHeld');
+    expect(clean).not.toMatch(/<span[^>]*>\s*Held\s*<\/span>/);
+    expect(sanitizePublicBriefHtml(clean)).toContain('Leverage · Held');
+    expect(sanitizePublicBriefHtml(clean)).not.toContain('· ·');
+  });
+
+  it('drops a public Decision line and keeps the surrounding read', () => {
+    const clean = sanitizePublicBriefHtml(
+      '<p><strong>Finding:</strong> Semis are crowded.</p>' +
+        '<p><strong>Decision:</strong> Reduce any semiconductor holding into strength.</p>' +
+        '<p><strong>Watch:</strong> SOX versus the 50-day.</p>' +
+        '<div class="decision">The map holds the theme.</div>' +
+        '<p class="event-title">FOMC Decision</p>',
+    );
+    expect(clean).toContain('Semis are crowded.');
+    expect(clean).toContain('SOX versus the 50-day.');
+    expect(clean).toContain('The map holds the theme.');
+    expect(clean).toContain('FOMC Decision');
+    expect(clean).not.toMatch(/Decision\s*:/i);
+    expect(clean).not.toContain('semiconductor holding');
+  });
+
   it('keeps distinct forward-event fields intact', () => {
     const clean = sanitizePublicBriefHtml(
       '<div class="forward-event"><p class="event-title">CPI</p>' +

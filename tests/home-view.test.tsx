@@ -69,6 +69,46 @@ it('unitizes dashboard rows that ship with an as-of suffix', () => {
   expect(markup).not.toContain('6730912');
 });
 
+it('shows 1-day and 1-week changes when ingest provides them and omits the columns otherwise', () => {
+  const withChanges = renderToStaticMarkup(
+    <HomeView
+      brief={null}
+      panel={{
+        takenAt: '2026-09-29T14:00:00Z',
+        rows: [
+          { label: '2y UST', value: '4.92%', change: null, note: null, change1d: '+11bp', change1w: '+15bp' },
+          { label: 'HY Spread (OAS)', value: '2.63', change: null, note: null, change1w: '-4bp' },
+          { label: 'S&P 500 (SPY)', value: '769.35', change: '+0.60%', note: null },
+        ],
+      }}
+      cards={[]}
+    />,
+  );
+  expect(withChanges).toContain('>1-day<');
+  expect(withChanges).toContain('>1-week<');
+  expect(withChanges).toContain('+11bp');
+  expect(withChanges).toContain('+15bp');
+  expect(withChanges).toContain('-4bp');
+  expect(withChanges).toContain('263 bp');
+  expect(withChanges).toContain('+0.60%');
+  expect(withChanges).toContain('change-up');
+  expect(withChanges).toContain('change-down');
+
+  const without = renderToStaticMarkup(
+    <HomeView
+      brief={null}
+      panel={{
+        takenAt: '2026-09-29T14:00:00Z',
+        rows: [{ label: '2y UST', value: '4.92%', change: null, note: null }],
+      }}
+      cards={[]}
+    />,
+  );
+  expect(without).toContain('4.92%');
+  expect(without).not.toContain('1-day');
+  expect(without).not.toContain('1-week');
+});
+
 it('renders panel rows with change coloring', () => {
   const markup = renderToStaticMarkup(
     <HomeView

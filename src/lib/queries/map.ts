@@ -63,12 +63,35 @@ const THEME_DESCRIPTIONS: Record<string, string> = {
     'Tracks yen-funded leverage and official defense of currency and duration.',
 };
 
-function themeDescription(slug: string, name: string, supplied?: string | null): string {
-  return publicText(
-    supplied?.trim() ||
-    THEME_DESCRIPTIONS[slug] ||
-    `Tracks ${displayThemeName(slug, name).toLowerCase()}.`
-  );
+export const NEUTRAL_THEME_DESCRIPTION = 'No theme summary yet.';
+
+function normalizeThemePhrase(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[\u2014\u2013-]/g, ' ')
+    .replace(/[^a-z0-9\s]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/** `Tracks japan repatriation.` restates the name. A real summary says more. */
+function isAutoThemeDescription(description: string, slug: string, name: string): boolean {
+  const normalized = normalizeThemePhrase(description);
+  const labels = [displayThemeName(slug, name), name, slug.replace(/-/g, ' ')];
+  return labels.some((label) => {
+    const phrase = normalizeThemePhrase(`tracks ${label}`);
+    return phrase.length > 'tracks '.length && phrase === normalized;
+  });
+}
+
+function curatedThemeDescription(slug: string): string | undefined {
+  return THEME_DESCRIPTIONS[slug] ?? THEME_DESCRIPTIONS[canonicalThemeSlug(slug)];
+}
+
+export function themeDescriptionFor(slug: string, name: string, supplied?: string | null): string {
+  const suppliedText = supplied?.trim() ?? '';
+  if (suppliedText && !isAutoThemeDescription(suppliedText, slug, name)) return publicText(suppliedText);
+  return publicText(curatedThemeDescription(slug) ?? NEUTRAL_THEME_DESCRIPTION);
 }
 
 function toList(v: string | string[] | null | undefined): string[] {
@@ -135,7 +158,7 @@ export async function getThemeMapCards(
     bySlug.set(t.slug, {
       slug: t.slug,
       name: displayThemeName(t.slug, publicText(t.name)),
-      description: themeDescription(t.slug, t.name, s?.description),
+      description: themeDescriptionFor(t.slug, t.name, s?.description),
       status: s?.status === 'invalidated' ? 'retired' : s?.status ?? t.status,
       phase: s?.cell_phase ?? null,
       firstSeen: t.firstSeen,
@@ -153,7 +176,7 @@ export async function getThemeMapCards(
       bySlug.set(slug, {
         slug,
         name: displayThemeName(slug, s.name),
-        description: themeDescription(slug, s.name, s.description),
+        description: themeDescriptionFor(slug, s.name, s.description),
         status: s.status === 'invalidated' ? 'retired' : s.status ?? 'active',
         phase: s.cell_phase ?? null,
         firstSeen: s.first_seen ?? null,

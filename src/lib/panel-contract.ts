@@ -7,7 +7,25 @@ export type PanelRowItem = {
   note: string | null;
   /** Optional history from the pipeline. Absent rows fall back to panel snapshots. */
   spark?: number[];
+  /**
+   * 1-day and 1-week changes from ingest fields `change_1d` and `change_1w`.
+   * Omitted when the snapshot did not send them.
+   */
+  change1d?: string;
+  change1w?: string;
 };
+
+function optionalChangeField(raw: Record<string, unknown>, key: string): string | undefined {
+  if (!Object.prototype.hasOwnProperty.call(raw, key) || raw[key] == null) return undefined;
+  const value = raw[key];
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    if (value > 0) return `+${value}`;
+    return String(value);
+  }
+  if (typeof value !== 'string') return undefined;
+  const text = publicText(value).trim();
+  return text.length > 0 ? text : undefined;
+}
 
 const SPARK_MAX = 120;
 
@@ -53,13 +71,18 @@ export function panelView(payload: unknown): PanelView {
         rowsValid = false;
         continue;
       }
-      const spark = finiteSpark((raw as Record<string, unknown>).spark);
+      const rowRecord = raw as Record<string, unknown>;
+      const spark = finiteSpark(rowRecord.spark);
+      const change1d = optionalChangeField(rowRecord, 'change_1d');
+      const change1w = optionalChangeField(rowRecord, 'change_1w');
       rows.push({
         label: publicText(label),
         value: typeof value === 'string' ? publicText(value) : typeof value === 'number' ? String(value) : 'n/a',
         change: typeof change === 'string' ? publicText(change) : null,
         note: typeof note === 'string' ? publicText(note) : null,
         ...(spark ? { spark } : {}),
+        ...(change1d ? { change1d } : {}),
+        ...(change1w ? { change1w } : {}),
       });
     }
   }

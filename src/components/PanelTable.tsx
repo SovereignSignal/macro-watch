@@ -1,4 +1,5 @@
 import { finiteSpark, type PanelRowItem } from '@/lib/panel-contract';
+import type { HorizonChangeColumn } from '@/lib/panel-present';
 import { EmptyState } from './EmptyState';
 import { Sparkline } from './Sparkline';
 import { UpdatedAgo } from './UpdatedAgo';
@@ -15,8 +16,10 @@ export function PanelTable(props: {
   takenAt: string | null;
   summary?: string | null;
   columns?: [string, string, string];
+  horizonColumns?: readonly HorizonChangeColumn[];
 }) {
   const columns = props.columns ?? ['Market', 'Value', 'Change'];
+  const horizonColumns = props.horizonColumns ?? [];
   const showTrend = props.rows.some((row) => finiteSpark(row.spark));
   return (
     <div className="panel">
@@ -34,6 +37,7 @@ export function PanelTable(props: {
             <thead>
               <tr>
                 {columns.map((column) => <th key={column} scope="col">{column}</th>)}
+                {horizonColumns.map((column) => <th key={column.key} scope="col">{column.label}</th>)}
                 {showTrend ? <th scope="col">Trend</th> : null}
               </tr>
             </thead>
@@ -48,6 +52,12 @@ export function PanelTable(props: {
                   </th>
                   <td className="num">{row.value}</td>
                   <td className={row.change ? changeClass(row.change) : 'num'}>{row.change ?? ''}</td>
+                  {horizonColumns.map((column) => {
+                    const value = row[column.key] ?? '';
+                    return (
+                      <td key={column.key} className={value ? changeClass(value) : 'num'}>{value}</td>
+                    );
+                  })}
                   {showTrend ? (
                     <td className="spark-cell">
                       {spark ? (

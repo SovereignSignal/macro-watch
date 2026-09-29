@@ -2,10 +2,11 @@ import { z } from 'zod';
 
 /**
  * Paywalled publishers that must not be stored or rendered.
- * Bloomberg is always included. `BLOCKED_PUBLISHERS` adds more
+ * Bloomberg and Alpha Picks (AP Research) are always included, so an env
+ * override cannot publish them. `BLOCKED_PUBLISHERS` adds more
  * case-insensitive substrings (comma-separated), matched against text and URLs.
  */
-const DEFAULT_TERMS = ['bloomberg.com', 'bloomberg'];
+const DEFAULT_TERMS = ['bloomberg.com', 'bloomberg', 'alphapicks', 'alpha picks'];
 
 export function blockedPublisherTerms(): string[] {
   const extra = (process.env.BLOCKED_PUBLISHERS ?? '')

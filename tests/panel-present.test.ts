@@ -105,6 +105,27 @@ it('does not treat month names inside as-of as already-unitized', () => {
   ).toBe('$6.73T (as of August 29, 2026)');
 });
 
+it('adds 1-day and 1-week columns only when a row has them', () => {
+  const tape = presentDashboardRows([
+    { label: '2y UST', value: '4.92%', change: null, note: null, change1d: '+11bp', change1w: '+15bp' },
+    { label: 'HY Spread (OAS)', value: '3.02', change: null, note: null, change1w: '-7bp' },
+    { label: 'S&P 500 (SPY)', value: '769.35', change: '+0.60%', note: null },
+  ]);
+  expect(tape.horizonColumns).toEqual([
+    { key: 'change1d', label: '1-day' },
+    { key: 'change1w', label: '1-week' },
+  ]);
+  expect(tape.rows[0]).toMatchObject({ value: '4.92%', change1d: '+11bp', change1w: '+15bp' });
+  expect(tape.rows[1].change1d).toBeUndefined();
+  expect(tape.rows[1]).toMatchObject({ value: '302 bp', change1w: '-7bp' });
+  expect(tape.rows[2].change1d).toBeUndefined();
+  expect(tape.rows[2].change1w).toBeUndefined();
+
+  expect(presentDashboardRows([
+    { label: '2y UST', value: '4.92%', change: null, note: null },
+  ]).horizonColumns).toEqual([]);
+});
+
 it('drops empty comma notes from odds rows', () => {
   expect(
     presentPanelRow({
