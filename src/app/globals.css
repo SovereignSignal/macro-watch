@@ -651,6 +651,53 @@ a:focus-visible {
   font-size: 0.85rem;
 }
 
+.track-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1rem;
+  align-items: baseline;
+  margin: 0.85rem 0 0;
+}
+
+.track-rate {
+  font-family: var(--font-display, Georgia, serif);
+  font-size: 1.55rem;
+  letter-spacing: -0.02em;
+}
+
+.track-counts,
+.track-brier {
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.stale-notice {
+  margin: 0.45rem 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.badge-hit {
+  color: var(--mark-hit);
+  border-color: color-mix(in srgb, var(--mark-hit) 45%, var(--rule));
+}
+
+.badge-miss {
+  color: var(--mark-miss);
+  border-color: color-mix(in srgb, var(--mark-miss) 45%, var(--rule));
+}
+
+.badge-void,
+.badge-unknown {
+  color: var(--mark-faint);
+}
+
+.badge-open {
+  color: var(--mark-pending);
+  border-style: dashed;
+}
+
 /* --- instrument cards (theme map, strip, dossier): the signature ------------- */
 
 .theme-grid {
@@ -2278,6 +2325,45 @@ figure {
 
   .vs {
     grid-template-columns: 1fr;
+  }
+
+  .panel-table--stack {
+    min-width: 0;
+  }
+
+  .panel-table--stack thead {
+    display: none;
+  }
+
+  .panel-table--stack tbody tr {
+    display: block;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .panel-table--stack tbody tr:last-child {
+    border-bottom: none;
+  }
+
+  .panel-table--stack tbody th,
+  .panel-table--stack tbody td {
+    display: block;
+    min-width: 0;
+    padding: 0.12rem 0;
+    text-align: left;
+    white-space: normal;
+    border-bottom: none;
+  }
+
+  .panel-table--stack tbody td::before {
+    content: attr(data-label);
+    display: block;
+    color: var(--muted);
+    font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 0.1rem;
   }
 }
 

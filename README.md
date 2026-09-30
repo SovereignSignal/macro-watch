@@ -35,9 +35,10 @@ projection were dropped, re-publishing from pipeline state would rebuild it.
 
 | Route | What renders |
 |---|---|
-| `/` | Today's brief in full, the dashboard panel, a compact theme-map strip |
+| `/` | Today's brief in full, the dashboard panel, track-record summary, Kalshi movers, a compact theme-map strip |
 | `/briefs`, `/briefs/[date]`, `/briefs/[date]/[kind]` | Brief archive with permalinks (`daily`, `weekend`, `week-ahead`) |
 | `/map`, `/map/[theme]` | The living theme map (see below) + per-theme event timeline, related claims, conviction-over-time |
+| `/track-record` | Sovs Macro's own calls: hit rate, Brier, recent resolutions, open calls |
 | `/accountability` | Method and coverage, track-specific performance, upcoming decisions, qualitative review, and a source-linked public ledger |
 | `/catalysts` | Upcoming forward events (what-would-surprise framing) and resolved events (expectation vs. outcome) |
 | `/research`, `/research/[date]` | Daily decision-research memos |
@@ -85,7 +86,7 @@ publish.
 | `briefs` | `date` |
 | `theme-events` | `event_id` |
 | `theme-state` | latest snapshot (full `theme-state.json` payload) |
-| `panels` | `kind + taken_at` |
+| `panels` | `kind + taken_at`. On the scoreboard payload, optional `updated_at`, `scoreboard`, and `kalshi_movers` sit beside `rows`. Dashboard and odds_lens payloads may also carry `updated_at` |
 | `claims` | `claim_id` |
 | `forward-events` | `event_id` |
 

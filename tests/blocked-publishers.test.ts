@@ -72,6 +72,17 @@ beforeEach(async () => {
   db = await createTestDb();
 });
 
+it('blocks paywalled and email-only outlets by default', () => {
+  for (const term of ['bloomberg', 'alpha picks', 'ap research', 'alyosha', 'market vibes', 'the economist', 'economist.com']) {
+    expect(blockedPublisherTerms()).toContain(term);
+  }
+  expect(blockedPublisherIssue({ note: 'The Economist weekly' })).toMatch(/the economist/i);
+  expect(blockedPublisherIssue({ note: 'Alyosha on the dollar' })).toMatch(/alyosha/);
+  expect(blockedPublisherIssue({ note: 'Market Vibes tape' })).toMatch(/market vibes/);
+  expect(blockedPublisherIssue({ note: 'AP Research desk' })).toMatch(/ap research/);
+  expect(blockedPublisherIssue({ note: 'A labor economist disagreed.' })).toBeNull();
+});
+
 it('blocks Bloomberg by default and keeps extra publishers configurable', () => {
   expect(blockedPublisherTerms()).toContain('bloomberg');
   expect(blockedPublisherIssue({ html: 'See BLOOMBERG.COM/news' })).toMatch(/blocked publisher "bloomberg/i);
@@ -80,6 +91,26 @@ it('blocks Bloomberg by default and keeps extra publishers configurable', () => 
   expect(blockedPublisherTerms()).toEqual(expect.arrayContaining(['bloomberg', 'acmewire']));
   expect(blockedPublisherIssue({ ping: 'AcmeWire morning note' })).toMatch(/acmewire/);
   expect(blockedPublisherIssue({ html: '<p>The two-year rose.</p>' })).toBeNull();
+});
+
+it('strips an email-only research-inputs block on ingest and still rejects Bloomberg inside one', async () => {
+  const cleaned = await postBrief(post('briefs', {
+    ...BRIEF,
+    html: '<p>Public lead.</p><div class="research-inputs"><p>Oil under 70 stays in the email.</p></div><p>Public close.</p>',
+  }));
+  expect(cleaned.status).toBe(200);
+  const [row] = await db.select().from(briefs);
+  expect(row.html).toContain('Public lead.');
+  expect(row.html).toContain('Public close.');
+  expect(row.html.toLowerCase()).not.toContain('oil under 70');
+  expect(row.html).not.toContain('research-inputs');
+
+  const blocked = await postBrief(post('briefs', {
+    ...BRIEF,
+    date: '2026-07-12',
+    html: '<p>Public lead.</p><div class="research-inputs"><p>See Bloomberg for the auction.</p></div>',
+  }));
+  expect(blocked.status).toBe(422);
 });
 
 it('rejects a brief that names a blocked publisher and still accepts a clean daily', async () => {

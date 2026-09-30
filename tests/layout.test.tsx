@@ -31,7 +31,7 @@ it('describes public checks without claiming universal data verification', () =>
 });
 
 it('links every surface from the nav', () => {
-  for (const href of ['/briefs', '/map', '/research', '/accountability', '/catalysts', '/search', '/about']) {
+  for (const href of ['/briefs', '/map', '/research', '/track-record', '/accountability', '/catalysts', '/search', '/about']) {
     expect(markup).toContain(`href="${href}"`);
   }
 });

@@ -93,6 +93,7 @@ const SAFE_RELATIVE_ROUTES = [
   /^\/search$/,
   /^\/sitemap\.xml$/,
   /^\/research(?:\/\d{4}-\d{2}-\d{2})?$/,
+  /^\/track-record$/,
 ];
 
 const EMAIL_RE = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi;
@@ -447,6 +448,65 @@ function blankPlaceholderCells(html: string): string {
   return html.replace(EMPTY_DASH_CELL_RE, (_, tag: string, attribs = '') => `<${tag}${attribs}></${tag}>`);
 }
 
+const PRIVATE_CLASS_RE = /\b(?:email-derived|email-intake|research-inputs)\b/i;
+const VOID_TAGS = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'source', 'track', 'wbr']);
+
+function classAttr(attrs: string): string | null {
+  const match = /\bclass\s*=\s*(["'])([^"']*)\1/i.exec(attrs);
+  return match ? match[2] : null;
+}
+
+/**
+ * Drop email-only blocks before they can be unwrapped into public text.
+ * `research-inputs`, `email-derived`, and `email-intake` stay in the email
+ * and must not survive ingest or a later render of a stored row.
+ */
+export function stripUnpublishedClassBlocks(html: string): string {
+  const tokenRe = /<!--[\s\S]*?-->|<\/([a-zA-Z][\w:-]*)\s*>|<([a-zA-Z][\w:-]*)\b([^>]*)>/g;
+  let result = '';
+  let cursor = 0;
+  const stack: { tag: string; drop: boolean }[] = [];
+  let depth = 0;
+  for (const match of html.matchAll(tokenRe)) {
+    const index = match.index ?? 0;
+    const full = match[0];
+    if (depth === 0) result += html.slice(cursor, index);
+    cursor = index + full.length;
+    if (full.startsWith('<!--')) {
+      if (depth === 0) result += full;
+      continue;
+    }
+    if (full.startsWith('</')) {
+      const tag = (match[1] ?? '').toLowerCase();
+      let matched = false;
+      for (let i = stack.length - 1; i >= 0; i -= 1) {
+        if (stack[i].tag !== tag) continue;
+        const frame = stack[i];
+        stack.length = i;
+        if (frame.drop) depth = Math.max(0, depth - 1);
+        if (depth === 0 && !frame.drop) result += full;
+        matched = true;
+        break;
+      }
+      if (!matched && depth === 0) result += full;
+      continue;
+    }
+    const tag = (match[2] ?? '').toLowerCase();
+    const attrs = match[3] ?? '';
+    const selfClosing = /\/\s*$/.test(attrs) || VOID_TAGS.has(tag);
+    const drop = PRIVATE_CLASS_RE.test(classAttr(attrs) ?? '');
+    if (selfClosing) {
+      if (depth === 0 && !drop) result += full;
+      continue;
+    }
+    if (depth === 0 && !drop) result += full;
+    stack.push({ tag, drop });
+    if (drop) depth += 1;
+  }
+  if (depth === 0) result += html.slice(cursor);
+  return result;
+}
+
 const DELTA_STATUS = 'New candidate|Invalidated|(?:\\u2191\\s*)?Raised|(?:\\u2193\\s*)?Lowered|Held';
 const DELTA_STATUS_EXACT = new RegExp(`^(?:${DELTA_STATUS})$`, 'i');
 
@@ -533,7 +593,9 @@ export function sanitizePublicBriefHtml(dirtyHtml: string): string {
   // private text cannot survive as recoverable entities in stored HTML.
   // Paywalled-publisher blocks are dropped before the allowlist pass, and
   // publicText redacts any name that still reaches a text node.
-  const prepared = dropPublicDecisionLines(separateDeltaLabels(decodeTextEntities(dirtyHtml)));
+  const prepared = dropPublicDecisionLines(
+    separateDeltaLabels(stripUnpublishedClassBlocks(decodeTextEntities(dirtyHtml))),
+  );
   const canonical = stripBlockedPublisherHtml(blankPlaceholderCells(prepared));
   return dedupeForwardEventEchoes(
     publicText(sanitizeHtml(sanitizeHtml(canonical, options), options)),
