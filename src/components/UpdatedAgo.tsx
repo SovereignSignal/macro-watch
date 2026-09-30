@@ -8,7 +8,7 @@ import { formatAgo, formatUtcStamp } from '@/lib/format';
  * Renders a neutral placeholder until mounted (no hydration mismatch),
  * then ticks every 60s.
  */
-export function UpdatedAgo({ takenAt }: { takenAt: string }) {
+export function UpdatedAgo({ takenAt, lead = 'updated' }: { takenAt: string; lead?: string }) {
   const [now, setNow] = useState<number | null>(null);
   useEffect(() => {
     setNow(Date.now());
@@ -18,8 +18,8 @@ export function UpdatedAgo({ takenAt }: { takenAt: string }) {
   return (
     <span className="chip updated-ago" title={new Date(takenAt).toUTCString()}>
       {now === null
-        ? `updated ${formatUtcStamp(takenAt)}`
-        : `updated ${formatAgo(new Date(takenAt).getTime(), now)}`}
+        ? `${lead} ${formatUtcStamp(takenAt)}`
+        : `${lead} ${formatAgo(new Date(takenAt).getTime(), now)}`}
     </span>
   );
 }

@@ -193,6 +193,24 @@ describe('sanitizePublicBriefHtml', () => {
     expect(sanitizePublicBriefHtml(clean)).toBe(clean);
   });
 
+  it('drops email-only research-inputs blocks and keeps the public paragraphs', () => {
+    const clean = sanitizePublicBriefHtml(
+      '<p>Public lead.</p>' +
+        '<div class="section research-inputs"><div><p>Oil under 70 stays in the email.</p></div></div>' +
+        '<section class="email-derived"><p>Email intake only.</p></section>' +
+        '<p class="email-intake">Another private note.</p>' +
+        '<p>Public close.</p>',
+    );
+    expect(clean).toContain('Public lead.');
+    expect(clean).toContain('Public close.');
+    expect(clean.toLowerCase()).not.toContain('oil under 70');
+    expect(clean.toLowerCase()).not.toContain('email intake only');
+    expect(clean.toLowerCase()).not.toContain('another private note');
+    expect(clean).not.toContain('research-inputs');
+    expect(clean).not.toContain('email-derived');
+    expect(clean).not.toContain('email-intake');
+  });
+
   it('drops paywalled publisher blocks and redacts any leftover name', () => {
     const clean = sanitizePublicBriefHtml(
       '<p>See <a href="https://www.bloomberg.com/news/story">the wire</a> for the auction.</p>' +

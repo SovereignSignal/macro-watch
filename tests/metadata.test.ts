@@ -8,6 +8,7 @@ import { metadata as layoutMetadata } from '@/app/layout';
 import { metadata as mapMetadata } from '@/app/map/page';
 import { metadata as homeMetadata } from '@/app/page';
 import { metadata as searchMetadata } from '@/app/search/page';
+import { metadata as trackRecordMetadata } from '@/app/track-record/page';
 
 function canonical(metadata: Metadata): string | undefined {
   return metadata.alternates?.canonical?.toString();
@@ -33,6 +34,7 @@ it.each([
   ['/', homeMetadata],
   ['/briefs', briefsMetadata],
   ['/map', mapMetadata],
+  ['/track-record', trackRecordMetadata],
   ['/accountability', accountabilityMetadata],
   ['/catalysts', catalystsMetadata],
   ['/search', searchMetadata],

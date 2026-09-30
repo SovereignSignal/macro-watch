@@ -8,6 +8,7 @@ const LINKS: { href: string; label: string; match: (path: string) => boolean }[]
   { href: '/briefs', label: 'Archive', match: (path) => path.startsWith('/briefs') },
   { href: '/map', label: 'Theme map', match: (path) => path.startsWith('/map') },
   { href: '/research', label: 'Research', match: (path) => path.startsWith('/research') },
+  { href: '/track-record', label: 'Track record', match: (path) => path.startsWith('/track-record') },
   { href: '/accountability', label: 'Accountability', match: (path) => path.startsWith('/accountability') },
   { href: '/catalysts', label: 'Catalysts', match: (path) => path.startsWith('/catalysts') },
   { href: '/search', label: 'Search', match: (path) => path.startsWith('/search') },

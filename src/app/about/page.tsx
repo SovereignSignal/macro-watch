@@ -12,8 +12,8 @@ export default function AboutPage() {
       <h1>About Sovs Macro</h1>
       <p>
         Sovs Macro is the public site for a macro research pipeline. It publishes a daily brief,
-        a weekend review, a week-ahead note, a theme map, research memos, a catalyst board, and
-        an accountability ledger. Sovs Macro is a Sovereign Signal project.
+        a weekend review, a week-ahead note, a theme map, research memos, a catalyst board, a
+        track record of its own calls, and an accountability ledger. Sovs Macro is a Sovereign Signal project.
       </p>
 
       <h2>Daily brief</h2>
@@ -41,6 +41,14 @@ export default function AboutPage() {
         conviction level, a short read, the conditions that would raise or lower it, and a timeline
         of evidence. When a theme is renamed, the older name stays in the database and the map
         shows the current name, with the older evidence folded into that page.
+      </p>
+
+      <h2>Track record</h2>
+      <p>
+        The <a href="/track-record">track record</a> is Sovs Macro&rsquo;s own calls: a hit rate,
+        a Brier score when one is published, recently resolved calls, and the calls still open.
+        The biggest Kalshi odds moves sit on the home page, with the window they were measured
+        over and a stale notice when the feed is late.
       </p>
 
       <h2>Accountability and claims scoring</h2>

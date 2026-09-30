@@ -2,10 +2,13 @@ import type { PanelRowItem } from '@/lib/panel-contract';
 import type { BriefRow } from '@/lib/queries/briefs';
 import type { ThemeCard } from '@/lib/queries/map';
 import { presentDashboardRows, presentPanelRows } from '@/lib/panel-present';
+import { EMPTY_WATCH, type PublishedWatch } from '@/lib/public-watch';
 import { BriefArticle } from './BriefArticle';
 import { EmptyState } from './EmptyState';
+import { KalshiMovers } from './KalshiMovers';
 import { PanelTable } from './PanelTable';
 import { ThemeStrip } from './ThemeStrip';
+import { TrackRecordSummary } from './TrackRecord';
 
 export function HomeView(props: {
   brief: BriefRow | null;
@@ -14,9 +17,11 @@ export function HomeView(props: {
   cards: ThemeCard[];
   sparks?: Record<string, number[]>;
   asOf?: string;
+  watch?: PublishedWatch | null;
 }) {
   const dashboard = presentDashboardRows(props.panel?.rows ?? [], props.panel?.history);
   const oddsRows = presentPanelRows(props.oddsPanel?.rows ?? []);
+  const watch = props.watch ?? EMPTY_WATCH;
   return (
     <main className="container">
       {props.brief ? (
@@ -47,6 +52,8 @@ export function HomeView(props: {
           />
         </section>
       ) : null}
+      <TrackRecordSummary scoreboard={watch.scoreboard} />
+      <KalshiMovers movers={watch.kalshiMovers} />
       <section aria-label="Theme map">
         <h2>Theme map</h2>
         <ThemeStrip cards={props.cards} sparks={props.sparks} asOf={props.asOf} />

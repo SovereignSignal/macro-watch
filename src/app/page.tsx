@@ -4,6 +4,8 @@ import { panelRows } from '@/lib/panel-contract';
 import { getLatestBrief } from '@/lib/queries/briefs';
 import { getConvictionSparks, getThemeMapCards } from '@/lib/queries/map';
 import { getDashboardHistory, getLatestPanel, getLatestVerifiedPanel } from '@/lib/queries/panels';
+import { getPublishedWatch } from '@/lib/queries/watch';
+import { EMPTY_WATCH } from '@/lib/public-watch';
 import { safeQuery } from '@/lib/safe';
 import { pageMetadata } from '@/lib/metadata';
 
@@ -24,6 +26,7 @@ export default async function HomePage() {
   const oddsPanel = await safeQuery(() => getLatestVerifiedPanel(db, 'odds_lens'), null);
   const map = await safeQuery(() => getThemeMapCards(db), { takenAt: null, cards: [], asOf: null });
   const sparks = await safeQuery(() => getConvictionSparks(db), {});
+  const watch = await safeQuery(() => getPublishedWatch(db), EMPTY_WATCH);
   // The home strip keeps dormant candidates off the field on the map's own clock, like /map.
   const asOf = map.asOf ?? new Date().toISOString().slice(0, 10);
   return (
@@ -42,6 +45,7 @@ export default async function HomePage() {
       cards={map.cards}
       sparks={sparks}
       asOf={asOf}
+      watch={watch}
     />
   );
 }

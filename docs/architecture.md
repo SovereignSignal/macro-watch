@@ -78,9 +78,29 @@ Revalidation targets by endpoint:
 | `briefs` | `/`, `/briefs`, `/briefs/[date]`, `/briefs/[date]/[kind]`, `/feed.xml` |
 | `theme-events` | `/`, `/map` (layout — cascades to all `/map/[theme]`) |
 | `theme-state` | `/`, `/map` (layout) |
-| `panels` | `/accountability` if `kind === 'scoreboard'`, otherwise `/` |
+| `panels` | `/`, `/track-record`, and `/accountability` when `kind === 'scoreboard'` |
 | `claims` | `/accountability`, `/map` (layout — claims surface as "related claims" on theme pages) |
 | `forward-events` | `/catalysts` |
+
+## Public watch keys on the scoreboard panel
+
+Panel kinds stay `dashboard`, `odds_lens`, and `scoreboard`. The fast publish adds
+optional keys inside the existing scoreboard payload, beside `rows`. A missing key
+renders an empty state. `rows` is still stored and is not the track-record table.
+
+| Field path | Use |
+|---|---|
+| `scoreboard` panel `payload.updated_at` | ISO timestamp. Also stamped on the latest `dashboard` and `odds_lens` payloads. The header and footer show `Updated <relative time>` from the newest of those three. |
+| `scoreboard` panel `payload.rows` | Unchanged legacy summary rows. |
+| `scoreboard` panel `payload.scoreboard` | `{as_of, totals:{scored,hit,miss,void,open,hit_rate,brier}, recent:[...], open:[...]}`. `/track-record` and the home summary. |
+| `scoreboard` panel `payload.scoreboard.recent[]` | `{call_id,title,made_at,resolved_at,status,note,url?}`. `call_id` must start with `sovs-macro:`. |
+| `scoreboard` panel `payload.scoreboard.open[]` | `{call_id,title,made_at,horizon}`. |
+| `scoreboard` panel `payload.kalshi_movers` | `{as_of, window_hours, stale, items:[...]}`. Home board. |
+| `scoreboard` panel `payload.kalshi_movers.items[]` | `{ticker,title,url,prob_now,prob_prev,change_pp,change_1h_pp?,volume_24h,category}`. The 1-hour column renders only when `change_1h_pp` is present. |
+
+`hit_rate` and `brier` may be JSON `null`. Calls and markets whose id, title, note, url,
+source, or publication names AP Research, Alpha Picks, Alyosha, Market Vibes, Bloomberg,
+or The Economist are dropped on ingest and again at render. `payload.rows` is not filtered.
 
 ## Health endpoint
 

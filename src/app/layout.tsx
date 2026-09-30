@@ -3,7 +3,7 @@ import { Fraunces, IBM_Plex_Mono } from 'next/font/google';
 import Link from 'next/link';
 import { Suspense } from 'react';
 import { Mark } from '@/components/Mark';
-import { MastheadUpdated } from '@/components/MastheadUpdated';
+import { FooterUpdated, MastheadUpdated } from '@/components/MastheadUpdated';
 import { SiteNav } from '@/components/SiteNav';
 import { siteUrl } from '@/lib/site-url';
 import './globals.css';
@@ -68,11 +68,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </span>{' '}
             Sovs Macro is a Sovereign Signal project. AI composed. Brief HTML is sanitized before publication; verified panels disclose source coverage.
           </p>
+          <Suspense fallback={null}>
+            <FooterUpdated />
+          </Suspense>
           <p>
             Research only. No buy or sell recommendations.
           </p>
           <p className="footer-links">
             <a href="/feed.xml">RSS</a> · <Link href="/about">About</Link> ·{' '}
+            <Link href="/track-record">Track record</Link> ·{' '}
             <Link href="/accountability">Accountability</Link>
           </p>
         </footer>
