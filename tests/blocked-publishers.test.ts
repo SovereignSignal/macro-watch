@@ -2,7 +2,7 @@ import { beforeEach, expect, it, vi } from 'vitest';
 import { briefs, claims, themeEvents } from '@/db/schema';
 import type { Db } from '@/db/client';
 import { blockedPublisherIssue, blockedPublisherTerms } from '@/lib/security/blocked-publishers';
-import { sanitizePublicBriefText } from '@/lib/security/public-brief-html';
+import { sanitizePublicBriefHtml, sanitizePublicBriefText } from '@/lib/security/public-brief-html';
 import { createTestDb } from './helpers/db';
 
 vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }));
@@ -111,6 +111,29 @@ it('rejects blocked text in research, claims, and theme events', async () => {
   expect((await postEvents(post('theme-events', { ...EVENT, evidence: 'From Bloomberg.com' }))).status).toBe(422);
   expect((await postEvents(post('theme-events', EVENT))).status).toBe(200);
   expect(await db.select().from(themeEvents)).toHaveLength(1);
+});
+
+it('blocks Alpha Picks by default even when BLOCKED_PUBLISHERS names something else', async () => {
+  expect(blockedPublisherTerms()).toEqual(expect.arrayContaining(['alphapicks', 'alpha picks']));
+  expect(blockedPublisherIssue({ html: 'https://alphapicks.co.uk/p/so-called-bessent-put' })).toMatch(/alphapicks/);
+  expect(blockedPublisherIssue({ note: 'Alpha Picks morning note' })).toMatch(/alpha picks/);
+
+  process.env.BLOCKED_PUBLISHERS = 'acmewire';
+  expect(blockedPublisherTerms()).toEqual(expect.arrayContaining(['alphapicks', 'alpha picks', 'acmewire']));
+  expect(blockedPublisherIssue({ html: '<p>See alphapicks.co.uk for the call.</p>' })).toMatch(/alphapicks/);
+
+  const blocked = await postBrief(post('briefs', { ...BRIEF, html: '<p>Alpha Picks says the backstop is live.</p>' }));
+  expect(blocked.status).toBe(422);
+  expect(await db.select().from(briefs)).toHaveLength(0);
+
+  const clean = sanitizePublicBriefText('Talk of an official backstop, per Alpha Picks.');
+  expect(clean.toLowerCase()).not.toContain('alpha picks');
+  expect(clean.toLowerCase()).not.toContain('alphapicks');
+  const html = sanitizePublicBriefHtml(
+    '<p>Talk of an official backstop. <a href="https://alphapicks.co.uk/p/note">the note</a></p><p>The two-year rose.</p>',
+  );
+  expect(html.toLowerCase()).not.toContain('alphapicks');
+  expect(html).toContain('The two-year rose.');
 });
 
 it('redacts a stored publisher name at render time', () => {

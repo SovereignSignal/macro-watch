@@ -22,6 +22,16 @@ it('panelRows extracts rows defensively from unknown payloads', () => {
     { label: 'ES', value: '6,412.50', change: '+0.4%', note: null },
     { label: 'N', value: '42', change: null, note: null },
   ]);
+  expect(panelRows({
+    rows: [{ label: '2y UST', value: '4.92%', change_1d: '+11bp', change_1w: 15, note: null }],
+  })).toEqual([
+    { label: '2y UST', value: '4.92%', change: null, note: null, change1d: '+11bp', change1w: '+15' },
+  ]);
+  expect(panelRows({
+    rows: [{ label: 'HY Spread (OAS)', value: '3.02', change_1d: { bad: true } }],
+  })).toEqual([
+    { label: 'HY Spread (OAS)', value: '3.02', change: null, note: null },
+  ]);
 });
 
 it('panelCoverage exposes only atomically verified source counts', () => {

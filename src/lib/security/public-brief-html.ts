@@ -447,6 +447,81 @@ function blankPlaceholderCells(html: string): string {
   return html.replace(EMPTY_DASH_CELL_RE, (_, tag: string, attribs = '') => `<${tag}${attribs}></${tag}>`);
 }
 
+const DELTA_STATUS = 'New candidate|Invalidated|(?:\\u2191\\s*)?Raised|(?:\\u2193\\s*)?Lowered|Held';
+const DELTA_STATUS_EXACT = new RegExp(`^(?:${DELTA_STATUS})$`, 'i');
+
+function visibleText(html: string): string {
+  return html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function escapeBriefText(value: string): string {
+  return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function displayDeltaStatus(status: string): string {
+  const text = status.replace(/\s+/g, ' ').trim();
+  const lower = text.toLowerCase();
+  if (lower === 'held') return 'Held';
+  if (lower === 'invalidated') return 'Invalidated';
+  if (lower === 'new candidate') return 'New candidate';
+  if (lower.replace(/^\u2191\s*/, '') === 'raised') return text.includes('\u2191') ? '\u2191 Raised' : 'Raised';
+  if (lower.replace(/^\u2193\s*/, '') === 'lowered') return text.includes('\u2193') ? '\u2193 Lowered' : 'Lowered';
+  return text;
+}
+
+function cleanDeltaTheme(theme: string): string {
+  return theme.replace(/[\s\u2014\u2013\u00b7,|:/]+$/g, '').trim();
+}
+
+/**
+ * Delta rows are a theme in <strong> followed by a status in an unclassed
+ * span. The em dash between them is its own text node, so the placeholder
+ * pass deletes it and the span unwraps, which renders "LeverageHeld". Keep
+ * the status in the same text node as the theme, separated by a middle dot.
+ */
+function splitDeltaTitle(innerHtml: string): { theme: string; status: string } | null {
+  const strong = innerHtml.match(/<strong\b[^>]*>([\s\S]*?)<\/strong>/i);
+  if (strong) {
+    const spans = [...innerHtml.matchAll(/<span\b[^>]*>([\s\S]*?)<\/span>/gi)];
+    for (let i = spans.length - 1; i >= 0; i -= 1) {
+      const status = visibleText(spans[i][1]);
+      if (!DELTA_STATUS_EXACT.test(status)) continue;
+      const theme = cleanDeltaTheme(visibleText(strong[1]));
+      if (theme) return { theme, status: displayDeltaStatus(status) };
+    }
+  }
+  const text = innerHtml.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+  const separated = text.match(new RegExp(`^(.*?)\\s*(?:[\\u2014\\u2013\\u00b7]|,)\\s*(${DELTA_STATUS})$`, 'i'));
+  if (separated) {
+    const theme = cleanDeltaTheme(separated[1]);
+    if (theme) return { theme, status: displayDeltaStatus(separated[2]) };
+  }
+  const glued = text.match(new RegExp(`^(.*[a-z0-9)])(${DELTA_STATUS})$`));
+  if (glued) {
+    const theme = cleanDeltaTheme(glued[1]);
+    if (theme) return { theme, status: displayDeltaStatus(glued[2]) };
+  }
+  return null;
+}
+
+function separateDeltaLabels(html: string): string {
+  return html.replace(
+    /<p\b([^>]*\bclass\s*=\s*(["'])[^"']*\bdelta-title\b[^"']*\2[^>]*)>([\s\S]*?)<\/p>/gi,
+    (full, attrs: string, _quote: string, inner: string) => {
+      const split = splitDeltaTitle(inner);
+      if (!split) return full;
+      return `<p${attrs}><strong>${escapeBriefText(split.theme)} \u00b7 ${escapeBriefText(split.status)}</strong></p>`;
+    },
+  );
+}
+
+/** "Decision:" lines are portfolio actions. The public footer forbids those. */
+function dropPublicDecisionLines(html: string): string {
+  return html.replace(/<(p|li)\b[^>]*>[\s\S]*?<\/\1>/gi, (block) => (
+    /^decision\s*:/i.test(visibleText(block)) ? '' : block
+  ));
+}
+
 /**
  * Sanitizes publisher HTML for public display and storage.
  *
@@ -458,7 +533,8 @@ export function sanitizePublicBriefHtml(dirtyHtml: string): string {
   // private text cannot survive as recoverable entities in stored HTML.
   // Paywalled-publisher blocks are dropped before the allowlist pass, and
   // publicText redacts any name that still reaches a text node.
-  const canonical = stripBlockedPublisherHtml(blankPlaceholderCells(decodeTextEntities(dirtyHtml)));
+  const prepared = dropPublicDecisionLines(separateDeltaLabels(decodeTextEntities(dirtyHtml)));
+  const canonical = stripBlockedPublisherHtml(blankPlaceholderCells(prepared));
   return dedupeForwardEventEchoes(
     publicText(sanitizeHtml(sanitizeHtml(canonical, options), options)),
   ).trim();

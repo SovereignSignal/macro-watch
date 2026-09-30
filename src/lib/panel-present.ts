@@ -95,12 +95,16 @@ export function presentPanelRow(row: PanelRowItem, options?: PresentPanelOptions
   const value = tidyCell(row.value) ?? row.value;
   const formatted = formatPanelValue(label, value);
   const spark = finiteSpark(row.spark);
+  const change1d = formatPanelChange(label, row.change1d ?? null);
+  const change1w = formatPanelChange(label, row.change1w ?? null);
   return {
     label,
     value: options?.omitAsOf ? (splitAsOf(formatted).core || formatted) : formatted,
     change: formatPanelChange(label, row.change),
     note: tidyCell(row.note),
     ...(spark ? { spark } : {}),
+    ...(change1d ? { change1d } : {}),
+    ...(change1w ? { change1w } : {}),
   };
 }
 
@@ -120,10 +124,21 @@ export function presentPanelRows(rows: PanelRowItem[], options?: PresentPanelOpt
 
 const HORIZON_7D = /\s*\(7d\)\s*$/i;
 
+export type HorizonChangeColumn = { key: 'change1d' | 'change1w'; label: string };
+
+/** Columns for 1-day / 1-week changes. Empty when the snapshot did not send them. */
+export function dashboardHorizonColumns(rows: PanelRowItem[]): HorizonChangeColumn[] {
+  const columns: HorizonChangeColumn[] = [];
+  if (rows.some((row) => row.change1d)) columns.push({ key: 'change1d', label: '1-day' });
+  if (rows.some((row) => row.change1w)) columns.push({ key: 'change1w', label: '1-week' });
+  return columns;
+}
+
 /** Homepage tape: one as-of in the header, one 7d label on the column. */
 export function presentDashboardRows(rows: PanelRowItem[], history?: Record<string, number[]>): {
   rows: PanelRowItem[];
   changeColumn: string;
+  horizonColumns: HorizonChangeColumn[];
 } {
   const presented = rows.map((row) => {
     const spark = dashboardSpark(row, history);
@@ -132,9 +147,11 @@ export function presentDashboardRows(rows: PanelRowItem[], history?: Record<stri
   });
   const changes = presented.map((row) => row.change).filter((change): change is string => Boolean(change));
   const all7d = changes.length > 0 && changes.every((change) => HORIZON_7D.test(change));
-  if (!all7d) return { rows: presented, changeColumn: 'Change' };
+  const horizonColumns = dashboardHorizonColumns(presented);
+  if (!all7d) return { rows: presented, changeColumn: 'Change', horizonColumns };
   return {
     changeColumn: 'Change (7d)',
+    horizonColumns,
     rows: presented.map((row) => ({
       ...row,
       change: row.change ? row.change.replace(HORIZON_7D, '') : row.change,
