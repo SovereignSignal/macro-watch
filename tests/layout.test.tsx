@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { expect, it, vi } from 'vitest';
 
@@ -43,4 +44,10 @@ it('marks the brief as the current page on /', () => {
 
 it('renders children', () => {
   expect(markup).toContain('page content');
+});
+
+it('keeps the Updated stamp in the header only', () => {
+  const layout = fs.readFileSync('src/app/layout.tsx', 'utf8');
+  expect(layout.match(/<MastheadUpdated \/>/g)).toHaveLength(1);
+  expect(layout).not.toContain('FooterUpdated');
 });

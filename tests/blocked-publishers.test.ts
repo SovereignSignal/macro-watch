@@ -73,14 +73,17 @@ beforeEach(async () => {
 });
 
 it('blocks paywalled and email-only outlets by default', () => {
-  for (const term of ['bloomberg', 'alpha picks', 'ap research', 'alyosha', 'market vibes', 'the economist', 'economist.com']) {
+  for (const term of ['bloomberg', 'alpha picks', 'ap research', 'alyosha', 'jj745', 'market vibes', 'the economist', 'economist.com', 'economist']) {
     expect(blockedPublisherTerms()).toContain(term);
   }
   expect(blockedPublisherIssue({ note: 'The Economist weekly' })).toMatch(/the economist/i);
   expect(blockedPublisherIssue({ note: 'Alyosha on the dollar' })).toMatch(/alyosha/);
   expect(blockedPublisherIssue({ note: 'Market Vibes tape' })).toMatch(/market vibes/);
   expect(blockedPublisherIssue({ note: 'AP Research desk' })).toMatch(/ap research/);
-  expect(blockedPublisherIssue({ note: 'A labor economist disagreed.' })).toBeNull();
+  expect(blockedPublisherIssue({ html: 'https://jj745.substack.com/p/note' })).toMatch(/jj745/);
+  expect(blockedPublisherIssue({ note: 'A labor economist disagreed.' })).toMatch(/economist/);
+  expect(blockedPublisherIssue({ note: 'Economists at the Fed disagreed.' })).toBeNull();
+  expect(blockedPublisherIssue({ note: 'The economy slowed.' })).toBeNull();
 });
 
 it('blocks Bloomberg by default and keeps extra publishers configurable', () => {

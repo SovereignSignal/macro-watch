@@ -6,6 +6,10 @@ export const metadata = pageMetadata({
   path: '/about',
 });
 
+// This page has no other server data. Without a dynamic render, Next caches
+// the layout's empty Suspense fallback and the header Updated stamp never appears.
+export const dynamic = 'force-dynamic';
+
 export default function AboutPage() {
   return (
     <main className="container">

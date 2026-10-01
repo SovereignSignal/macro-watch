@@ -41,68 +41,98 @@ it('relabels ETF tickers and unitizes known dashboard rows', () => {
   ).toBe('-1.47 pts');
 });
 
-it('unitizes live dashboard values that carry an as-of suffix', () => {
-  expect(
-    presentPanelRow({
-      label: 'Fed Balance Sheet',
-      value: '6730912.0 (as of 2026-08-29)',
-      change: '-0.22% (7d)',
-      note: null,
-    }).value,
-  ).toBe('$6.73T (as of 2026-08-29)');
-  expect(
-    presentPanelRow({
-      label: 'Reverse Repo (RRP)',
-      value: '0.17 (as of 2026-08-29)',
-      change: null,
-      note: null,
-    }).value,
-  ).toBe('$0.17B (as of 2026-08-29)');
-  expect(
-    presentPanelRow({
-      label: 'HY Spread (OAS)',
-      value: '2.63 (as of 2026-08-29)',
-      change: null,
-      note: null,
-    }).value,
-  ).toBe('263 bp (as of 2026-08-29)');
-  expect(
-    presentPanelRow({
-      label: 'IG Spread (OAS)',
-      value: '0.79 (as of 2026-08-29)',
-      change: null,
-      note: null,
-    }).value,
-  ).toBe('79 bp (as of 2026-08-29)');
-  expect(
-    presentPanelRow({
-      label: 'S&P 500 (SPY)',
-      value: '769.35 (as of 2026-08-29)',
-      change: '+0.60% (7d)',
-      note: null,
-    }).value,
-  ).toBe('769.35 (as of 2026-08-29)');
+it('unitizes live dashboard values and lifts an as-of suffix into a subtle label', () => {
+  expect(presentPanelRow({
+    label: 'Fed Balance Sheet',
+    value: '6730912.0 (as of 2026-08-29)',
+    change: '-0.22% (7d)',
+    note: null,
+  })).toMatchObject({ value: '$6.73T', freshness: 'as of 8/29', freshnessAt: '2026-08-29' });
+  expect(presentPanelRow({
+    label: 'Reverse Repo (RRP)',
+    value: '0.17 (as of 2026-08-29)',
+    change: null,
+    note: null,
+  })).toMatchObject({ value: '$0.17B', freshness: 'as of 8/29' });
+  expect(presentPanelRow({
+    label: 'HY Spread (OAS)',
+    value: '2.63 (as of 2026-08-29)',
+    change: null,
+    note: null,
+  })).toMatchObject({ value: '263 bp', freshness: 'as of 8/29' });
+  expect(presentPanelRow({
+    label: 'IG Spread (OAS)',
+    value: '0.79 (as of 2026-08-29)',
+    change: null,
+    note: null,
+  })).toMatchObject({ value: '79 bp', freshness: 'as of 8/29' });
+  expect(presentPanelRow({
+    label: 'S&P 500 (SPY)',
+    value: '769.35 (as of 2026-08-29)',
+    change: '+0.60% (7d)',
+    note: null,
+  })).toMatchObject({ value: '769.35', freshness: 'as of 8/29' });
 });
 
-it('drops repeated as-of and 7d labels on the homepage tape', () => {
+it('keeps one 7d column label and a subtle as-of on each homepage value', () => {
   const tape = presentDashboardRows([
     { label: 'Fed Balance Sheet', value: '6730912.0 (as of 2026-08-29)', change: '-0.22% (7d)', note: null },
     { label: 'HY Spread (OAS)', value: '2.63 (as of 2026-08-29)', change: null, note: null },
   ]);
   expect(tape.changeColumn).toBe('Change (7d)');
-  expect(tape.rows[0]).toMatchObject({ value: '$6.73T', change: '-0.22%' });
-  expect(tape.rows[1].value).toBe('263 bp');
+  expect(tape.rows[0]).toMatchObject({ value: '$6.73T', change: '-0.22%', freshness: 'as of 8/29' });
+  expect(tape.rows[1]).toMatchObject({ value: '263 bp', freshness: 'as of 8/29' });
 });
 
 it('does not treat month names inside as-of as already-unitized', () => {
-  expect(
-    presentPanelRow({
-      label: 'Fed Balance Sheet',
-      value: '6,730,912.00 (as of August 29, 2026)',
-      change: '-0.22%',
-      note: null,
-    }).value,
-  ).toBe('$6.73T (as of August 29, 2026)');
+  expect(presentPanelRow({
+    label: 'Fed Balance Sheet',
+    value: '6,730,912.00 (as of August 29, 2026)',
+    change: '-0.22%',
+    note: null,
+  })).toMatchObject({ value: '$6.73T', freshness: 'as of 8/29', freshnessAt: '2026-08-29' });
+});
+
+it('shows structured intraday and close marks, and nothing when they are absent', () => {
+  expect(presentPanelRow({
+    label: 'ES',
+    value: '6412',
+    change: '+0.1%',
+    note: null,
+    asOf: '2026-10-01T14:14:00Z',
+    quoteKind: 'intraday',
+  })).toMatchObject({
+    value: '6412',
+    freshness: 'as of 7:14a PDT',
+    freshnessAt: '2026-10-01T14:14:00.000Z',
+  });
+  expect(presentPanelRow({
+    label: '2y UST',
+    value: '4.89%',
+    change: null,
+    note: null,
+    asOf: '2026-09-29',
+    quoteKind: 'close',
+  })).toMatchObject({ value: '4.89%', freshness: 'close 9/29', freshnessAt: '2026-09-29' });
+  expect(presentPanelRow({
+    label: '2y UST',
+    value: '4.89 (Tue close)',
+    change: null,
+    note: null,
+  })).toMatchObject({ value: '4.89', freshness: 'Tue close' });
+  expect(presentPanelRow({
+    label: 'DXY',
+    value: '99.1',
+    change: null,
+    note: null,
+  })).toEqual({ label: 'DXY', value: '99.1', change: null, note: null });
+  expect(presentPanelRow({
+    label: 'DXY',
+    value: '99.1',
+    change: null,
+    note: null,
+    asOf: 'not-a-date',
+  })).toEqual({ label: 'DXY', value: '99.1', change: null, note: null });
 });
 
 it('adds 1-day and 1-week columns only when a row has them', () => {

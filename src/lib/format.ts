@@ -28,15 +28,63 @@ export function formatMonth(isoDate: string): string {
   return `${MONTHS[m - 1]} ${y}`;
 }
 
-/** Stable UTC stamp for SSR freshness chips, e.g. "29 Aug 16:08 UTC". */
-export function formatUtcStamp(iso: string): string {
+const PACIFIC = 'America/Los_Angeles';
+
+function pacificParts(date: Date, options: Intl.DateTimeFormatOptions): Intl.DateTimeFormatPart[] {
+  return new Intl.DateTimeFormat('en-US', { ...options, timeZone: PACIFIC }).formatToParts(date);
+}
+
+function part(parts: Intl.DateTimeFormatPart[], type: Intl.DateTimeFormatPartTypes): string {
+  return parts.find((entry) => entry.type === type)?.value ?? '';
+}
+
+/** PT during standard time, PDT during daylight time. */
+export function pacificZoneLabel(date: Date): 'PT' | 'PDT' {
+  const name = part(pacificParts(date, { hour: 'numeric', timeZoneName: 'short' }), 'timeZoneName');
+  return name === 'PDT' ? 'PDT' : 'PT';
+}
+
+/** Stable Pacific stamp for freshness chips, e.g. "30 Sep 17:10 PDT". */
+export function formatPacificStamp(iso: string): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
-  const day = d.getUTCDate();
-  const mon = MONTHS_SHORT[d.getUTCMonth()];
-  const hh = String(d.getUTCHours()).padStart(2, '0');
-  const mm = String(d.getUTCMinutes()).padStart(2, '0');
-  return `${day} ${mon} ${hh}:${mm} UTC`;
+  const parts = pacificParts(d, {
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  });
+  const day = Number(part(parts, 'day'));
+  const mon = part(parts, 'month');
+  const hh = part(parts, 'hour').padStart(2, '0');
+  const mm = part(parts, 'minute').padStart(2, '0');
+  if (!mon || !hh || !mm || !Number.isInteger(day)) return iso;
+  return `${day} ${mon} ${hh}:${mm} ${pacificZoneLabel(d)}`;
+}
+
+/** Compact Pacific clock, e.g. "7:14a PDT". */
+export function formatCompactPacificTime(iso: string): string | null {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  const parts = pacificParts(d, { hour: 'numeric', minute: '2-digit', hourCycle: 'h12' });
+  const hour = part(parts, 'hour');
+  const minute = part(parts, 'minute');
+  if (!hour || !minute) return null;
+  const period = part(parts, 'dayPeriod').toLowerCase().startsWith('p') ? 'p' : 'a';
+  return `${hour}:${minute}${period} ${pacificZoneLabel(d)}`;
+}
+
+/** Calendar date in America/Los_Angeles as YYYY-MM-DD. */
+export function pacificDate(iso: string): string | null {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  const parts = pacificParts(d, { year: 'numeric', month: '2-digit', day: '2-digit' });
+  const year = part(parts, 'year');
+  const month = part(parts, 'month');
+  const day = part(parts, 'day');
+  if (!year || !month || !day) return null;
+  return `${year}-${month}-${day}`;
 }
 
 /** Relative age for freshness badges: "just now", "3m ago", "2h ago", "3d ago". */

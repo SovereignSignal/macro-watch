@@ -32,6 +32,17 @@ it('panelRows extracts rows defensively from unknown payloads', () => {
   })).toEqual([
     { label: 'HY Spread (OAS)', value: '3.02', change: null, note: null },
   ]);
+  expect(panelRows({
+    rows: [
+      { label: 'ES', value: '6412', as_of: '2026-10-01T14:14:00Z', quote_kind: 'intraday' },
+      { label: '2y UST', value: '4.89%', as_of: '2026-09-29', kind: 'close' },
+      { label: 'DXY', value: '99.1', as_of: 'nope' },
+    ],
+  })).toEqual([
+    { label: 'ES', value: '6412', change: null, note: null, asOf: '2026-10-01T14:14:00.000Z', quoteKind: 'intraday' },
+    { label: '2y UST', value: '4.89%', change: null, note: null, asOf: '2026-09-29', quoteKind: 'close' },
+    { label: 'DXY', value: '99.1', change: null, note: null },
+  ]);
 });
 
 it('panelCoverage exposes only atomically verified source counts', () => {

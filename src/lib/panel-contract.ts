@@ -1,5 +1,7 @@
 import { publicText } from '@/lib/public-copy';
 
+export type QuoteKind = 'intraday' | 'close';
+
 export type PanelRowItem = {
   label: string;
   value: string;
@@ -13,7 +15,61 @@ export type PanelRowItem = {
    */
   change1d?: string;
   change1w?: string;
+  /**
+   * Per-value as-of. A calendar date stays `YYYY-MM-DD`. A clock time is ISO.
+   * Omitted when the snapshot did not send one.
+   */
+  asOf?: string;
+  /** Intraday versus close. Omitted when the snapshot did not send a kind. */
+  quoteKind?: QuoteKind;
+  /** Subtle display label derived at present time, e.g. "as of 7:14a PDT". */
+  freshness?: string;
+  /** ISO instant or YYYY-MM-DD for the freshness label's datetime attribute. */
+  freshnessAt?: string;
 };
+
+const AS_OF_KEYS = ['as_of', 'asOf', 'observed_at', 'quote_time', 'quote_as_of', 'price_as_of'] as const;
+const QUOTE_KIND_KEYS = ['quote_kind', 'price_kind', 'value_kind', 'session', 'kind'] as const;
+
+function normalizeQuoteKind(value: unknown): QuoteKind | undefined {
+  if (typeof value !== 'string') return undefined;
+  const text = value.trim().toLowerCase().replace(/[_-]+/g, ' ');
+  if (['intraday', 'live', 'last', 'quote', 'realtime', 'real time'].includes(text)) return 'intraday';
+  if (['close', 'closed', 'eod', 'official', 'prior close', 'settle', 'settlement'].includes(text)) return 'close';
+  return undefined;
+}
+
+function parseAsOfValue(value: unknown): string | undefined {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    const ms = Math.abs(value) < 1e12 ? value * 1000 : value;
+    const parsed = new Date(ms);
+    return Number.isNaN(parsed.getTime()) ? undefined : parsed.toISOString();
+  }
+  if (typeof value !== 'string') return undefined;
+  const text = value.trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(text)) return text;
+  const ms = Date.parse(text);
+  if (Number.isNaN(ms)) return undefined;
+  return new Date(ms).toISOString();
+}
+
+function asOfFrom(raw: Record<string, unknown>): string | undefined {
+  for (const key of AS_OF_KEYS) {
+    if (!Object.prototype.hasOwnProperty.call(raw, key) || raw[key] == null) continue;
+    const parsed = parseAsOfValue(raw[key]);
+    if (parsed) return parsed;
+  }
+  return undefined;
+}
+
+function quoteKindFrom(raw: Record<string, unknown>): QuoteKind | undefined {
+  for (const key of QUOTE_KIND_KEYS) {
+    if (!Object.prototype.hasOwnProperty.call(raw, key)) continue;
+    const kind = normalizeQuoteKind(raw[key]);
+    if (kind) return kind;
+  }
+  return undefined;
+}
 
 function optionalChangeField(raw: Record<string, unknown>, key: string): string | undefined {
   if (!Object.prototype.hasOwnProperty.call(raw, key) || raw[key] == null) return undefined;
@@ -75,6 +131,8 @@ export function panelView(payload: unknown): PanelView {
       const spark = finiteSpark(rowRecord.spark);
       const change1d = optionalChangeField(rowRecord, 'change_1d');
       const change1w = optionalChangeField(rowRecord, 'change_1w');
+      const asOf = asOfFrom(rowRecord);
+      const quoteKind = quoteKindFrom(rowRecord);
       rows.push({
         label: publicText(label),
         value: typeof value === 'string' ? publicText(value) : typeof value === 'number' ? String(value) : 'n/a',
@@ -83,6 +141,8 @@ export function panelView(payload: unknown): PanelView {
         ...(spark ? { spark } : {}),
         ...(change1d ? { change1d } : {}),
         ...(change1w ? { change1w } : {}),
+        ...(asOf ? { asOf } : {}),
+        ...(quoteKind ? { quoteKind } : {}),
       });
     }
   }
