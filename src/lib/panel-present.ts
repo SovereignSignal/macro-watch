@@ -1,4 +1,5 @@
-import { finiteSpark, type PanelRowItem } from '@/lib/panel-contract';
+import { formatCompactPacificTime, pacificDate } from '@/lib/format';
+import { finiteSpark, type PanelRowItem, type QuoteKind } from '@/lib/panel-contract';
 
 const ETF_LABELS: Record<string, string> = {
   'S&P 500 (SPY)': 'SPY (S&P 500 ETF)',
@@ -55,6 +56,117 @@ function withAsOf(formatted: string, suffix: string | null): string {
   return suffix ? `${formatted} ${suffix}` : formatted;
 }
 
+const MONTH_INDEX: Record<string, number> = {
+  jan: 1, january: 1, feb: 2, february: 2, mar: 3, march: 3, apr: 4, april: 4,
+  may: 5, jun: 6, june: 6, jul: 7, july: 7, aug: 8, august: 8,
+  sep: 9, sept: 9, september: 9, oct: 10, october: 10, nov: 11, november: 11,
+  dec: 12, december: 12,
+};
+
+function calendarDateIn(text: string): string | null {
+  const iso = text.match(/\b(\d{4})-(\d{2})-(\d{2})\b/);
+  if (iso) {
+    const month = Number(iso[2]);
+    const day = Number(iso[3]);
+    if (month >= 1 && month <= 12 && day >= 1 && day <= 31) return `${iso[1]}-${iso[2]}-${iso[3]}`;
+  }
+  const named = text.match(/\b(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\s+(\d{1,2}),?\s+(\d{4})\b/i);
+  if (named) {
+    const month = MONTH_INDEX[named[1].toLowerCase()];
+    const day = Number(named[2]);
+    const year = Number(named[3]);
+    if (month && day >= 1 && day <= 31) {
+      return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    }
+  }
+  const mdy = text.match(/\b(\d{1,2})\/(\d{1,2})\/(\d{4})\b/);
+  if (mdy) {
+    const month = Number(mdy[1]);
+    const day = Number(mdy[2]);
+    const year = Number(mdy[3]);
+    if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+      return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    }
+  }
+  return null;
+}
+
+function clockIn(text: string): string | null {
+  if (!/(?:T|\d{1,2}:\d{2})/.test(text)) return null;
+  const ms = Date.parse(text);
+  if (Number.isNaN(ms)) return null;
+  return new Date(ms).toISOString();
+}
+
+function kindFromPhrase(text: string): QuoteKind | undefined {
+  if (/\b(intraday|real-?time|last)\b/i.test(text)) return 'intraday';
+  if (/\b(close|closed|eod|settle(?:ment)?)\b/i.test(text)) return 'close';
+  return undefined;
+}
+
+function isClockStamp(value: string): boolean {
+  return /T\d{2}:\d{2}/.test(value);
+}
+
+function monthDay(day: string): string | null {
+  const match = day.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return null;
+  return `${Number(match[2])}/${Number(match[3])}`;
+}
+
+type PeeledFreshness = { core: string; asOf?: string; quoteKind?: QuoteKind; loose?: string };
+
+/** Pull a trailing as-of or close/intraday parenthetical off a value cell. */
+function peelQuoteFreshness(value: string): PeeledFreshness {
+  const match = value.match(/\s*\(([^)]{1,80})\)\s*$/);
+  if (!match || match.index === undefined) return { core: value.trim() };
+  const inner = match[1].replace(/\s+/g, ' ').trim();
+  const phrase = inner.replace(/^as of\s+/i, '').trim();
+  const quoteKind = kindFromPhrase(phrase);
+  const day = calendarDateIn(phrase);
+  const clock = clockIn(inner);
+  if (!quoteKind && !day && !clock && !/^as of\b/i.test(inner)) return { core: value.trim() };
+  return {
+    core: value.slice(0, match.index).trim(),
+    ...(clock ? { asOf: clock } : day ? { asOf: day } : {}),
+    ...(quoteKind ? { quoteKind } : {}),
+    loose: phrase,
+  };
+}
+
+function formatQuoteFreshness(input: {
+  asOf?: string;
+  quoteKind?: QuoteKind;
+  loose?: string;
+}): { label: string; dateTime?: string } | null {
+  const asOf = input.asOf;
+  const dateOnly = asOf && /^\d{4}-\d{2}-\d{2}$/.test(asOf) ? asOf : null;
+  const clock = asOf && isClockStamp(asOf) ? asOf : null;
+  const day = dateOnly ?? (clock ? pacificDate(clock) : null);
+
+  if (input.quoteKind === 'close') {
+    const label = day ? monthDay(day) : null;
+    if (label) return { label: `close ${label}`, dateTime: day ?? undefined };
+    if (input.loose && input.loose.toLowerCase() !== 'close') return { label: input.loose };
+    return { label: 'close' };
+  }
+
+  if (input.quoteKind === 'intraday' || clock) {
+    if (clock) {
+      const label = formatCompactPacificTime(clock);
+      if (label) return { label: `as of ${label}`, dateTime: new Date(clock).toISOString() };
+    }
+    if (input.quoteKind === 'intraday') return { label: 'intraday' };
+  }
+
+  if (day) {
+    const label = monthDay(day);
+    if (label) return { label: `as of ${label}`, dateTime: day };
+  }
+  if (input.loose) return { label: input.loose };
+  return null;
+}
+
 function formatPanelValue(label: string, value: string): string {
   const { core, suffix } = splitAsOf(value);
   if (!core) return value;
@@ -85,26 +197,29 @@ function formatPanelChange(label: string, change: string | null): string | null 
   return tidy;
 }
 
-export type PresentPanelOptions = {
-  /** Drop a repeated as-of clause when the panel header already carries freshness. */
-  omitAsOf?: boolean;
-};
-
-export function presentPanelRow(row: PanelRowItem, options?: PresentPanelOptions): PanelRowItem {
+export function presentPanelRow(row: PanelRowItem): PanelRowItem {
   const label = ETF_LABELS[row.label] ?? row.label;
   const value = tidyCell(row.value) ?? row.value;
-  const formatted = formatPanelValue(label, value);
+  const peeled = peelQuoteFreshness(value);
+  const formatted = formatPanelValue(label, peeled.core || value);
   const spark = finiteSpark(row.spark);
   const change1d = formatPanelChange(label, row.change1d ?? null);
   const change1w = formatPanelChange(label, row.change1w ?? null);
+  const structured = Boolean(row.asOf || row.quoteKind);
+  const freshness = formatQuoteFreshness({
+    asOf: row.asOf ?? peeled.asOf,
+    quoteKind: row.quoteKind ?? peeled.quoteKind,
+    loose: structured ? undefined : peeled.loose,
+  });
   return {
     label,
-    value: options?.omitAsOf ? (splitAsOf(formatted).core || formatted) : formatted,
+    value: splitAsOf(formatted).core || formatted,
     change: formatPanelChange(label, row.change),
     note: tidyCell(row.note),
     ...(spark ? { spark } : {}),
     ...(change1d ? { change1d } : {}),
     ...(change1w ? { change1w } : {}),
+    ...(freshness ? { freshness: freshness.label, ...(freshness.dateTime ? { freshnessAt: freshness.dateTime } : {}) } : {}),
   };
 }
 
@@ -118,8 +233,8 @@ export function dashboardSpark(row: PanelRowItem, history?: Record<string, numbe
   return cleaned.length >= 2 ? cleaned : undefined;
 }
 
-export function presentPanelRows(rows: PanelRowItem[], options?: PresentPanelOptions): PanelRowItem[] {
-  return rows.map((row) => presentPanelRow(row, options));
+export function presentPanelRows(rows: PanelRowItem[]): PanelRowItem[] {
+  return rows.map((row) => presentPanelRow(row));
 }
 
 const HORIZON_7D = /\s*\(7d\)\s*$/i;
@@ -134,7 +249,7 @@ export function dashboardHorizonColumns(rows: PanelRowItem[]): HorizonChangeColu
   return columns;
 }
 
-/** Homepage tape: one as-of in the header, one 7d label on the column. */
+/** Homepage tape: per-value as-of sits beside the number, and 7d is one column label. */
 export function presentDashboardRows(rows: PanelRowItem[], history?: Record<string, number[]>): {
   rows: PanelRowItem[];
   changeColumn: string;
@@ -142,7 +257,7 @@ export function presentDashboardRows(rows: PanelRowItem[], history?: Record<stri
 } {
   const presented = rows.map((row) => {
     const spark = dashboardSpark(row, history);
-    const next = presentPanelRow(row, { omitAsOf: true });
+    const next = presentPanelRow(row);
     return spark ? { ...next, spark } : next;
   });
   const changes = presented.map((row) => row.change).filter((change): change is string => Boolean(change));

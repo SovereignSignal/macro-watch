@@ -29,7 +29,7 @@ export async function searchAll(db: Db, q: string): Promise<SearchResult[]> {
   if (query === '' || mentionsBlockedPublisher(query)) return [];
 
   const briefHits = await db
-    .select({ date: briefs.date, kind: briefs.kind, subject: briefs.subject, ping: briefs.ping })
+    .select({ date: briefs.date, kind: briefs.kind, subject: briefs.subject, ping: briefs.ping, html: briefs.html })
     .from(briefs)
     .where(sql`${briefs.search} @@ websearch_to_tsquery('english', ${query}) AND ${briefs.date} >= ${PUBLIC_BRIEF_MIN_DATE}`)
     .orderBy(sql`ts_rank(${briefs.search}, websearch_to_tsquery('english', ${query})) desc`)
@@ -42,6 +42,7 @@ export async function searchAll(db: Db, q: string): Promise<SearchResult[]> {
       slug: themeEvents.themeSlug,
       direction: themeEvents.direction,
       evidence: themeEvents.evidence,
+      source: themeEvents.source,
     })
     .from(themeEvents)
     .where(sql`${themeEvents.search} @@ websearch_to_tsquery('english', ${query})`)
@@ -65,6 +66,9 @@ export async function searchAll(db: Db, q: string): Promise<SearchResult[]> {
       date: researchMemos.date,
       topic: researchMemos.topic,
       finding: researchMemos.finding,
+      changed: researchMemos.changed,
+      decision: researchMemos.decision,
+      watch: researchMemos.watch,
       citations: researchMemos.citations,
     })
     .from(researchMemos)
@@ -74,7 +78,7 @@ export async function searchAll(db: Db, q: string): Promise<SearchResult[]> {
 
   return [
     ...briefHits
-      .filter((b) => !mentionsBlockedPublisher(b.subject) && !mentionsBlockedPublisher(b.ping))
+      .filter((b) => !mentionsBlockedPublisher(`${b.subject}\n${b.ping}\n${b.html}`))
       .map(
       (b): SearchResult => ({
         type: 'brief',
@@ -85,7 +89,7 @@ export async function searchAll(db: Db, q: string): Promise<SearchResult[]> {
       }),
     ),
     ...eventHits
-      .filter((e) => !mentionsBlockedPublisher(e.evidence))
+      .filter((e) => !mentionsBlockedPublisher(`${e.evidence}\n${e.source}`))
       .map(
       (e): SearchResult => ({
         type: 'theme-event',
@@ -96,11 +100,7 @@ export async function searchAll(db: Db, q: string): Promise<SearchResult[]> {
       }),
     ),
     ...claimHits
-      .filter((c) => {
-        const predicate = (c.payload as Record<string, unknown>).predicate;
-        const anchor = (c.payload as Record<string, unknown>).data_anchor;
-        return !mentionsBlockedPublisher(`${typeof predicate === 'string' ? predicate : ''} ${typeof anchor === 'string' ? anchor : ''}`);
-      })
+      .filter((c) => !mentionsBlockedPublisher(JSON.stringify(c.payload)))
       .map((c): SearchResult => {
       const predicate = (c.payload as Record<string, unknown>).predicate;
       return {
@@ -113,7 +113,9 @@ export async function searchAll(db: Db, q: string): Promise<SearchResult[]> {
     }),
     ...researchHits
       .filter((row) => !isPlaceholderResearch(row))
-      .filter((row) => !mentionsBlockedPublisher(`${row.topic} ${row.finding}`))
+      .filter((row) => !mentionsBlockedPublisher(
+        `${row.topic}\n${row.finding}\n${row.changed}\n${row.decision}\n${row.watch}\n${JSON.stringify(row.citations)}`,
+      ))
       .map(
         (row): SearchResult => ({
           type: 'research',

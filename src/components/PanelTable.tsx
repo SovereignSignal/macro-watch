@@ -50,7 +50,16 @@ export function PanelTable(props: {
                     {row.label}
                     {row.note ? <span className="panel-note"> {row.note}</span> : null}
                   </th>
-                  <td className="num">{row.value}</td>
+                  <td className="num">
+                    {row.value}
+                    {row.freshness ? (
+                      row.freshnessAt ? (
+                        <time className="quote-freshness" dateTime={row.freshnessAt}>{row.freshness}</time>
+                      ) : (
+                        <span className="quote-freshness">{row.freshness}</span>
+                      )
+                    ) : null}
+                  </td>
                   <td className={row.change ? changeClass(row.change) : 'num'}>{row.change ?? ''}</td>
                   {horizonColumns.map((column) => {
                     const value = row[column.key] ?? '';

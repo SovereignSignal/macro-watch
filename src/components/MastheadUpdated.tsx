@@ -11,8 +11,8 @@ async function payloadStamp(): Promise<string | null> {
 }
 
 /**
- * Masthead freshness chip. Prefers the payload `updated_at`. Older snapshots
- * that omit it keep the dashboard snapshot time.
+ * The one site-wide freshness chip, in the header. Prefers the payload
+ * `updated_at`. Older snapshots that omit it keep the dashboard snapshot time.
  */
 export async function MastheadUpdated() {
   const updatedAt = await payloadStamp();
@@ -20,15 +20,4 @@ export async function MastheadUpdated() {
   const panel = await safeQuery(() => getLatestPanel(getDb(), 'dashboard'), null);
   if (!panel) return null;
   return <UpdatedAgo takenAt={panel.takenAt.toISOString()} />;
-}
-
-/** Footer copy of the payload timestamp. Missing `updated_at` renders nothing. */
-export async function FooterUpdated() {
-  const updatedAt = await payloadStamp();
-  if (!updatedAt) return null;
-  return (
-    <p>
-      <UpdatedAgo takenAt={updatedAt} lead="Updated" />
-    </p>
-  );
 }

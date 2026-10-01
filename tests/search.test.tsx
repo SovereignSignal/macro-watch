@@ -5,7 +5,7 @@ import { seedAll } from '@/lib/seed';
 import { createTestDb } from './helpers/db';
 
 const { default: SearchPage } = await import('@/app/search/page');
-const { default: AboutPage } = await import('@/app/about/page');
+const { default: AboutPage, dynamic: aboutDynamic } = await import('@/app/about/page');
 
 it('finds briefs by words in the html body', async () => {
   const db = await createTestDb();
@@ -63,6 +63,10 @@ it('search page renders a no-results state', async () => {
     await SearchPage({ searchParams: Promise.resolve({ q: 'zzzznope' }) }),
   );
   expect(markup).toContain('No results for');
+});
+
+it('about is dynamic so the header Updated stamp is not prerendered away', () => {
+  expect(aboutDynamic).toBe('force-dynamic');
 });
 
 it('about page explains the product and carries the disclaimer', () => {

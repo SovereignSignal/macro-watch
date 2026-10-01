@@ -1,8 +1,8 @@
 import { mentionsBlockedPublisher } from '@/lib/security/blocked-publishers';
 
 /**
- * Exact source/publication names that are email-only or paywalled even when
- * the string is too short to trip a substring block (`ap`, `economist`).
+ * Exact source/publication names that are email-only or paywalled.
+ * `ap` stays exact: it is too short for a substring block.
  */
 const EXACT_PRIVATE_SOURCES = new Set([
   'ap',

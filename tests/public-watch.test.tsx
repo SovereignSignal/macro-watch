@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { beforeEach, expect, it } from 'vitest';
 import { HomeView } from '@/components/HomeView';
-import { FooterUpdated, MastheadUpdated } from '@/components/MastheadUpdated';
+import { MastheadUpdated } from '@/components/MastheadUpdated';
 import { panelSnapshots } from '@/db/schema';
 import { upsertPanel } from '@/lib/ingest/panels';
 import { parsePublishedWatch } from '@/lib/public-watch';
@@ -313,21 +313,24 @@ it('still hides a private item that was stored before the ingest filter', async 
   expect(home.toLowerCase()).not.toContain('economist');
 });
 
-it('shows Updated from updated_at in the header and footer, and falls back when it is missing', async () => {
+it('shows one Updated stamp from updated_at in Pacific time, and falls back when it is missing', async () => {
   const db = await createTestDb();
   await upsertPanel(db, {
     kind: 'dashboard',
     taken_at: '2026-09-30T12:00:00Z',
     payload: { rows: [], updated_at: '2026-09-30T14:14:00Z' },
   });
-  expect(renderToStaticMarkup(await MastheadUpdated())).toContain('Updated 30 Sep 14:14 UTC');
-  expect(renderToStaticMarkup(await FooterUpdated())).toContain('Updated 30 Sep 14:14 UTC');
+  const header = renderToStaticMarkup(await MastheadUpdated());
+  expect(header).toContain('Updated 30 Sep 07:14 PDT');
+  expect(header).toContain('dateTime="2026-09-30T14:14:00.000Z"');
+  expect(header.match(/<time\b/g)).toHaveLength(1);
 
   await upsertPanel(db, {
     kind: 'dashboard',
     taken_at: '2026-09-30T15:00:00Z',
     payload: { rows: [{ label: 'ES', value: '1' }] },
   });
-  expect(renderToStaticMarkup(await MastheadUpdated())).toContain('updated 30 Sep 15:00 UTC');
-  expect(renderToStaticMarkup(await FooterUpdated())).toBe('');
+  const fallback = renderToStaticMarkup(await MastheadUpdated());
+  expect(fallback).toContain('updated 30 Sep 08:00 PDT');
+  expect(fallback).toContain('dateTime="2026-09-30T15:00:00.000Z"');
 });

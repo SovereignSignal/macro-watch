@@ -5,6 +5,7 @@ import { briefs, claims, themeEvents, themes, themeState } from '@/db/schema';
 import { type FieldEvent, windowStart } from '@/lib/field-map';
 import type { ThemeStateCard } from '@/lib/ingest/themes';
 import { publicText, publicValue } from '@/lib/public-copy';
+import { mentionsBlockedPublisher } from '@/lib/security/blocked-publishers';
 import { canonicalThemeSlug, displayThemeName, themeFamily, visibleThemeCards } from '@/lib/theme-display';
 
 export type ThemeCard = {
@@ -99,12 +100,30 @@ function toList(v: string | string[] | null | undefined): string[] {
   return Array.isArray(v) ? v : [v];
 }
 
+function publicCardValue<T>(value: T): T {
+  if (typeof value === 'string') {
+    if (mentionsBlockedPublisher(value)) return '' as T;
+    return publicText(value) as T;
+  }
+  if (Array.isArray(value)) return value.map((item) => publicCardValue(item)) as T;
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>).map(([key, child]) => [key, publicCardValue(child)]),
+    ) as T;
+  }
+  return value;
+}
+
 function stateCardsOf(payload: unknown): Map<string, ThemeStateCard> {
   const out = new Map<string, ThemeStateCard>();
   const cards = (payload as { themes?: ThemeStateCard[] })?.themes;
   if (Array.isArray(cards)) {
     for (const c of cards) {
-      const clean = publicValue(c);
+      const clean = publicCardValue(c);
+      if (Array.isArray(clean.triggers)) {
+        clean.triggers = clean.triggers.filter((trigger) => typeof trigger?.name === 'string' && trigger.name.trim() !== '');
+      }
+      if (!clean.slug) continue;
       out.set(clean.slug, clean);
     }
   }
@@ -339,11 +358,14 @@ export const getThemeDetail = cache(async (db: Db, slug: string): Promise<ThemeD
   const card = cards.find((c) => c.slug === slug) ?? null;
   if (!themeRow && !card) return null;
 
-  const events = publicValue(await db
+  const events = publicValue((await db
     .select()
     .from(themeEvents)
     .where(inArray(themeEvents.themeSlug, family))
-    .orderBy(desc(themeEvents.date), desc(themeEvents.eventId)));
+    .orderBy(desc(themeEvents.date), desc(themeEvents.eventId)))
+    .filter((event) => ![event.evidence, event.source, event.triggerState, event.nextCheck].some(
+      (value) => typeof value === 'string' && mentionsBlockedPublisher(value),
+    )));
 
   const eventDates = [...new Set(events.map((e) => e.date))];
   const briefRows = eventDates.length
@@ -361,7 +383,7 @@ export const getThemeDetail = cache(async (db: Db, slug: string): Promise<ThemeD
     .from(claims)
     .where(or(...family.map((member) => sql`${member} = any(${claims.themes})`)))
     .orderBy(desc(claims.openedAt));
-  const relatedClaims: RelatedClaim[] = claimRows.map((c) => {
+  const relatedClaims: RelatedClaim[] = claimRows.filter((c) => !mentionsBlockedPublisher(JSON.stringify(c.payload))).map((c) => {
     const predicate = (c.payload as Record<string, unknown>).predicate;
     return {
       claimId: c.claimId,

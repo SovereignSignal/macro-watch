@@ -66,6 +66,8 @@ it('unitizes dashboard rows that ship with an as-of suffix', () => {
   expect(markup).toContain('+0.60%');
   expect(markup).not.toContain('+0.60% (7d)');
   expect(markup).not.toContain('(as of 2026-08-29)');
+  expect(markup).toContain('as of 8/29');
+  expect(markup).toContain('dateTime="2026-08-29"');
   expect(markup).not.toContain('6730912');
 });
 
@@ -109,6 +111,28 @@ it('shows 1-day and 1-week changes when ingest provides them and omits the colum
   expect(without).not.toContain('1-week');
 });
 
+it('shows a subtle as-of or close mark when a dashboard row carries one', () => {
+  const markup = renderToStaticMarkup(
+    <HomeView
+      brief={null}
+      panel={{
+        takenAt: '2026-10-01T14:14:00Z',
+        rows: [
+          { label: 'ES', value: '6412', change: '+0.1%', note: null, asOf: '2026-10-01T14:14:00Z', quoteKind: 'intraday' },
+          { label: '2y UST', value: '4.89%', change: null, note: null, asOf: '2026-09-29', quoteKind: 'close' },
+          { label: 'DXY', value: '99.1', change: null, note: null },
+        ],
+      }}
+      cards={[]}
+    />,
+  );
+  expect(markup).toContain('as of 7:14a PDT');
+  expect(markup).toContain('dateTime="2026-10-01T14:14:00.000Z"');
+  expect(markup).toContain('close 9/29');
+  expect(markup).toContain('dateTime="2026-09-29"');
+  expect(markup).toContain('<td class="num">99.1</td>');
+});
+
 it('renders panel rows with change coloring', () => {
   const markup = renderToStaticMarkup(
     <HomeView
@@ -127,7 +151,9 @@ it('renders panel rows with change coloring', () => {
   expect(markup).toContain('change-up');
   expect(markup).toContain('change-down');
   expect(markup).toContain('panel-table-scroll');
-  expect(markup).toContain('updated 11 Jul 12:00 UTC');
+  expect(markup).toContain('updated 11 Jul 05:00 PDT');
+  expect(markup).toContain('dateTime="2026-07-11T12:00:00.000Z"');
+  expect(markup).not.toContain('quote-freshness');
 });
 
 it('renders the prediction market lens as a distinct homepage panel', () => {

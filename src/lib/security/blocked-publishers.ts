@@ -2,10 +2,11 @@ import { z } from 'zod';
 
 /**
  * Paywalled and email-only publishers that must not be stored or rendered.
- * Bloomberg, Alpha Picks (AP Research), Alyosha, Market Vibes, and The
- * Economist are always included, so an env override cannot publish them.
- * `BLOCKED_PUBLISHERS` adds more case-insensitive substrings (comma-separated),
- * matched against text and URLs.
+ * Bloomberg, Alpha Picks (AP Research), Alyosha (including the jj745 host),
+ * Market Vibes, and The Economist are always included, so an env override
+ * cannot publish them. `BLOCKED_PUBLISHERS` adds more case-insensitive
+ * substrings (comma-separated), matched against text and link domains.
+ * `economist` is a whole word so "economy" and "economists" stay publishable.
  */
 const DEFAULT_TERMS = [
   'bloomberg.com',
@@ -14,10 +15,12 @@ const DEFAULT_TERMS = [
   'alpha picks',
   'ap research',
   'alyosha',
+  'jj745',
   'market vibes',
   'marketvibes',
   'the economist',
   'economist.com',
+  'economist',
 ];
 
 export function blockedPublisherTerms(): string[] {
@@ -56,11 +59,22 @@ function decodedForms(value: string): string[] {
   return [...forms];
 }
 
+function termInHaystack(haystack: string, term: string): boolean {
+  if (term === 'economist') return /\beconomist\b/i.test(haystack);
+  return haystack.includes(term);
+}
+
+function termPattern(term: string): RegExp {
+  const body = escapeRegExp(term);
+  if (term === 'economist') return new RegExp(`\\b${body}\\b`, 'gi');
+  return new RegExp(body, 'gi');
+}
+
 /** First configured term found in `value`, if any. */
 export function matchingBlockedPublisherTerm(value: string): string | null {
   const haystacks = decodedForms(value);
   for (const term of blockedPublisherTerms()) {
-    if (haystacks.some((haystack) => haystack.includes(term))) return term;
+    if (haystacks.some((haystack) => termInHaystack(haystack, term))) return term;
   }
   return null;
 }
@@ -69,9 +83,17 @@ export function mentionsBlockedPublisher(value: string): boolean {
   return matchingBlockedPublisherTerm(value) !== null;
 }
 
+function hostHasTerm(host: string, term: string): boolean {
+  // Whole-word in text. On a host, only the registrable name, so "economists.com" stays.
+  if (term === 'economist') {
+    return host === 'economist' || host.endsWith('.economist') || host === 'economist.com' || host.endsWith('.economist.com');
+  }
+  return host === term || host.endsWith(`.${term}`) || host.includes(term);
+}
+
 export function isBlockedPublisherHost(hostname: string): boolean {
   const host = hostname.toLowerCase().replace(/\.$/, '');
-  return blockedPublisherTerms().some((term) => host === term || host.endsWith(`.${term}`) || host.includes(term));
+  return blockedPublisherTerms().some((term) => hostHasTerm(host, term));
 }
 
 type Mention = { term: string; path: string };
@@ -104,12 +126,24 @@ export function blockedPublisherIssue(value: unknown): string | null {
   return `blocked publisher "${hit.term}" in ${hit.path}`;
 }
 
-/** Replace publisher names so a stored row cannot render them. */
+const BLOCKED_URL_RE = /\bhttps?:\/\/[^\s<>'")\]]+/gi;
+
+/** Replace publisher names and their link domains so a stored row cannot render them. */
 export function redactBlockedPublisherText(value: string): string {
-  let out = value;
+  let out = value.replace(BLOCKED_URL_RE, (url) => {
+    const trimmed = url.replace(/[.,;:!?]+$/g, '');
+    const trail = url.slice(trimmed.length);
+    if (mentionsBlockedPublisher(trimmed)) return `[redacted source]${trail}`;
+    try {
+      if (isBlockedPublisherHost(new URL(trimmed).hostname)) return `[redacted source]${trail}`;
+    } catch {
+      // Not a URL. The raw token is still checked below.
+    }
+    return url;
+  });
   for (const term of blockedPublisherTerms()) {
     if (!term) continue;
-    out = out.replace(new RegExp(escapeRegExp(term), 'gi'), '[redacted source]');
+    out = out.replace(termPattern(term), '[redacted source]');
   }
   return out;
 }
