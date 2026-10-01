@@ -79,7 +79,7 @@ export default async function BriefsPage({
         <EmptyState>
           {kind
             ? 'No briefs of this kind yet.'
-            : 'No briefs yet. The daily brief publishes weekdays around 7:00 a.m. Pacific time, the Weekend Review on Saturday, and the Week Ahead Sunday afternoon Pacific time.'}
+            : 'No briefs yet. Daily briefs publish weekdays at 14:00 UTC, the Weekend Review Saturday at 17:00 UTC, and the Week Ahead Sunday at 23:00 UTC.'}
         </EmptyState>
       ) : (
         <ArchiveByMonth

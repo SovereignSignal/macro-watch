@@ -58,7 +58,7 @@ it('/map renders the grid grouped by lifecycle with a freshness badge', async ()
   expect(markup).toContain('Retired'); // section for china-reflation
   expect(markup).toContain('China reflation');
   expect(markup).toContain('conv-high');
-  expect(markup).toContain('updated 11 Jul 05:10 PDT');
+  expect(markup).toContain('updated 11 Jul 12:10 UTC');
   expect(markup).toContain('dateTime="2026-07-11T12:10:00.000Z"');
   // Trigger rows on cards: name + freshness chip (instrument-panel layout).
   expect(markup).toContain('2y auction demand');

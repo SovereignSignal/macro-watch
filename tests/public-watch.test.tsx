@@ -313,7 +313,7 @@ it('still hides a private item that was stored before the ingest filter', async 
   expect(home.toLowerCase()).not.toContain('economist');
 });
 
-it('shows one Updated stamp from updated_at in Pacific time, and falls back when it is missing', async () => {
+it('shows one Updated stamp from updated_at in UTC, and falls back when it is missing', async () => {
   const db = await createTestDb();
   await upsertPanel(db, {
     kind: 'dashboard',
@@ -321,7 +321,7 @@ it('shows one Updated stamp from updated_at in Pacific time, and falls back when
     payload: { rows: [], updated_at: '2026-09-30T14:14:00Z' },
   });
   const header = renderToStaticMarkup(await MastheadUpdated());
-  expect(header).toContain('Updated 30 Sep 07:14 PDT');
+  expect(header).toContain('Updated 30 Sep 14:14 UTC');
   expect(header).toContain('dateTime="2026-09-30T14:14:00.000Z"');
   expect(header.match(/<time\b/g)).toHaveLength(1);
 
@@ -331,6 +331,6 @@ it('shows one Updated stamp from updated_at in Pacific time, and falls back when
     payload: { rows: [{ label: 'ES', value: '1' }] },
   });
   const fallback = renderToStaticMarkup(await MastheadUpdated());
-  expect(fallback).toContain('updated 30 Sep 08:00 PDT');
+  expect(fallback).toContain('updated 30 Sep 15:00 UTC');
   expect(fallback).toContain('dateTime="2026-09-30T15:00:00.000Z"');
 });

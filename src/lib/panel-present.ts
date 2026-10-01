@@ -1,4 +1,4 @@
-import { formatCompactPacificTime, pacificDate } from '@/lib/format';
+import { formatCompactUtcTime, utcDate } from '@/lib/format';
 import { finiteSpark, type PanelRowItem, type QuoteKind } from '@/lib/panel-contract';
 
 const ETF_LABELS: Record<string, string> = {
@@ -142,7 +142,7 @@ function formatQuoteFreshness(input: {
   const asOf = input.asOf;
   const dateOnly = asOf && /^\d{4}-\d{2}-\d{2}$/.test(asOf) ? asOf : null;
   const clock = asOf && isClockStamp(asOf) ? asOf : null;
-  const day = dateOnly ?? (clock ? pacificDate(clock) : null);
+  const day = dateOnly ?? (clock ? utcDate(clock) : null);
 
   if (input.quoteKind === 'close') {
     const label = day ? monthDay(day) : null;
@@ -153,7 +153,7 @@ function formatQuoteFreshness(input: {
 
   if (input.quoteKind === 'intraday' || clock) {
     if (clock) {
-      const label = formatCompactPacificTime(clock);
+      const label = formatCompactUtcTime(clock);
       if (label) return { label: `as of ${label}`, dateTime: new Date(clock).toISOString() };
     }
     if (input.quoteKind === 'intraday') return { label: 'intraday' };

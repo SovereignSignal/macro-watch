@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { formatAgo, formatCompactPacificTime, formatPacificStamp, xmlEscape } from '@/lib/format';
+import { formatAgo, formatCompactUtcTime, formatUtcStamp, xmlEscape } from '@/lib/format';
 
 const T0 = Date.parse('2026-07-11T12:00:00Z');
 
@@ -17,12 +17,12 @@ it('clamps clock skew to just now', () => {
   expect(formatAgo(T0 + 60_000, T0)).toBe('just now');
 });
 
-it('formats freshness chips in America/Los_Angeles with a PT or PDT label', () => {
-  expect(formatPacificStamp('2026-07-11T12:00:00Z')).toBe('11 Jul 05:00 PDT');
-  expect(formatPacificStamp('2026-10-01T00:10:00Z')).toBe('30 Sep 17:10 PDT');
-  expect(formatPacificStamp('2026-01-15T15:14:00Z')).toBe('15 Jan 07:14 PT');
-  expect(formatCompactPacificTime('2026-10-01T14:14:00Z')).toBe('7:14a PDT');
-  expect(formatCompactPacificTime('2026-01-15T15:14:00Z')).toBe('7:14a PT');
+it('formats freshness chips in 24-hour UTC', () => {
+  expect(formatUtcStamp('2026-07-11T12:00:00Z')).toBe('11 Jul 12:00 UTC');
+  expect(formatUtcStamp('2026-10-01T00:10:00Z')).toBe('1 Oct 00:10 UTC');
+  expect(formatUtcStamp('2026-01-15T15:14:00Z')).toBe('15 Jan 15:14 UTC');
+  expect(formatCompactUtcTime('2026-10-01T14:14:00Z')).toBe('14:14 UTC');
+  expect(formatCompactUtcTime('2026-01-15T15:14:00Z')).toBe('15:14 UTC');
 });
 
 it('escapes XML special characters', () => {

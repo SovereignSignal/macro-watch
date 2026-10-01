@@ -126,7 +126,7 @@ it('shows a subtle as-of or close mark when a dashboard row carries one', () => 
       cards={[]}
     />,
   );
-  expect(markup).toContain('as of 7:14a PDT');
+  expect(markup).toContain('as of 14:14 UTC');
   expect(markup).toContain('dateTime="2026-10-01T14:14:00.000Z"');
   expect(markup).toContain('close 9/29');
   expect(markup).toContain('dateTime="2026-09-29"');
@@ -151,7 +151,7 @@ it('renders panel rows with change coloring', () => {
   expect(markup).toContain('change-up');
   expect(markup).toContain('change-down');
   expect(markup).toContain('panel-table-scroll');
-  expect(markup).toContain('updated 11 Jul 05:00 PDT');
+  expect(markup).toContain('updated 11 Jul 12:00 UTC');
   expect(markup).toContain('dateTime="2026-07-11T12:00:00.000Z"');
   expect(markup).not.toContain('quote-freshness');
 });
@@ -190,6 +190,9 @@ it('renders the prediction market lens as a distinct homepage panel', () => {
 it('renders explicit empty states when nothing is published', () => {
   const markup = renderToStaticMarkup(<HomeView brief={null} panel={null} cards={[]} />);
   expect(markup).toContain('No brief yet');
+  expect(markup).toContain('14:00 UTC');
+  expect(markup).toContain('17:00 UTC');
+  expect(markup).toContain('23:00 UTC');
   expect(markup).toContain('Waiting for data.');
   expect(markup).toContain('No themes yet.');
 });

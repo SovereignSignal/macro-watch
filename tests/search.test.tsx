@@ -80,12 +80,10 @@ it('about page explains the product and carries the disclaimer', () => {
   expect(markup).toContain('No investment advice');
   expect(markup).toContain('href="/accountability"');
   expect(markup).toContain('Week ahead');
-  expect(markup).toContain('around 7:00 a.m. Pacific time');
-  expect(markup).toContain('publishes on Saturday');
-  expect(markup).toContain('Sunday afternoon Pacific time');
-  expect(markup).not.toContain('14:00 UTC');
-  expect(markup).not.toContain('17:00 UTC');
-  expect(markup).not.toContain('23:00 UTC');
+  expect(markup).toContain('at 14:00 UTC');
+  expect(markup).toContain('Saturday at 17:00 UTC');
+  expect(markup).toContain('Sunday at 23:00 UTC');
+  expect(markup).not.toContain('Pacific');
   expect(markup).toContain('Paid sources are paraphrased, not republished');
   expect(markup).not.toContain('Paywalled sources are never republished');
   expect(markup).toContain('hit rate counts hits divided by hits plus misses');
