@@ -70,6 +70,9 @@ it('archive shows an empty state with no briefs', async () => {
   await createTestDb(); // no seed
   const markup = renderToStaticMarkup(await BriefsPage({}));
   expect(markup).toContain('No briefs yet');
+  expect(markup).toContain('14:00 UTC');
+  expect(markup).toContain('17:00 UTC');
+  expect(markup).toContain('23:00 UTC');
 });
 
 it('permalink renders the brief in full', async () => {

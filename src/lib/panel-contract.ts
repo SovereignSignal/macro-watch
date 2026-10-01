@@ -22,7 +22,7 @@ export type PanelRowItem = {
   asOf?: string;
   /** Intraday versus close. Omitted when the snapshot did not send a kind. */
   quoteKind?: QuoteKind;
-  /** Subtle display label derived at present time, e.g. "as of 7:14a PDT". */
+  /** Subtle display label derived at present time, e.g. "as of 14:14 UTC". */
   freshness?: string;
   /** ISO instant or YYYY-MM-DD for the freshness label's datetime attribute. */
   freshnessAt?: string;

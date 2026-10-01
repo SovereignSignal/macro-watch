@@ -103,7 +103,7 @@ it('shows structured intraday and close marks, and nothing when they are absent'
     quoteKind: 'intraday',
   })).toMatchObject({
     value: '6412',
-    freshness: 'as of 7:14a PDT',
+    freshness: 'as of 14:14 UTC',
     freshnessAt: '2026-10-01T14:14:00.000Z',
   });
   expect(presentPanelRow({
