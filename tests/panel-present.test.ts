@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { presentDashboardRows, presentPanelRow } from '@/lib/panel-present';
+import { presentDashboardRows, presentPanelRow, publicOddsNote } from '@/lib/panel-present';
 
 it('relabels ETF tickers and unitizes known dashboard rows', () => {
   expect(
@@ -154,6 +154,78 @@ it('adds 1-day and 1-week columns only when a row has them', () => {
   expect(presentDashboardRows([
     { label: '2y UST', value: '4.92%', change: null, note: null },
   ]).horizonColumns).toEqual([]);
+});
+
+it('marks an intraday quote more than two hours older than the panel as delayed', () => {
+  const takenAt = '2026-10-02T18:12:00Z';
+  const delayed = presentPanelRow({
+    label: 'BTC',
+    value: '86637',
+    change: null,
+    note: null,
+    asOf: '2026-10-02T06:20:00Z',
+    quoteKind: 'intraday',
+  }, takenAt);
+  expect(delayed.freshness).toBe('delayed, as of 06:20 UTC');
+  expect(delayed.delayed).toBe(true);
+
+  const fresh = presentPanelRow({
+    label: 'BTC',
+    value: '84700',
+    change: null,
+    note: null,
+    asOf: '2026-10-02T18:00:00Z',
+    quoteKind: 'intraday',
+  }, takenAt);
+  expect(fresh.freshness).toBe('as of 18:00 UTC');
+  expect(fresh.freshness).not.toContain('delayed');
+  expect(fresh.delayed).toBeUndefined();
+
+  const onTheLine = presentPanelRow({
+    label: 'BTC',
+    value: '85000',
+    change: null,
+    note: null,
+    asOf: '2026-10-02T16:12:00Z',
+    quoteKind: 'intraday',
+  }, takenAt);
+  expect(onTheLine.freshness).toBe('as of 16:12 UTC');
+
+  const close = presentPanelRow({
+    label: 'Brent',
+    value: '99.67',
+    change: null,
+    note: null,
+    asOf: '2026-10-01',
+    quoteKind: 'close',
+  }, takenAt);
+  expect(close.freshness).toBe('close 10/1');
+  expect(close.freshness).not.toContain('delayed');
+
+  const stale = presentPanelRow({
+    label: 'BTC',
+    value: '86637',
+    change: null,
+    note: null,
+    asOf: '2026-10-02T18:00:00Z',
+    quoteKind: 'intraday',
+    stale: true,
+  }, takenAt);
+  expect(stale.freshness).toBe('delayed, as of 18:00 UTC');
+
+  expect(presentPanelRow({
+    label: 'DXY',
+    value: '99.1',
+    change: null,
+    note: null,
+  }, takenAt)).toEqual({ label: 'DXY', value: '99.1', change: null, note: null });
+});
+
+it('hides odds notes that still say taxonomy or schema', () => {
+  expect(publicOddsNote('Data-anchored taxonomy')).toBeNull();
+  expect(publicOddsNote('verified schema-v2')).toBeNull();
+  expect(publicOddsNote('tail risk gauge')).toBe('tail risk gauge');
+  expect(publicOddsNote(null)).toBeNull();
 });
 
 it('drops empty comma notes from odds rows', () => {

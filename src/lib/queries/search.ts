@@ -82,9 +82,9 @@ export async function searchAll(db: Db, q: string): Promise<SearchResult[]> {
       .map(
       (b): SearchResult => ({
         type: 'brief',
-        title: sanitizePublicBriefText(b.subject),
+        title: sanitizePublicBriefText(b.subject, b.date),
         href: briefPath(b.date, b.kind, b.subject),
-        snippet: sanitizePublicBriefText(b.ping),
+        snippet: sanitizePublicBriefText(b.ping, b.date),
         date: b.date,
       }),
     ),
@@ -119,9 +119,9 @@ export async function searchAll(db: Db, q: string): Promise<SearchResult[]> {
       .map(
         (row): SearchResult => ({
           type: 'research',
-          title: publicResearchText(sanitizePublicBriefText(row.topic)) || 'Research memo',
+          title: publicResearchText(sanitizePublicBriefText(row.topic, row.date)) || 'Research memo',
           href: `/research/${row.date}`,
-          snippet: publicResearchText(sanitizePublicBriefText(row.finding)).slice(0, 220),
+          snippet: publicResearchText(sanitizePublicBriefText(row.finding, row.date)).slice(0, 220),
           date: row.date,
         }),
       ),

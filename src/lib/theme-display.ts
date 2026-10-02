@@ -82,3 +82,40 @@ export function isRetiredAlias(slug: string, _status: string, present: Set<strin
   const canonical = ALIAS_OF[slug];
   return Boolean(canonical && present.has(canonical));
 }
+
+const KNOWN_MAP_SLUGS = new Set<string>([
+  ...Object.keys(THEME_NAMES),
+  ...Object.keys(ALIAS_OF),
+  ...Object.values(ALIAS_OF),
+]);
+
+/** Slugs the map route can serve: curated names, aliases, or a live theme row. */
+export function isKnownMapSlug(slug: string): boolean {
+  return KNOWN_MAP_SLUGS.has(slug);
+}
+
+/**
+ * Dossier link for a claim theme. Pseudo-themes such as `macro-unmapped`
+ * have no map page and stay plain text. A live theme row or a known alias
+ * links; anything else does not.
+ */
+export function mapThemeHref(slug: string, liveNames: Record<string, string> = {}): string | null {
+  if (!slug || slug === 'macro-unmapped') return null;
+  const canonical = canonicalThemeSlug(slug);
+  const live = Object.prototype.hasOwnProperty.call(liveNames, slug)
+    || (canonical !== slug && Object.prototype.hasOwnProperty.call(liveNames, canonical));
+  const known = isKnownMapSlug(slug) || isKnownMapSlug(canonical);
+  if (!live && !known) return null;
+  return `/map/${slug}`;
+}
+
+export function publicThemeLabel(slug: string, liveNames: Record<string, string> = {}): string {
+  if (slug === 'macro-unmapped') return 'Unmapped';
+  if (liveNames[slug]) return liveNames[slug];
+  const canonical = canonicalThemeSlug(slug);
+  if (canonical !== slug && liveNames[canonical]) return liveNames[canonical];
+  if (THEME_NAMES[slug]) return THEME_NAMES[slug];
+  if (THEME_NAMES[canonical]) return THEME_NAMES[canonical];
+  const words = slug.replaceAll('-', ' ');
+  return words.length > 0 ? words.charAt(0).toUpperCase() + words.slice(1) : slug;
+}

@@ -648,6 +648,12 @@ a:focus-visible {
   line-height: 1.2;
 }
 
+.quote-freshness.quote-delayed {
+  color: var(--accent);
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
 .change-up {
   color: var(--up);
 }

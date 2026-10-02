@@ -79,7 +79,7 @@ export default function AboutPage() {
 
       <h2>Sources</h2>
       <p>
-        The site links to public primary sources. Paid sources are paraphrased, not republished. Text
+        The site cites public primary sources. Content from paid or licensed sources (for example Bloomberg or The Economist) is not used in anything published here. Text
         and links from licensed news are rejected when a brief, memo, claim, or theme event is
         submitted, and stripped again when a stored page is rendered. Optional source blocks may
         be omitted when unavailable. Verified panels disclose source coverage and freshness.

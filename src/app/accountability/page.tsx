@@ -3,7 +3,8 @@ import { ClaimsTable } from '@/components/ClaimsTable';
 import { ExpiryHorizon } from '@/components/ExpiryHorizon';
 import { GradeMeter, GradeRow } from '@/components/GradeMeter';
 import { getDb } from '@/db/client';
-import { humanizeSlug, isQualitativeClaim, isScoreableClaim, qualityLabel } from '@/lib/claim-display';
+import { isQualitativeClaim, isScoreableClaim, qualityLabel } from '@/lib/claim-display';
+import { publicThemeLabel } from '@/lib/theme-display';
 import { formatDate } from '@/lib/format';
 import { pageMetadata } from '@/lib/metadata';
 import { getClaims, getClaimsPage, getThemeNames, LEDGER_PAGE_SIZE } from '@/lib/queries/accountability';
@@ -159,7 +160,7 @@ export default async function AccountabilityPage({
             <h3>Decided claims by theme</h3>
             <ul className="grade-rows">
               {perTheme.map(([key, board]) => (
-                <GradeRow key={key} name={themeNames[key] ?? humanizeSlug(key)} board={board} floor={GROUP_MIN_SAMPLE} />
+                <GradeRow key={key} name={publicThemeLabel(key, themeNames)} board={board} floor={GROUP_MIN_SAMPLE} />
               ))}
             </ul>
           </>

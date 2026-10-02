@@ -35,6 +35,8 @@ export type Scoreboard = {
   totals: ScoreboardTotals;
   recent: ResolvedCall[];
   open: OpenCall[];
+  /** Qualitative calls with no fixed due date. Empty when the payload omits them. */
+  openQualitative: OpenCall[];
 };
 
 export type KalshiMover = {
@@ -170,6 +172,26 @@ export function formatWatchDate(value: string | null): string | null {
   return text(value, 80);
 }
 
+/** Kalshi board stamp: "YYYY-MM-DD HH:MM UTC" when the payload has a clock. */
+export function formatWatchAsOf(value: string | null): string | null {
+  if (!value) return null;
+  if (/T\d{2}:\d{2}/.test(value)) {
+    const ms = Date.parse(value);
+    if (!Number.isNaN(ms)) {
+      const d = new Date(ms);
+      const y = d.getUTCFullYear();
+      const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+      const day = String(d.getUTCDate()).padStart(2, '0');
+      const hh = String(d.getUTCHours()).padStart(2, '0');
+      const mm = String(d.getUTCMinutes()).padStart(2, '0');
+      return `${y}-${m}-${day} ${hh}:${mm} UTC`;
+    }
+  }
+  const day = value.slice(0, 10);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(day)) return day;
+  return formatWatchDate(value);
+}
+
 export function statusKey(value: unknown): string {
   const raw = text(value, 32);
   if (!raw) return 'unknown';
@@ -201,6 +223,25 @@ function parseTotals(value: unknown): ScoreboardTotals {
   };
 }
 
+function parseOpenList(value: unknown): OpenCall[] {
+  const open: OpenCall[] = [];
+  if (!Array.isArray(value)) return open;
+  for (const raw of value) {
+    if (open.length >= LIST_CAP || containsPrivate(raw) || isForeignCall(raw)) continue;
+    const row = record(raw);
+    if (!row) continue;
+    const title = text(row.title, 240);
+    if (!title) continue;
+    open.push({
+      callId: text(row.call_id, 80) ?? title,
+      title,
+      madeAt: text(row.made_at, 40),
+      horizon: text(row.horizon, 120),
+    });
+  }
+  return open;
+}
+
 function parseScoreboard(value: unknown): Scoreboard | null {
   const body = record(value);
   if (!body || isPrivateItem(body)) return null;
@@ -223,39 +264,44 @@ function parseScoreboard(value: unknown): Scoreboard | null {
       });
     }
   }
-  const open: OpenCall[] = [];
-  if (Array.isArray(body.open)) {
-    for (const raw of body.open) {
-      if (open.length >= LIST_CAP || containsPrivate(raw) || isForeignCall(raw)) continue;
-      const row = record(raw);
-      if (!row) continue;
-      const title = text(row.title, 240);
-      if (!title) continue;
-      open.push({
-        callId: text(row.call_id, 80) ?? title,
-        title,
-        madeAt: text(row.made_at, 40),
-        horizon: text(row.horizon, 120),
-      });
-    }
-  }
   return {
     asOf: text(body.as_of, 40),
     totals: parseTotals(body.totals),
     recent,
-    open,
+    open: parseOpenList(body.open),
+    openQualitative: parseOpenList(body.open_qualitative),
   };
+}
+
+const SETTLED_MOVER_STATUS = new Set(['closed', 'settled', 'finalized', 'determined']);
+
+function moverAsOfMs(value: unknown): number | null {
+  if (typeof value !== 'string' || !value.trim()) return null;
+  const ms = Date.parse(value);
+  return Number.isNaN(ms) ? null : ms;
+}
+
+/** Drop a mover that has already settled or whose quote is marked stale. */
+function hideMover(row: Record<string, unknown>, asOfMs: number | null): boolean {
+  if (row.stale === true || row.stale === 1 || row.stale === 'true') return true;
+  const status = typeof row.status === 'string' ? row.status.trim().toLowerCase() : '';
+  if (SETTLED_MOVER_STATUS.has(status)) return true;
+  if (asOfMs == null || typeof row.close_time !== 'string' || !row.close_time.trim()) return false;
+  const closeMs = Date.parse(row.close_time);
+  if (Number.isNaN(closeMs)) return false;
+  return closeMs < asOfMs;
 }
 
 function parseMovers(value: unknown): KalshiMovers | null {
   const body = record(value);
   if (!body || isPrivateItem(body)) return null;
+  const asOfMs = moverAsOfMs(body.as_of);
   const items: KalshiMover[] = [];
   if (Array.isArray(body.items)) {
     for (const raw of body.items) {
       if (containsPrivate(raw)) continue;
       const row = record(raw);
-      if (!row) continue;
+      if (!row || hideMover(row, asOfMs)) continue;
       const title = text(row.title, 240);
       const ticker = text(row.ticker, 40);
       if (!title && !ticker) continue;

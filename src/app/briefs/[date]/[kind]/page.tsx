@@ -19,8 +19,8 @@ export async function generateMetadata({
   if (!DATE_RE.test(date) || !isBriefKind(kind)) return { title: 'Brief' };
   const brief = pickBriefForKind(await listBriefsForDate(getDb(), date), kind);
   if (!brief) return { title: 'Brief' };
-  const publicSubject = sanitizePublicBriefText(brief.subject) || 'Brief';
-  const description = sanitizePublicBriefText(brief.ping).slice(0, 220) || publicSubject;
+  const publicSubject = sanitizePublicBriefText(brief.subject, brief.date) || 'Brief';
+  const description = sanitizePublicBriefText(brief.ping, brief.date).slice(0, 220) || publicSubject;
   const path = `/briefs/${date}/${kind}`;
   return {
     title: publicSubject,

@@ -26,6 +26,10 @@ export type PanelRowItem = {
   freshness?: string;
   /** ISO instant or YYYY-MM-DD for the freshness label's datetime attribute. */
   freshnessAt?: string;
+  /** Producer flag: this quote should not be presented as current. */
+  stale?: boolean;
+  /** Set at present time when the quote is stale or an old intraday print. */
+  delayed?: boolean;
 };
 
 const AS_OF_KEYS = ['as_of', 'asOf', 'observed_at', 'quote_time', 'quote_as_of', 'price_as_of'] as const;
@@ -133,6 +137,7 @@ export function panelView(payload: unknown): PanelView {
       const change1w = optionalChangeField(rowRecord, 'change_1w');
       const asOf = asOfFrom(rowRecord);
       const quoteKind = quoteKindFrom(rowRecord);
+      const stale = rowRecord.stale === true || rowRecord.stale === 1 || rowRecord.stale === 'true';
       rows.push({
         label: publicText(label),
         value: typeof value === 'string' ? publicText(value) : typeof value === 'number' ? String(value) : 'n/a',
@@ -143,6 +148,7 @@ export function panelView(payload: unknown): PanelView {
         ...(change1w ? { change1w } : {}),
         ...(asOf ? { asOf } : {}),
         ...(quoteKind ? { quoteKind } : {}),
+        ...(stale ? { stale: true } : {}),
       });
     }
   }
@@ -166,7 +172,7 @@ export function panelView(payload: unknown): PanelView {
   return {
     rows,
     coverage: verified
-      ? `${selected} selected from ${source} verified schema-v2 AMS signals`
+      ? `${selected} markets from ${source} tracked-wallet signals`
       : null,
   };
 }

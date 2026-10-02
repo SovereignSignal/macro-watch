@@ -4,6 +4,7 @@ import { isIP } from 'node:net';
 import sanitizeHtml, { type Attributes, type IOptions } from 'sanitize-html';
 import { publicText } from '@/lib/public-copy';
 import { isBlockedPublisherHost, mentionsBlockedPublisher, stripBlockedPublisherHtml } from '@/lib/security/blocked-publishers';
+import { convertTimesToUtc } from '@/lib/utc-times';
 
 const ALLOWED_TAGS = [
   'section',
@@ -174,10 +175,16 @@ function decodeTextEntities(text: string): string {
   return '';
 }
 
-export function sanitizePublicBriefText(text: string): string {
+function briefDate(value: unknown): string | null {
+  return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : null;
+}
+
+export function sanitizePublicBriefText(text: string, isoDate?: unknown): string {
   const canonical = decodeTextEntities(text);
   const stripped = sanitizeHtml(canonical, { allowedTags: [], allowedAttributes: {} });
-  return publicText(scrubPrivateText(decodeTextEntities(stripped))).replace(/\s+/g, ' ').trim();
+  const clean = publicText(scrubPrivateText(decodeTextEntities(stripped))).replace(/\s+/g, ' ').trim();
+  const date = briefDate(isoDate);
+  return date ? convertTimesToUtc(clean, date) : clean;
 }
 
 function isPrivateHostname(rawHostname: string): boolean {
@@ -588,7 +595,7 @@ function dropPublicDecisionLines(html: string): string {
  * This is intentionally server-only: the allowlist and privacy scrub are a
  * publication boundary, not a client-side substitute for it.
  */
-export function sanitizePublicBriefHtml(dirtyHtml: string): string {
+export function sanitizePublicBriefHtml(dirtyHtml: string, isoDate?: unknown): string {
   // Canonicalize nested entities before parsing so double-encoded markup and
   // private text cannot survive as recoverable entities in stored HTML.
   // Paywalled-publisher blocks are dropped before the allowlist pass, and
@@ -597,7 +604,9 @@ export function sanitizePublicBriefHtml(dirtyHtml: string): string {
     separateDeltaLabels(stripUnpublishedClassBlocks(decodeTextEntities(dirtyHtml))),
   );
   const canonical = stripBlockedPublisherHtml(blankPlaceholderCells(prepared));
-  return dedupeForwardEventEchoes(
+  const clean = dedupeForwardEventEchoes(
     publicText(sanitizeHtml(sanitizeHtml(canonical, options), options)),
   ).trim();
+  const date = briefDate(isoDate);
+  return date ? convertTimesToUtc(clean, date) : clean;
 }

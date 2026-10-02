@@ -35,8 +35,8 @@ export async function generateMetadata({
     };
   }
   const brief = rows[0];
-  const publicSubject = sanitizePublicBriefText(brief.subject) || 'Brief';
-  const description = sanitizePublicBriefText(brief.ping).slice(0, 220) || publicSubject;
+  const publicSubject = sanitizePublicBriefText(brief.subject, brief.date) || 'Brief';
+  const description = sanitizePublicBriefText(brief.ping, brief.date).slice(0, 220) || publicSubject;
   return {
     title: publicSubject,
     description,
@@ -76,10 +76,10 @@ export default async function BriefPage({ params }: { params: Promise<{ date: st
             <BriefKindChip kind={brief.kind} subject={brief.subject} />
             <div>
               <Link href={briefPath(brief.date, brief.kind, brief.subject)}>
-                {sanitizePublicBriefText(brief.subject) || 'Brief'}
+                {sanitizePublicBriefText(brief.subject, brief.date) || 'Brief'}
               </Link>
             </div>
-            <p className="excerpt">{sanitizePublicBriefText(brief.ping)}</p>
+            <p className="excerpt">{sanitizePublicBriefText(brief.ping, brief.date)}</p>
           </li>
         ))}
       </ul>

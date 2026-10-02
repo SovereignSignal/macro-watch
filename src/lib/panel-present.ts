@@ -197,7 +197,29 @@ function formatPanelChange(label: string, change: string | null): string | null 
   return tidy;
 }
 
-export function presentPanelRow(row: PanelRowItem): PanelRowItem {
+const DELAYED_AFTER_MS = 2 * 60 * 60 * 1000;
+
+function isDelayedQuote(input: {
+  stale?: boolean;
+  asOf?: string;
+  quoteKind?: QuoteKind;
+}, takenAt?: string | null): boolean {
+  if (input.stale) return true;
+  if (input.quoteKind !== 'intraday' || !input.asOf || !takenAt || !isClockStamp(input.asOf)) return false;
+  const quoteMs = Date.parse(input.asOf);
+  const panelMs = Date.parse(takenAt);
+  if (Number.isNaN(quoteMs) || Number.isNaN(panelMs)) return false;
+  return panelMs - quoteMs > DELAYED_AFTER_MS;
+}
+
+/** Drop odds-lens notes that still carry internal taxonomy or schema wording. */
+export function publicOddsNote(note: string | null | undefined): string | null {
+  if (!note) return null;
+  if (/taxonomy|schema/i.test(note)) return null;
+  return note;
+}
+
+export function presentPanelRow(row: PanelRowItem, takenAt?: string | null): PanelRowItem {
   const label = ETF_LABELS[row.label] ?? row.label;
   const value = tidyCell(row.value) ?? row.value;
   const peeled = peelQuoteFreshness(value);
@@ -205,12 +227,23 @@ export function presentPanelRow(row: PanelRowItem): PanelRowItem {
   const spark = finiteSpark(row.spark);
   const change1d = formatPanelChange(label, row.change1d ?? null);
   const change1w = formatPanelChange(label, row.change1w ?? null);
+  const asOf = row.asOf ?? peeled.asOf;
+  const quoteKind = row.quoteKind ?? peeled.quoteKind;
   const structured = Boolean(row.asOf || row.quoteKind);
-  const freshness = formatQuoteFreshness({
-    asOf: row.asOf ?? peeled.asOf,
-    quoteKind: row.quoteKind ?? peeled.quoteKind,
-    loose: structured ? undefined : peeled.loose,
-  });
+  const delayed = isDelayedQuote({ stale: row.stale, asOf, quoteKind }, takenAt);
+  const clock = asOf && isClockStamp(asOf) ? asOf : null;
+  const freshness = delayed
+    ? (() => {
+        const time = clock ? formatCompactUtcTime(clock) : null;
+        return time
+          ? { label: `delayed, as of ${time}`, dateTime: new Date(clock as string).toISOString() }
+          : { label: 'delayed' };
+      })()
+    : formatQuoteFreshness({
+        asOf,
+        quoteKind,
+        loose: structured ? undefined : peeled.loose,
+      });
   return {
     label,
     value: splitAsOf(formatted).core || formatted,
@@ -220,6 +253,7 @@ export function presentPanelRow(row: PanelRowItem): PanelRowItem {
     ...(change1d ? { change1d } : {}),
     ...(change1w ? { change1w } : {}),
     ...(freshness ? { freshness: freshness.label, ...(freshness.dateTime ? { freshnessAt: freshness.dateTime } : {}) } : {}),
+    ...(delayed ? { delayed: true } : {}),
   };
 }
 
@@ -233,8 +267,8 @@ export function dashboardSpark(row: PanelRowItem, history?: Record<string, numbe
   return cleaned.length >= 2 ? cleaned : undefined;
 }
 
-export function presentPanelRows(rows: PanelRowItem[]): PanelRowItem[] {
-  return rows.map((row) => presentPanelRow(row));
+export function presentPanelRows(rows: PanelRowItem[], takenAt?: string | null): PanelRowItem[] {
+  return rows.map((row) => presentPanelRow(row, takenAt));
 }
 
 const HORIZON_7D = /\s*\(7d\)\s*$/i;
@@ -250,14 +284,18 @@ export function dashboardHorizonColumns(rows: PanelRowItem[]): HorizonChangeColu
 }
 
 /** Homepage tape: per-value as-of sits beside the number, and 7d is one column label. */
-export function presentDashboardRows(rows: PanelRowItem[], history?: Record<string, number[]>): {
+export function presentDashboardRows(
+  rows: PanelRowItem[],
+  history?: Record<string, number[]>,
+  takenAt?: string | null,
+): {
   rows: PanelRowItem[];
   changeColumn: string;
   horizonColumns: HorizonChangeColumn[];
 } {
   const presented = rows.map((row) => {
     const spark = dashboardSpark(row, history);
-    const next = presentPanelRow(row);
+    const next = presentPanelRow(row, takenAt);
     return spark ? { ...next, spark } : next;
   });
   const changes = presented.map((row) => row.change).filter((change): change is string => Boolean(change));

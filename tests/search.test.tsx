@@ -1,5 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { expect, it } from 'vitest';
+import { upsertBrief } from '@/lib/ingest/briefs';
+import { upsertResearch } from '@/lib/ingest/research';
 import { searchAll } from '@/lib/queries/search';
 import { seedAll } from '@/lib/seed';
 import { createTestDb } from './helpers/db';
@@ -65,6 +67,34 @@ it('search page renders a no-results state', async () => {
   expect(markup).toContain('No results for');
 });
 
+it('converts stored Pacific and Eastern clocks in brief and research snippets', async () => {
+  const db = await createTestDb();
+  await upsertBrief(db, {
+    date: '2026-09-30',
+    kind: 'daily',
+    subject: 'PCE day',
+    telegram_ping: 'Core PCE prints at 8:30 ET and the tape waits.',
+    html: '<p>Core PCE prints at 8:30 ET and the tape waits.</p>',
+    sent_verified_at: '2026-09-30T14:00:00Z',
+  });
+  await upsertResearch(db, {
+    date: '2026-08-15',
+    topic: 'Morning print',
+    finding: 'The release hits at 6:30 a.m. ET and funding is unchanged.',
+    changed: 'No change in the standing assumption.',
+    decision: 'Hold the map.',
+    watch: 'The next payrolls print.',
+    citations: [{ url: 'https://www.bls.gov/schedule/news_release/cpi.htm', title: 'BLS calendar' }],
+    generated_at: '2026-08-15T07:00:00Z',
+  });
+  const brief = (await searchAll(db, 'tape waits')).find((hit) => hit.type === 'brief');
+  expect(brief?.snippet).toContain('12:30 UTC');
+  expect(brief?.snippet).not.toContain('ET');
+  const memo = (await searchAll(db, 'funding is unchanged')).find((hit) => hit.type === 'research');
+  expect(memo?.snippet).toContain('10:30 UTC');
+  expect(memo?.snippet).not.toContain('a.m. ET');
+});
+
 it('about is dynamic so the header Updated stamp is not prerendered away', () => {
   expect(aboutDynamic).toBe('force-dynamic');
 });
@@ -84,7 +114,8 @@ it('about page explains the product and carries the disclaimer', () => {
   expect(markup).toContain('Saturday at 17:00 UTC');
   expect(markup).toContain('Sunday at 23:00 UTC');
   expect(markup).not.toContain('Pacific');
-  expect(markup).toContain('Paid sources are paraphrased, not republished');
-  expect(markup).not.toContain('Paywalled sources are never republished');
+  expect(markup).toContain('not used');
+  expect(markup).toContain('Content from paid or licensed sources');
+  expect(markup).not.toContain('paraphrased');
   expect(markup).toContain('hit rate counts hits divided by hits plus misses');
 });

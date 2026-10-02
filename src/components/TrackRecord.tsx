@@ -71,6 +71,40 @@ export function TrackRecordSummary({ scoreboard }: { scoreboard: Scoreboard | nu
   );
 }
 
+function openCallTable(calls: Scoreboard['open'], caption: string) {
+  return (
+    <div className="panel-table-scroll">
+      <table className="panel-table panel-table--stack">
+        <caption className="sr-only">{caption}</caption>
+        <thead>
+          <tr>
+            <th scope="col">Call</th>
+            <th scope="col">Made</th>
+            <th scope="col">Horizon</th>
+          </tr>
+        </thead>
+        <tbody>
+          {calls.map((call) => (
+            <tr key={call.callId}>
+              <th scope="row">{call.title}</th>
+              <td className="num" data-label="Made">{formatWatchDate(call.madeAt) ?? ''}</td>
+              <td data-label="Horizon">{formatWatchDate(call.horizon) ?? call.horizon ?? ''}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function unlistedOpenCopy(scoreboard: Scoreboard): string | null {
+  if (scoreboard.open.length > 0 || scoreboard.openQualitative.length > 0) return null;
+  const openCount = scoreboard.totals.open ?? 0;
+  const unlisted = openCount - scoreboard.open.length;
+  if (unlisted > 0) return `${unlisted} open calls have no fixed due date and are not listed.`;
+  return 'No open calls.';
+}
+
 export function TrackRecord({ scoreboard }: { scoreboard: Scoreboard | null }) {
   if (!scoreboard) {
     return <EmptyState>No track record yet. Sovs Macro&rsquo;s own calls show up here after the next publish.</EmptyState>;
@@ -124,34 +158,24 @@ export function TrackRecord({ scoreboard }: { scoreboard: Scoreboard | null }) {
         )}
       </section>
 
-      <section aria-label="Open calls">
-        <h2>Open calls</h2>
-        {scoreboard.open.length === 0 ? (
-          <EmptyState>No open calls.</EmptyState>
-        ) : (
-          <div className="panel-table-scroll">
-            <table className="panel-table panel-table--stack">
-              <caption className="sr-only">Open Sovs Macro calls</caption>
-              <thead>
-                <tr>
-                  <th scope="col">Call</th>
-                  <th scope="col">Made</th>
-                  <th scope="col">Horizon</th>
-                </tr>
-              </thead>
-              <tbody>
-                {scoreboard.open.map((call) => (
-                  <tr key={call.callId}>
-                    <th scope="row">{call.title}</th>
-                    <td className="num" data-label="Made">{formatWatchDate(call.madeAt) ?? ''}</td>
-                    <td data-label="Horizon">{formatWatchDate(call.horizon) ?? ''}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
+      {scoreboard.open.length > 0 ? (
+        <section aria-label="Open calls">
+          <h2>Open calls</h2>
+          {openCallTable(scoreboard.open, 'Open Sovs Macro calls')}
+        </section>
+      ) : scoreboard.openQualitative.length === 0 ? (
+        <section aria-label="Open calls">
+          <h2>Open calls</h2>
+          <EmptyState>{unlistedOpenCopy(scoreboard)}</EmptyState>
+        </section>
+      ) : null}
+
+      {scoreboard.openQualitative.length > 0 ? (
+        <section aria-label="Open theses">
+          <h2>Open theses (no fixed due date)</h2>
+          {openCallTable(scoreboard.openQualitative, 'Open Sovs Macro theses with no fixed due date')}
+        </section>
+      ) : null}
     </>
   );
 }

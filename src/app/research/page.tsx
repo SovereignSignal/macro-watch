@@ -57,11 +57,11 @@ export default async function ResearchPage({
                 <span className="date">{formatDate(m.date)}</span>
                 <div>
                   <Link href={`/research/${m.date}`}>
-                    {publicResearchText(sanitizePublicBriefText(m.topic)) || 'Research memo'}
+                    {publicResearchText(sanitizePublicBriefText(m.topic, m.date)) || 'Research memo'}
                   </Link>
                 </div>
                 <p className="excerpt">
-                  {publicResearchText(sanitizePublicBriefText(m.finding)).slice(0, 280)}
+                  {publicResearchText(sanitizePublicBriefText(m.finding, m.date)).slice(0, 280)}
                 </p>
               </>
             ),

@@ -56,7 +56,9 @@ it('panelCoverage exposes only atomically verified source counts', () => {
       { label: 'Iran', value: 'No 74%' },
     ],
   };
-  expect(panelCoverage(valid)).toBe('2 selected from 28 verified schema-v2 AMS signals');
+  const coverage = panelCoverage(valid);
+  expect(coverage).toBe('2 markets from 28 tracked-wallet signals');
+  expect(coverage).not.toMatch(/schema|\bv2\b|AMS/i);
   expect(panelCoverage({ ...valid, source_schema_version: 1 })).toBeNull();
   expect(panelCoverage({ ...valid, source_sha256: 'not-a-hash' })).toBeNull();
   expect(panelCoverage({ ...valid, selected_count: 8 })).toBeNull();
@@ -112,7 +114,8 @@ it('getLatestVerifiedPanel paginates past twenty newer legacy odds rows', async 
 
   const panel = await getLatestVerifiedPanel(db, 'odds_lens');
   expect(panel?.takenAt.toISOString()).toBe('2026-07-21T16:20:12.000Z');
-  expect(panel?.view.coverage).toBe('2 selected from 28 verified schema-v2 AMS signals');
+  expect(panel?.view.coverage).toBe('2 markets from 28 tracked-wallet signals');
+  expect(panel?.view.coverage).not.toMatch(/schema|\bv2\b|AMS/i);
   expect(panel?.view.rows.map((row) => row.change)).toEqual(['+$35K net (24h)', '-$359 net (24h)']);
 });
 
