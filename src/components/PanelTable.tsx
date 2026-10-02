@@ -4,6 +4,12 @@ import { EmptyState } from './EmptyState';
 import { Sparkline } from './Sparkline';
 import { UpdatedAgo } from './UpdatedAgo';
 
+function freshnessClass(row: PanelRowItem): string {
+  return row.delayed || row.freshness?.startsWith('delayed')
+    ? 'quote-freshness quote-delayed'
+    : 'quote-freshness';
+}
+
 function changeClass(change: string): string {
   if (change.startsWith('+')) return 'num change-up';
   if (change.startsWith('-')) return 'num change-down';
@@ -54,9 +60,9 @@ export function PanelTable(props: {
                     {row.value}
                     {row.freshness ? (
                       row.freshnessAt ? (
-                        <time className="quote-freshness" dateTime={row.freshnessAt}>{row.freshness}</time>
+                        <time className={freshnessClass(row)} dateTime={row.freshnessAt}>{row.freshness}</time>
                       ) : (
-                        <span className="quote-freshness">{row.freshness}</span>
+                        <span className={freshnessClass(row)}>{row.freshness}</span>
                       )
                     ) : null}
                   </td>

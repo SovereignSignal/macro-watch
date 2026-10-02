@@ -96,8 +96,10 @@ export function omitPrivateWatchItems<T>(value: T): T {
       const next = { ...(board as Record<string, unknown>) };
       const recent = filterItems(next.recent);
       const open = filterItems(next.open);
+      const openQualitative = filterItems(next.open_qualitative);
       if (recent) next.recent = recent;
       if (open) next.open = open;
+      if (openQualitative) next.open_qualitative = openQualitative;
       if (next.by_source && typeof next.by_source === 'object' && !Array.isArray(next.by_source)) {
         next.by_source = Object.fromEntries(
           Object.entries(next.by_source as Record<string, unknown>).filter(([name]) => !isPrivateSourceName(name)),

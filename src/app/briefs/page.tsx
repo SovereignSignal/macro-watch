@@ -92,10 +92,10 @@ export default async function BriefsPage({
                 <BriefKindChip kind={b.kind} subject={b.subject} />
                 <div>
                   <Link href={briefPath(b.date, b.kind, b.subject)}>
-                    {sanitizePublicBriefText(b.subject) || 'Brief'}
+                    {sanitizePublicBriefText(b.subject, b.date) || 'Brief'}
                   </Link>
                 </div>
-                <p className="excerpt">{sanitizePublicBriefText(b.ping)}</p>
+                <p className="excerpt">{sanitizePublicBriefText(b.ping, b.date)}</p>
               </>
             ),
           }))}

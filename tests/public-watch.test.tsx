@@ -1,7 +1,9 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { beforeEach, expect, it } from 'vitest';
 import { HomeView } from '@/components/HomeView';
+import { KalshiMovers } from '@/components/KalshiMovers';
 import { MastheadUpdated } from '@/components/MastheadUpdated';
+import { TrackRecord } from '@/components/TrackRecord';
 import { panelSnapshots } from '@/db/schema';
 import { upsertPanel } from '@/lib/ingest/panels';
 import { parsePublishedWatch } from '@/lib/public-watch';
@@ -311,6 +313,58 @@ it('still hides a private item that was stored before the ingest filter', async 
   );
   expect(home).toContain('No markets moved in this window.');
   expect(home.toLowerCase()).not.toContain('economist');
+});
+
+it('drops stale, settled, and past-close Kalshi movers and stamps the as-of in UTC', () => {
+  const watch = parsePublishedWatch({
+    kalshi_movers: {
+      as_of: '2026-10-02T18:12:00Z',
+      window_hours: 24,
+      items: [
+        { ticker: 'STALE', title: 'Stale print', stale: true, prob_now: 0.9, prob_prev: 0.85, change_pp: 5 },
+        { ticker: 'FINAL', title: 'Finalized print', status: 'finalized', prob_now: 0.95, prob_prev: 0.9, change_pp: 5 },
+        { ticker: 'SETTLED', title: 'Settled print', status: 'settled', prob_now: 0.7, prob_prev: 0.6, change_pp: 10 },
+        { ticker: 'CLOSED', title: 'Closed print', status: 'closed', close_time: '2026-11-01T00:00:00Z', prob_now: 0.4, prob_prev: 0.3, change_pp: 10 },
+        { ticker: 'DONE', title: 'Determined print', status: 'determined', prob_now: 0.2, prob_prev: 0.1, change_pp: 10 },
+        { ticker: 'PAST', title: 'Past close', status: 'open', close_time: '2026-10-02T12:29:00Z', prob_now: 0.73, prob_prev: 0.69, change_pp: 4 },
+        { ticker: 'OPEN', title: 'Still trading', status: 'active', close_time: '2026-11-01T00:00:00Z', prob_now: 0.41, prob_prev: 0.28, change_pp: 13 },
+      ],
+    },
+  });
+  expect(watch.kalshiMovers?.items.map((item) => item.ticker)).toEqual(['OPEN']);
+  const html = renderToStaticMarkup(<KalshiMovers movers={watch.kalshiMovers} />);
+  expect(html).toContain('Still trading');
+  expect(html).toContain('as of 2026-10-02 18:12 UTC');
+  expect(html).not.toContain('Stale print');
+  expect(html).not.toContain('Finalized print');
+  expect(html).not.toContain('Settled print');
+  expect(html).not.toContain('Closed print');
+  expect(html).not.toContain('Determined print');
+  expect(html).not.toContain('Past close');
+});
+
+it('lists qualitative open calls, and says when open calls have no due date', () => {
+  const listed = parsePublishedWatch({
+    scoreboard: {
+      totals: { open: 2, hit_rate: 0.5 },
+      open: [],
+      open_qualitative: [
+        { call_id: 'sovs-macro:q1', title: 'Dollar stays bid', made_at: '2026-08-01', horizon: 'through 2026' },
+      ],
+    },
+  }).scoreboard;
+  const listedHtml = renderToStaticMarkup(<TrackRecord scoreboard={listed} />);
+  expect(listedHtml).toContain('Open theses (no fixed due date)');
+  expect(listedHtml).toContain('Dollar stays bid');
+  expect(listedHtml).toContain('through 2026');
+  expect(listedHtml).not.toContain('No open calls.');
+
+  const unlisted = parsePublishedWatch({
+    scoreboard: { totals: { open: 6 }, open: [] },
+  }).scoreboard;
+  const unlistedHtml = renderToStaticMarkup(<TrackRecord scoreboard={unlisted} />);
+  expect(unlistedHtml).toContain('6 open calls have no fixed due date and are not listed');
+  expect(unlistedHtml).not.toContain('No open calls.');
 });
 
 it('shows one Updated stamp from updated_at in UTC, and falls back when it is missing', async () => {

@@ -2,7 +2,7 @@ import {
   formatChangePp,
   formatProb,
   formatVolume,
-  formatWatchDate,
+  formatWatchAsOf,
   formatWindow,
   type KalshiMovers as KalshiMoversView,
 } from '@/lib/public-watch';
@@ -22,7 +22,7 @@ function changeClass(pp: number | null): string {
 
 export function KalshiMovers({ movers }: { movers: KalshiMoversView | null }) {
   const windowLabel = movers?.windowHours == null ? null : formatWindow(movers.windowHours);
-  const asOf = movers ? formatWatchDate(movers.asOf) : null;
+  const asOf = movers ? formatWatchAsOf(movers.asOf) : null;
   const showHour = movers?.items.some((item) => item.change1hPp != null) ?? false;
   return (
     <section className="panel" aria-label="Biggest odds moves">

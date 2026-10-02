@@ -16,11 +16,11 @@ export function buildFeed(items: BriefListItem[]): string {
       const link = `${base}${briefPath(b.date, b.kind, b.subject)}`;
       return [
         '    <item>',
-        `      <title>${xmlEscape(sanitizePublicBriefText(b.subject))}</title>`,
+        `      <title>${xmlEscape(sanitizePublicBriefText(b.subject, b.date))}</title>`,
         `      <link>${link}</link>`,
         `      <guid isPermaLink="true">${link}</guid>`,
         `      <pubDate>${b.sentVerifiedAt.toUTCString()}</pubDate>`,
-        `      <description>${xmlEscape(`${sanitizePublicBriefText(b.ping)}\n\n${link}`)}</description>`,
+        `      <description>${xmlEscape(`${sanitizePublicBriefText(b.ping, b.date)}\n\n${link}`)}</description>`,
         '    </item>',
       ].join('\n');
     })

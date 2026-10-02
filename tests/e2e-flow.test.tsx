@@ -52,7 +52,8 @@ it('ingest fixture -> home page shows it (full wiring)', async () => {
   expect(markup).toContain('6,412.50'); // dashboard panel row
   expect(markup).toContain('Prediction Market Lens');
   expect(markup).toContain('Fed cut by September');
-  expect(markup).toContain('2 selected from 28 verified schema-v2 AMS signals');
+  expect(markup).toContain('2 markets from 28 tracked-wallet signals');
+  expect(markup).not.toMatch(/schema|\bv2\b|AMS/i);
   expect(markup).not.toContain('LEGACY RAW ODDS');
   expect(markup).toContain('Rate-path repricing'); // theme strip
   expect(markup).toContain('href="/map/dollar-downtrend"');

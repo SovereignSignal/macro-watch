@@ -3,12 +3,12 @@ import { requiresForecastReview } from '@/lib/scoring';
 import {
   claimSource,
   claimTrackLabel,
-  humanizeSlug,
   payloadStr,
   qualityLabel,
   STATUS_COPY,
   statusLabel,
 } from '@/lib/claim-display';
+import { mapThemeHref, publicThemeLabel } from '@/lib/theme-display';
 import { formatDate } from '@/lib/format';
 import type { ClaimFilters, ClaimsPage } from '@/lib/queries/accountability';
 import { openingProbability, qualityClass } from '@/lib/scoring';
@@ -89,7 +89,7 @@ export function ClaimsTable(props: {
             <option value="">all</option>
             {props.themeOptions.map((t) => (
               <option key={t} value={t}>
-                {props.themeNames[t] ?? humanizeSlug(t)}
+                {publicThemeLabel(t, props.themeNames)}
               </option>
             ))}
           </select>
@@ -154,12 +154,16 @@ export function ClaimsTable(props: {
                   <td className="cell-mono" data-label="Track">{claimTrackLabel(c)}</td>
                   <td className="claim-themes" data-label="Themes">
                     {c.themes.length > 0
-                      ? c.themes.map((theme, index) => (
-                          <span key={theme}>
-                            {index > 0 ? ', ' : ''}
-                            <Link href={`/map/${theme}`}>{props.themeNames[theme] ?? humanizeSlug(theme)}</Link>
-                          </span>
-                        ))
+                      ? c.themes.map((theme, index) => {
+                          const label = publicThemeLabel(theme, props.themeNames);
+                          const href = mapThemeHref(theme, props.themeNames);
+                          return (
+                            <span key={theme}>
+                              {index > 0 ? ', ' : ''}
+                              {href ? <Link href={href}>{label}</Link> : label}
+                            </span>
+                          );
+                        })
                       : 'Unassigned'}
                   </td>
                   <td className="cell-mono" data-label="Evidence">{qualityLabel(qualityClass(c.payload))}</td>

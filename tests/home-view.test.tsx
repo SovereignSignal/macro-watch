@@ -163,7 +163,7 @@ it('renders the prediction market lens as a distinct homepage panel', () => {
       panel={null}
       oddsPanel={{
         takenAt: '2026-07-21T16:20:12Z',
-        summary: '1 selected from 28 verified schema-v2 AMS signals',
+        summary: '8 markets from 53 tracked-wallet signals',
         rows: [{
           label: 'Will the U.S. invade Iran before 2027?',
           value: 'No 74%',
@@ -175,7 +175,8 @@ it('renders the prediction market lens as a distinct homepage panel', () => {
     />,
   );
   expect(markup).toContain('Prediction Market Lens');
-  expect(markup).toContain('1 selected from 28 verified schema-v2 AMS signals');
+  expect(markup).toContain('8 markets from 53 tracked-wallet signals');
+  expect(markup).not.toMatch(/schema|\bv2\b|AMS/i);
   expect(markup).toContain('Will the U.S. invade Iran before 2027?');
   expect(markup).toContain('No 74%');
   expect(markup).toContain('+$32K net (24h)');
@@ -185,6 +186,32 @@ it('renders the prediction market lens as a distinct homepage panel', () => {
   expect(markup).toContain('<th scope="col">Odds</th>');
   expect(markup).toContain('<th scope="col">24-hour flow</th>');
   expect(markup).toContain('<th scope="row">Will the U.S. invade Iran before 2027?');
+});
+
+it('marks a stale odds quote as delayed and hides internal taxonomy notes', () => {
+  const markup = renderToStaticMarkup(
+    <HomeView
+      brief={null}
+      panel={null}
+      oddsPanel={{
+        takenAt: '2026-10-02T18:12:00Z',
+        summary: '8 markets from 53 tracked-wallet signals',
+        rows: [{
+          label: 'Bitcoin above 90k',
+          value: '42%',
+          change: '+1pp',
+          note: 'Data-anchored taxonomy',
+          asOf: '2026-10-02T06:20:00Z',
+          quoteKind: 'intraday',
+        }],
+      }}
+      cards={[]}
+    />,
+  );
+  expect(markup).toContain('quote-delayed');
+  expect(markup).toContain('delayed, as of 06:20 UTC');
+  expect(markup).not.toContain('taxonomy');
+  expect(markup).not.toContain('schema');
 });
 
 it('renders explicit empty states when nothing is published', () => {

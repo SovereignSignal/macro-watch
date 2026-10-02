@@ -1,7 +1,7 @@
 import type { PanelRowItem } from '@/lib/panel-contract';
 import type { BriefRow } from '@/lib/queries/briefs';
 import type { ThemeCard } from '@/lib/queries/map';
-import { presentDashboardRows, presentPanelRows } from '@/lib/panel-present';
+import { presentDashboardRows, presentPanelRows, publicOddsNote } from '@/lib/panel-present';
 import { EMPTY_WATCH, type PublishedWatch } from '@/lib/public-watch';
 import { BriefArticle } from './BriefArticle';
 import { EmptyState } from './EmptyState';
@@ -19,8 +19,11 @@ export function HomeView(props: {
   asOf?: string;
   watch?: PublishedWatch | null;
 }) {
-  const dashboard = presentDashboardRows(props.panel?.rows ?? [], props.panel?.history);
-  const oddsRows = presentPanelRows(props.oddsPanel?.rows ?? []);
+  const dashboard = presentDashboardRows(props.panel?.rows ?? [], props.panel?.history, props.panel?.takenAt);
+  const oddsRows = presentPanelRows(props.oddsPanel?.rows ?? [], props.oddsPanel?.takenAt).map((row) => ({
+    ...row,
+    note: publicOddsNote(row.note),
+  }));
   const watch = props.watch ?? EMPTY_WATCH;
   return (
     <main className="container">

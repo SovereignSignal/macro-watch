@@ -18,7 +18,7 @@ export function BriefArticle(props: {
   stripDuplicatePanels?: boolean;
 }) {
   const { brief } = props;
-  const publicHtml = sanitizePublicBriefHtml(brief.html);
+  const publicHtml = sanitizePublicBriefHtml(brief.html, brief.date);
   const html = props.stripDuplicatePanels ? stripBriefDuplicatePanels(publicHtml) : publicHtml;
   return (
     <article className="brief">
@@ -26,7 +26,7 @@ export function BriefArticle(props: {
         <span className="date">{formatDate(brief.date)}</span>
         <BriefKindChip kind={brief.kind} subject={brief.subject} />
       </p>
-      <h1>{sanitizePublicBriefText(brief.subject)}</h1>
+      <h1>{sanitizePublicBriefText(brief.subject, brief.date)}</h1>
       <div className="brief-body" dangerouslySetInnerHTML={{ __html: html }} />
     </article>
   );
