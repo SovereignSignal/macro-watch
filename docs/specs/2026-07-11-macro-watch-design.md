@@ -15,7 +15,7 @@
 ## 2. Architecture
 
 ```
-sovsclaw (pipeline)                          Railway project: sovs-macro-site
+pipeline-host (pipeline)                          Railway project: sovs-macro-site
 ┌──────────────────────────────┐             ┌──────────────────────────────┐
 │ run_email_cron_job           │   HTTPS     │  Next.js app (SSR + ISR)     │
 │  └─ post-Sent-verification ──┼──POST──────▶│   /api/ingest/* (bearer)     │
@@ -23,11 +23,11 @@ sovsclaw (pipeline)                          Railway project: sovs-macro-site
 │  └─ panels/ledgers/events ───┼──POST──────▶│                              │
 │ local retry queue (fail-soft)│             │  Railway Postgres            │
 └──────────────────────────────┘             └──────────────────────────────┘
-        push-only, one-directional: Railway never reaches into sovsclaw
+        push-only, one-directional: Railway never reaches into pipeline-host
 ```
 
 - **Push-only boundary.** The publisher POSTs; the site never pulls. A bearer token
-  (`MACRO_WATCH_INGEST_TOKEN`, in sovsclaw's `.env.secrets` and Railway env) guards ingest.
+  (`MACRO_WATCH_INGEST_TOKEN`, in pipeline-host's `.env.secrets` and Railway env) guards ingest.
 - **Site can't hurt the pipeline.** Publisher failures are alert-only (alerting seam) with a
   local retry queue — unpublished artifacts ship on the next tick.
 
@@ -54,7 +54,7 @@ sanitizer unit test pins each rule.
 **Scope amendment (Sov, 2026-07-11): this Postgres is the sovs-macro system's
 queryable projection, not just the site's store.** Any sovs-macro consumer
 (analytics, future graders, other services in the Railway project) may READ it.
-Two invariants keep that safe: (1) the pipeline on sovsclaw remains
+Two invariants keep that safe: (1) the pipeline on pipeline-host remains
 **file-canonical** (`SOVS_STATE_ROOT`) and never reads the DB on any critical
 path — the DB is a one-way projection fed by the publisher; (2) the ingest API
 stays the only write path, so the projection is always reconstructable by
@@ -126,7 +126,7 @@ implementation time. No app-dashboard aesthetics.
   (Next.js, deploys from Railway's GitHub source on `main`) + Railway Postgres.
   Env: `DATABASE_URL` (reference variable to the Postgres service's private-network
   `DATABASE_URL`), `MACRO_WATCH_INGEST_TOKEN`, `SITE_URL`.
-- sovsclaw env additions (`.env.secrets`): `MACRO_WATCH_INGEST_URL`, `MACRO_WATCH_INGEST_TOKEN`.
+- pipeline-host env additions (`.env.secrets`): `MACRO_WATCH_INGEST_URL`, `MACRO_WATCH_INGEST_TOKEN`.
 - Domain: `macro.watch` → Railway custom domain (Sov owns DNS).
 - Railway operations via the authenticated CLI (per house railway-ops practice), not MCP.
 
@@ -148,6 +148,6 @@ generation, no email signup (RSS only), no admin UI (ingest is the only write pa
 
 - `macro.watch` DNS access + Railway custom-domain setup (Sov).
 - `MACRO_WATCH_INGEST_TOKEN` provisioning (generate at implementation; store in Railway env
-  + sovsclaw `.env.secrets`).
+  + pipeline-host `.env.secrets`).
 - Scorpion/Sovereign Signal mark assets for the site header (Sov to supply or approve a
   simple text-mark for v1).

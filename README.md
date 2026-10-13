@@ -16,7 +16,7 @@ Push-only ingest from the pipeline, a Postgres projection, and server-rendered p
 Railway never reaches back into the pipeline host — the arrow only goes one way.
 
 ```
-sovsclaw (pipeline host)                       Railway project: sovs-macro-site
+pipeline-host (pipeline host)                       Railway project: sovs-macro-site
 ┌───────────────────────────────┐             ┌────────────────────────────────┐
 │ run_email_cron_job.py         │   HTTPS     │  Next.js app (dynamic SSR)      │
 │  └─ post-Sent-verification ───┼──POST──────▶│   /api/ingest/* (bearer auth)   │
@@ -27,7 +27,7 @@ sovsclaw (pipeline host)                       Railway project: sovs-macro-site
         push-only, one-directional             └────────────────────────────────┘
 ```
 
-The pipeline stays file-canonical (`SOVS_STATE_ROOT` on sovsclaw); this Postgres database
+The pipeline stays file-canonical (`SOVS_STATE_ROOT` on pipeline-host); this Postgres database
 is a one-way, reconstructable projection of it, fed only through the ingest API. If the
 projection were dropped, re-publishing from pipeline state would rebuild it.
 

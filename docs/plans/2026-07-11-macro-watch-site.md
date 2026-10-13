@@ -4,7 +4,7 @@
 
 **Goal:** Build and deploy macro.watch — the public, free web surface of the SovsClaw macro intelligence system: daily brief + archive, living theme map with longitudinal history, accountability scoreboards, catalyst board, about/RSS/search — fed exclusively by a push-only, bearer-token-guarded ingest API.
 
-**Architecture:** A Next.js (App Router) app on Railway renders server-side from Railway Postgres via Drizzle ORM. The sovsclaw pipeline (separate repo, out of scope here) POSTs JSON to `/api/ingest/<kind>` endpoints, which zod-validate, idempotently upsert on natural keys, and trigger on-demand revalidation so pages update seconds after a publish. Pages carry a 900s ISR fallback and explicit empty states so no data never means a broken page. Tests run entirely against PGlite (in-memory Postgres), so CI and local runs need no database service.
+**Architecture:** A Next.js (App Router) app on Railway renders server-side from Railway Postgres via Drizzle ORM. The pipeline-host pipeline (separate repo, out of scope here) POSTs JSON to `/api/ingest/<kind>` endpoints, which zod-validate, idempotently upsert on natural keys, and trigger on-demand revalidation so pages update seconds after a publish. Pages carry a 900s ISR fallback and explicit empty states so no data never means a broken page. Tests run entirely against PGlite (in-memory Postgres), so CI and local runs need no database service.
 
 **Tech Stack:** Next.js 15 (App Router) + TypeScript + React 19, npm, Drizzle ORM + node-postgres (prod) / @electric-sql/pglite (tests), zod, Vitest, plain CSS, Railway (web service + Postgres), GitHub Actions CI.
 
@@ -13,7 +13,7 @@
 Every task's requirements implicitly include this section.
 
 1. **Stack:** Next.js (App Router) + TypeScript, npm (Node 26 available locally; `engines.node >= 22`; CI pins Node 22 LTS).
-2. **Repo:** already exists at `/Users/home/repos/macro-watch` (trunk-based, branch `main`, remote `git@github.com/SovereignSignal/macro-watch` — commits push straight to main). Commit at the end of every task. **Do NOT `git push`** — pushing to main triggers a Railway deploy; the orchestrator pushes after review. Leave the existing `README.md` and `docs/specs/` untouched.
+2. **Repo:** already exists at `~/repos/macro-watch` (trunk-based, branch `main`, remote `git@github.com/SovereignSignal/macro-watch` — commits push straight to main). Commit at the end of every task. **Do NOT `git push`** — pushing to main triggers a Railway deploy; the orchestrator pushes after review. Leave the existing `README.md` and `docs/specs/` untouched.
 3. **Database:** Drizzle ORM + node-postgres against Railway Postgres (`DATABASE_URL` env). Tests run against PGlite (in-memory Postgres, `@electric-sql/pglite`) so CI/local needs no database service. Never call `db.execute()` in app code — use the Drizzle query builder only, so node-postgres and PGlite stay interchangeable behind the `Db` type.
 4. **Ingest:** zod validates every body. Auth: single bearer token env `MACRO_WATCH_INGEST_TOKEN`. Token mismatch → 401. Schema-invalid payload → 422 with reasons. Idempotent upsert on natural keys (retries are always safe). Response shape: `{ok, upserted, revalidated}`. The ingest API defined in this plan **is the contract**: the sovs-macro publisher (separate repo, separate plan) conforms to these shapes. Fields beyond the validated core pass through into `jsonb` payload columns. Brief `html` arrives sanitized publisher-side (spec §3) as body-inner HTML (no `<html>`/`<head>` wrapper) and is rendered as trusted content.
 5. **Rendering:** SSR + on-demand revalidation (`revalidatePath` from ingest handlers). Content pages export `revalidate = 900` as the ISR fallback (if Postgres is briefly unavailable, previously rendered pages keep serving). `/search` and `/accountability` read `searchParams` and are `force-dynamic`. Panel components show "updated Nm ago" from snapshot `taken_at`. List/board pages wrap queries in `safeQuery` (DB failure → empty state, never a crash); the brief permalink deliberately throws instead, so a failed background revalidation keeps the stale page rather than 404ing it.
@@ -116,7 +116,7 @@ Notes: `drizzle-kit` and `dotenv` are runtime dependencies on purpose — the pr
 
 - [ ] **Step 2: Install**
 
-Run: `cd /Users/home/repos/macro-watch && npm install`
+Run: `cd ~/repos/macro-watch && npm install`
 Expected: exits 0, prints `added <N> packages`, creates `package-lock.json` and `node_modules/`. (If `@electric-sql/pglite@^0.3` reports an unresolvable peer conflict with drizzle-orm, fall back to `"@electric-sql/pglite": "^0.2.17"` — drizzle's pglite driver supports both lines.)
 
 - [ ] **Step 3: Write the TypeScript/Next/Vitest config files**
@@ -343,7 +343,7 @@ jobs:
 - [ ] **Step 11: Commit**
 
 ```bash
-cd /Users/home/repos/macro-watch
+cd ~/repos/macro-watch
 git add -A
 git commit -m "feat: scaffold Next.js app, vitest, and CI"
 ```
@@ -649,7 +649,7 @@ Expected: both green (5 tests total).
 - [ ] **Step 10: Commit**
 
 ```bash
-cd /Users/home/repos/macro-watch
+cd ~/repos/macro-watch
 git add -A
 git commit -m "feat: drizzle schema for all seven tables, init migration, PGlite test harness"
 ```
@@ -905,7 +905,7 @@ Expected: both green.
 - [ ] **Step 9: Commit**
 
 ```bash
-cd /Users/home/repos/macro-watch
+cd ~/repos/macro-watch
 git add -A
 git commit -m "feat: ingest foundation (bearer auth, handler factory) + briefs endpoint"
 ```
@@ -1228,7 +1228,7 @@ Expected: both green.
 - [ ] **Step 7: Commit**
 
 ```bash
-cd /Users/home/repos/macro-watch
+cd ~/repos/macro-watch
 git add -A
 git commit -m "feat: theme-events and theme-state ingest with themes lifecycle maintenance"
 ```
@@ -1380,7 +1380,7 @@ Expected: both green.
 - [ ] **Step 7: Commit**
 
 ```bash
-cd /Users/home/repos/macro-watch
+cd ~/repos/macro-watch
 git add -A
 git commit -m "feat: panels ingest, idempotent on kind + taken_at"
 ```
@@ -1672,7 +1672,7 @@ Expected: both green.
 - [ ] **Step 7: Commit**
 
 ```bash
-cd /Users/home/repos/macro-watch
+cd ~/repos/macro-watch
 git add -A
 git commit -m "feat: claims and forward-events ingest"
 ```
@@ -2133,7 +2133,7 @@ Expected: both green.
 - [ ] **Step 8: Commit**
 
 ```bash
-cd /Users/home/repos/macro-watch
+cd ~/repos/macro-watch
 git add -A
 git commit -m "feat: shared fixtures and seed script through validated ingest paths"
 ```
@@ -3009,7 +3009,7 @@ Expected: all green; build route table shows `/`.
 - [ ] **Step 11: Commit**
 
 ```bash
-cd /Users/home/repos/macro-watch
+cd ~/repos/macro-watch
 git add -A
 git commit -m "feat: design system, site chrome with byline and disclaimer, shared atoms"
 ```
@@ -3602,7 +3602,7 @@ Expected: all green.
 - [ ] **Step 10: Commit**
 
 ```bash
-cd /Users/home/repos/macro-watch
+cd ~/repos/macro-watch
 git add -A
 git commit -m "feat: home page — full brief, dashboard panel with freshness badge, theme strip"
 ```
@@ -3872,7 +3872,7 @@ Expected: all green; build route table now includes `/briefs`, `/briefs/[date]`,
 - [ ] **Step 9: Commit**
 
 ```bash
-cd /Users/home/repos/macro-watch
+cd ~/repos/macro-watch
 git add -A
 git commit -m "feat: brief archive, permalinks, and RSS feed"
 ```
@@ -4405,7 +4405,7 @@ Expected: all green; build route table now includes `/map` and `/map/[theme]`.
 - [ ] **Step 8: Commit**
 
 ```bash
-cd /Users/home/repos/macro-watch
+cd ~/repos/macro-watch
 git add -A
 git commit -m "feat: living theme map — grid, per-theme dossier, timeline, conviction chart"
 ```
@@ -4884,7 +4884,7 @@ Expected: all green; `/accountability` listed as dynamic (ƒ) in the build table
 - [ ] **Step 9: Commit**
 
 ```bash
-cd /Users/home/repos/macro-watch
+cd ~/repos/macro-watch
 git add -A
 git commit -m "feat: accountability — scoreboards and filterable claims ledger"
 ```
@@ -5128,7 +5128,7 @@ Expected: all green.
 - [ ] **Step 8: Commit**
 
 ```bash
-cd /Users/home/repos/macro-watch
+cd ~/repos/macro-watch
 git add -A
 git commit -m "feat: catalyst board — upcoming with surprise framing, resolved expectation-vs-outcome"
 ```
@@ -5429,7 +5429,7 @@ Expected: all green; `/about` static, `/search` dynamic in the build table.
 - [ ] **Step 8: Commit**
 
 ```bash
-cd /Users/home/repos/macro-watch
+cd ~/repos/macro-watch
 git add -A
 git commit -m "feat: about page and full-text search across briefs, events, claims"
 ```
@@ -5648,7 +5648,7 @@ Optional local proof (requires a real `DATABASE_URL` in `.env`): `npm run db:mig
 - [ ] **Step 7: Commit**
 
 ```bash
-cd /Users/home/repos/macro-watch
+cd ~/repos/macro-watch
 git add -A
 git commit -m "feat: railway deploy config, migrate-on-start, smoke script, e2e wiring test"
 ```
@@ -5657,7 +5657,7 @@ git commit -m "feat: railway deploy config, migrate-on-start, smoke script, e2e 
 
 Recorded here from spec §10–§11 and §13 so nothing is lost at handoff:
 
-1. Generate the ingest token: `openssl rand -hex 32`. Set `MACRO_WATCH_INGEST_TOKEN` and `SITE_URL=https://macro.watch` on the Railway web service (`DATABASE_URL` comes from the Postgres reference). The same token also goes to sovsclaw's `.env.secrets` as `MACRO_WATCH_INGEST_TOKEN` alongside `MACRO_WATCH_INGEST_URL`.
+1. Generate the ingest token: `openssl rand -hex 32`. Set `MACRO_WATCH_INGEST_TOKEN` and `SITE_URL=https://macro.watch` on the Railway web service (`DATABASE_URL` comes from the Postgres reference). The same token also goes to pipeline-host's `.env.secrets` as `MACRO_WATCH_INGEST_TOKEN` alongside `MACRO_WATCH_INGEST_URL`.
 2. Push main (orchestrator) → Railway deploys. Verify with the house railway-ops practice (authenticated CLI, not MCP).
 3. Run `node scripts/smoke.mjs https://<railway-url>` against the Railway URL; then seed real backfill via the sovs-macro publisher (32+ theme events, both claim ledgers, forward events, staged brief HTML — spec §11 step 3).
 4. Staging validation: one real publish cycle end-to-end (`--with-write` sentinel is acceptable ahead of it), then point `macro.watch` DNS at the Railway custom domain and update `SITE_URL`.
