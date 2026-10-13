@@ -7,14 +7,14 @@ cousin is [`sovs-macro/OWNERS.md`]; the fuller narrative lives in Notion
 
 ## The model: two agents, one membrane
 
-**sovsclaw produces the intelligence and pushes it through the ingest contract;
+**pipeline-host produces the intelligence and pushes it through the ingest contract;
 M5 receives it and presents it.** Everything upstream of the contract is
-sovsclaw's; everything downstream is M5's. That seam is the only thing both
+pipeline-host's; everything downstream is M5's. That seam is the only thing both
 sides must agree on — which is what lets two agents move fast in parallel.
 
 ## Cast
 
-- **sovsclaw** — the Nuc VM **and** the GPT 5.6 Sol agent resident on it; runs
+- **pipeline-host** — the Nuc VM **and** the GPT 5.6 Sol agent resident on it; runs
   the sovs-macro pipeline, composes the briefs, reviews/contributes here.
   GitHub `sovs-claw`; commits as `SovsClaw <sov@sovereignsignal.com>`.
 - **M5** — Claude Code (MacBook); built this site, owns site + infra + design +
@@ -26,15 +26,15 @@ sides must agree on — which is what lets two agents move fast in parallel.
 
 | Area | Owner |
 |---|---|
-| Pipeline core, compose model, brief content | sovsclaw |
-| `sovs-macro/scripts/site_publish.py` — publisher + payload shaping | sovsclaw (M5 co-touches) |
+| Pipeline core, compose model, brief content | pipeline-host |
+| `sovs-macro/scripts/site_publish.py` — publisher + payload shaping | pipeline-host (M5 co-touches) |
 | Ingest API, zod schemas, DB schema | M5 |
 | Pages, components, design system, charts | M5 |
 | Railway, deploys, DNS, env, ops | M5 |
-| **What** the site says — claim / theme / catalyst semantics | sovsclaw |
+| **What** the site says — claim / theme / catalyst semantics | pipeline-host |
 | **How** the site says it — layout, render, plumbing | M5 |
 
-sovsclaw is closest to *meaning*; M5 is closest to *presentation and seams*.
+pipeline-host is closest to *meaning*; M5 is closest to *presentation and seams*.
 Work routes itself accordingly.
 
 ## The one rule that matters
@@ -55,7 +55,7 @@ change.
    not platform-enforced.** Honor it; the discipline is the point.
 2. **CI green → review → merge.** Tests + typecheck + build must pass
    (`npm test` runs on PGlite, no database needed). For anything touching data
-   *meaning*, sovsclaw reviews; for structure/infra/design, M5 reviews.
+   *meaning*, pipeline-host reviews; for structure/infra/design, M5 reviews.
 3. **Merge is deploy.** The `macro-watch` service (Railway project
    `sovs-macro-site`, `production`) deploys from Railway's GitHub source on
    `main`, so CI green plus review happens before merge, never after.
