@@ -101,13 +101,26 @@ publish theme state first, then theme events.
 
 ## Design system
 
-- **Type:** Fraunces (display/headings, self-hosted via `next/font/google`) + Georgia/Times
-  serif (body) + IBM Plex Mono (everything that is data — dates, figures, status chips).
-  No Tailwind anywhere in this repo; layout and tokens live in plain CSS.
-- **Tokens:** all color, spacing, and status-mark values are CSS custom properties in
-  `src/app/globals.css` — bone/ink base palette, a venom-amber accent, and separate
-  up/down/hold tokens reserved for direction and grading semantics (never used as
-  decoration).
+- **House style:** Sovs Macro follows the Sovereign Signal house style. The shared
+  tokens and fonts are copied unedited from the Sovereign Signal brand kit into
+  `src/styles/brand/` (`tokens.css` v1.0.0, `fonts/fonts.css` plus the woff2 files and
+  their OFL licences). Keep line 1 of `tokens.css` intact: the brand kit's `check.mjs`
+  reads it to report drift. Never edit the copies; site-specific tokens go in the
+  personality block at the top of `src/app/globals.css`.
+- **Type:** Newsreader (headings and reading text), Instrument Sans capitals (navigation
+  and labels) and IBM Plex Mono (data only: figures, dates, tickers). All three are
+  self-hosted from `src/styles/brand/fonts/`, so no font request leaves the site. No
+  Tailwind anywhere in this repo; layout lives in plain CSS.
+- **Tokens:** the shared palette (`--paper`, `--ink`, `--ink-2`, `--ink-3`, `--rule`,
+  `--rust`) comes from `tokens.css` and is never redefined here. `src/app/globals.css`
+  opens with Sovs Macro's personality block: up/down/hold, the `--mark-*` status set and
+  `--bar-amber`, reserved for direction and grading semantics (never decoration).
+- **Rust:** one thing per screen, the diamond beside the masthead's Updated stamp. Links
+  are ink with a 1px underline and turn rust on hover; data marks (conviction diamonds,
+  sparklines, the field) are ink.
+- **Structure:** hairline rules instead of boxes. The masthead ends with the double rule
+  from the Sovereign Signal logo, and its sub-line carries the endorsement line (small
+  compass plus "A Sovereign Signal project", `src/components/Endorsement.tsx`).
 - **Themes:** light and dark are both first-class (`prefers-color-scheme`); the
   status-mark palette is independently contrast-validated per theme (see the comments in
   `globals.css` next to `--mark-*`).
