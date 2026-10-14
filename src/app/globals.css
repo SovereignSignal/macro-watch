@@ -1301,7 +1301,9 @@ a:focus-visible {
   justify-content: space-between;
   margin: 0 0 0.35rem 0;
   gap: 0.6rem;
-  padding-left: calc(100% - 7rem);
+  /* Over the meter column, inset from the edge by the same 0.25rem as the
+     meters below it. */
+  padding: 0 0.25rem 0 calc(100% - 7.25rem);
   font-family: var(--sans);
   font-weight: 600;
   font-size: 0.58rem;
@@ -1341,7 +1343,7 @@ a:focus-visible {
   grid-template-rows: auto auto;
   column-gap: 0.65rem;
   align-items: center;
-  padding: 0.55rem 0;
+  padding: 0.55rem 0.25rem 0.55rem 0;
   text-decoration: none;
   color: inherit;
 }
@@ -1365,8 +1367,8 @@ a:focus-visible {
 .field-lane-meta {
   grid-column: 2;
   font-family: var(--mono);
-  font-size: 0.68rem;
-  letter-spacing: 0.02em;
+  font-size: 0.64rem;
+  letter-spacing: 0;
   color: var(--ink-3);
 }
 
