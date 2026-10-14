@@ -49,10 +49,10 @@ export function KalshiMovers({ movers }: { movers: KalshiMoversView | null }) {
             <thead>
               <tr>
                 <th scope="col">Market</th>
-                <th scope="col">Odds</th>
-                <th scope="col">Change</th>
-                {showHour ? <th scope="col">1 hour</th> : null}
-                <th scope="col">Volume</th>
+                <th scope="col" className="num-head">Odds</th>
+                <th scope="col" className="num-head">Change</th>
+                {showHour ? <th scope="col" className="num-head">1 hour</th> : null}
+                <th scope="col" className="num-head">Volume</th>
                 <th scope="col">Category</th>
               </tr>
             </thead>

@@ -727,6 +727,11 @@ a:focus-visible {
   font-weight: 400;
 }
 
+/* Headers over right-aligned figures sit over their column's figures. */
+.panel-table thead th.num-head {
+  text-align: right;
+}
+
 .panel-table tbody tr:last-child th,
 .panel-table tbody tr:last-child td {
   border-bottom: none;
