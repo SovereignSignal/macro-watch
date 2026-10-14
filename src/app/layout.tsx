@@ -53,10 +53,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {children}
         <footer className="site-footer">
           <p className="footer-byline">
-            <span className="footer-mark" aria-hidden="true">
-              ◆
-            </span>{' '}
-            Sovs Macro is a Sovereign Signal project. AI composed. Brief HTML is sanitized before publication; verified panels disclose source coverage.
+            AI composed. Brief HTML is sanitized before publication; verified panels disclose source coverage.
           </p>
           <p>
             Research only. No buy or sell recommendations.

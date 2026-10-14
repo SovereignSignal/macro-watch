@@ -151,7 +151,7 @@ export function ClaimsTable(props: {
                       <span className="claim-meta-line">Opening probability: {Math.round(probability * 100)}%</span>
                     ) : null}
                   </td>
-                  <td className="cell-mono" data-label="Track">{claimTrackLabel(c)}</td>
+                  <td data-label="Track">{claimTrackLabel(c)}</td>
                   <td className="claim-themes" data-label="Themes">
                     {c.themes.length > 0
                       ? c.themes.map((theme, index) => {

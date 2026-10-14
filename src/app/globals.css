@@ -258,8 +258,6 @@ a:focus-visible {
 /* The live indicator: the one rust mark on every page. Set at the label
    size so it matches the endorsement line and the nav. */
 .masthead-sub .updated-ago {
-  border: 0;
-  padding: 0;
   gap: 0.6rem;
   font-size: 0.6875rem;
   color: var(--ink);
@@ -310,12 +308,6 @@ a:focus-visible {
   margin: 0.35rem 0;
 }
 
-.footer-mark {
-  color: var(--ink);
-  font-size: 0.7rem;
-  vertical-align: 1px;
-}
-
 .footer-links {
   font-family: var(--sans);
   font-weight: 600;
@@ -331,7 +323,8 @@ a:focus-visible {
 
 /* --- shared atoms ---------------------------------------------------------- */
 
-/* Chips: the freshness/state micro-vocabulary. Label capitals in a hairline. */
+/* Chips: the freshness/state micro-vocabulary. Plain label capitals, no box:
+   ink-3 at rest, ink when live or active. Boxes stay on real form controls. */
 .chip,
 .badge {
   display: inline-flex;
@@ -343,9 +336,6 @@ a:focus-visible {
   line-height: 1.5;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  border: 1px solid var(--rule);
-  border-radius: var(--radius);
-  padding: 0.08rem 0.45rem;
   color: var(--ink-3);
   white-space: nowrap;
   vertical-align: middle;
@@ -354,7 +344,6 @@ a:focus-visible {
 
 .chip-live {
   color: var(--ink);
-  border-color: var(--ink-3);
 }
 
 .chip-live::before {
@@ -387,7 +376,6 @@ a:focus-visible {
 }
 
 .chip-unverified {
-  border-style: dashed;
   color: var(--ink-3);
 }
 
@@ -399,17 +387,12 @@ a:focus-visible {
   color: var(--ink);
 }
 
-.badge-candidate {
-  border-style: dashed;
-}
-
 .badge-retired {
   color: var(--ink-3);
 }
 
-/* A dormant candidate: still dashed (a candidate underneath), gone quiet. */
+/* A dormant candidate: gone quiet. */
 .badge-dormant {
-  border-style: dashed;
   color: var(--ink-3);
 }
 
@@ -421,8 +404,6 @@ a:focus-visible {
    carries the label capitals and the rust dot. */
 .panel-head .updated-ago,
 .page-head .updated-ago {
-  border: 0;
-  padding: 0;
   font-family: var(--mono);
   font-weight: 400;
   font-size: 0.72rem;
@@ -816,12 +797,10 @@ a:focus-visible {
 
 .badge-hit {
   color: var(--mark-hit);
-  border-color: color-mix(in srgb, var(--mark-hit) 45%, var(--rule));
 }
 
 .badge-miss {
   color: var(--mark-miss);
-  border-color: color-mix(in srgb, var(--mark-miss) 45%, var(--rule));
 }
 
 .badge-void,
@@ -831,7 +810,6 @@ a:focus-visible {
 
 .badge-open {
   color: var(--mark-pending);
-  border-style: dashed;
 }
 
 /* --- instrument cards (theme map, strip, dossier): the signature ------------- */
@@ -1178,9 +1156,6 @@ a:focus-visible {
   font-size: 0.625rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  padding: 0.06rem 0.4rem;
-  border: 1px solid currentColor;
-  border-radius: var(--radius);
   white-space: nowrap;
 }
 
@@ -1430,14 +1405,9 @@ a:focus-visible {
   height: auto;
 }
 
-.field-band-fill-high {
-  fill: color-mix(in srgb, var(--ink) 4.5%, transparent);
-}
-
-.field-band-fill-medium {
-  fill: color-mix(in srgb, var(--ink) 2.25%, transparent);
-}
-
+/* Bands are separated by hairlines and the dashed zero line, never by fills. */
+.field-band-fill-high,
+.field-band-fill-medium,
 .field-band-fill-low {
   fill: transparent;
 }
@@ -1620,15 +1590,11 @@ figure {
   min-width: 13rem;
 }
 
-/* Track labels may break between words so the ledger fits the wide
-   container at desktop widths instead of scrolling. */
+/* Track labels are prose, set in the serif, and may break between words so
+   the ledger fits the wide container at desktop widths instead of scrolling. */
 .data-table--claims td:nth-child(3),
 .data-table--claims th:nth-child(3) {
   min-width: 7rem;
-}
-
-.data-table--claims tbody td.cell-mono:nth-child(3) {
-  white-space: normal;
 }
 
 .data-table--claims td:nth-child(7),
@@ -2270,9 +2236,8 @@ figure {
 .grade-row-name {
   flex: 1 1 11rem;
   min-width: 0;
-  font-family: var(--mono);
-  font-size: 0.76rem;
-  letter-spacing: 0.02em;
+  font-family: var(--serif);
+  font-size: 0.95rem;
   color: var(--ink);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2360,9 +2325,6 @@ figure {
   font-size: 0.625rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  border: 1px solid var(--rule);
-  border-radius: var(--radius);
-  padding: 0.12rem 0.5rem 0.12rem 0.4rem;
   color: var(--ink);
   white-space: nowrap;
 }
@@ -2479,11 +2441,15 @@ figure {
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     overscroll-behavior-x: contain;
-    padding: 0 1.5rem 0.15rem 0;
-    /* The right edge fades so a cut-off item reads as more to scroll; the
-       end padding lets the last item clear the fade. */
-    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 1.5rem), transparent);
-    mask-image: linear-gradient(to right, #000 calc(100% - 1.5rem), transparent);
+    margin-left: -0.75rem;
+    padding: 0 1.5rem 0.15rem 0.75rem;
+    /* Both edges fade: the left so a scrolled nav does not hard-clip, the
+       right so a cut-off item reads as more to scroll. The left fade sits in
+       the page gutter (negative margin, matching padding), so at rest the
+       first item stays aligned with the wordmark and fully inked; the end
+       padding lets the last item clear the right fade. */
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 0.75rem, #000 calc(100% - 1.5rem), transparent);
+    mask-image: linear-gradient(to right, transparent, #000 0.75rem, #000 calc(100% - 1.5rem), transparent);
   }
 
   .site-nav::-webkit-scrollbar {
@@ -2499,20 +2465,16 @@ figure {
     margin-top: 0.6rem;
   }
 
-  /* The sub-line stays one row: the stamp left, the endorsement right. */
+  /* The sub-line wraps: the stamp on its row, the endorsement on its own row
+     below, so the full line and its compass stay visible on every phone. */
   .masthead-sub {
-    flex-wrap: nowrap;
+    row-gap: 0.4rem;
     padding-top: 0.6rem;
   }
 
-  .masthead-sub .chip {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
   .endorsement {
-    flex: none;
+    margin-left: 0;
+    flex: 1 0 100%;
   }
 
   .brief-body table {
@@ -2620,22 +2582,6 @@ figure {
 
   .site-nav {
     gap: 1rem;
-  }
-}
-
-/* Narrow phones: the endorsement keeps its compass and moves its words to
-   screen readers so the sub-line holds one row. */
-@media (max-width: 26.25rem) {
-  .endorsement-text {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
   }
 }
 
