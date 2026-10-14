@@ -5,7 +5,8 @@
 /* text, Instrument Sans capitals for navigation and labels, IBM Plex Mono    */
 /* for data only. Rust goes on one thing per screen: the live dot beside the  */
 /* masthead's Updated stamp. Links are ink and turn rust on hover.            */
-/* Light + dark both follow prefers-color-scheme (spec section 8).            */
+/* Light + dark follow prefers-color-scheme (spec section 8); the masthead     */
+/* toggle pins either with data-theme on <html>, stored under "theme".        */
 /* ------------------------------------------------------------------------- */
 
 /* Sovs Macro personality block. The shared tokens (--paper, --ink, --ink-2,
@@ -31,8 +32,11 @@
   --maxw-wide: 70rem;
 }
 
+/* Dark category colours, keyed exactly like the shared tokens: the system
+   setting unless the page pins light, and the page pinning dark. Keep the
+   two blocks identical. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme=light]) {
     --up: #4da37a;
     --down: #d46a5a;
     --hold: #7a766b;
@@ -45,6 +49,18 @@
     --mark-judgment: #9b978c;
     --mark-faint: #6b675e;
   }
+}
+
+[data-theme=dark] {
+  --up: #4da37a;
+  --down: #d46a5a;
+  --hold: #7a766b;
+  --mark-hit: #4da37a;
+  --mark-miss: #c95a49;
+  --mark-partial: #bd852c;
+  --mark-pending: #7a766b;
+  --mark-judgment: #9b978c;
+  --mark-faint: #6b675e;
 }
 
 .sr-only {
@@ -236,6 +252,41 @@ a:focus-visible {
 .site-nav a[aria-current='page'] {
   color: var(--ink);
   border-bottom-color: var(--ink);
+}
+
+/* The theme toggle ends the sub-line: the same hairline ink box as
+   sovereignsignal.com, set in the label voice. Its label names the mode it
+   switches to. It stays invisible (but keeps its space) until the client
+   knows the current theme, so the masthead never shifts. */
+.theme-toggle {
+  flex: none;
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 0.6875rem;
+  line-height: 1;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  background: none;
+  color: var(--ink);
+  border: 1px solid var(--ink);
+  border-radius: var(--radius);
+  padding: 9px 14px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 150ms, border-color 150ms;
+}
+
+/* Hover turns rust like a link, on devices that hover: a tapped button
+   would otherwise hold the rust after the mode has already changed. */
+@media (hover: hover) {
+  .theme-toggle:hover {
+    color: var(--rust);
+    border-color: var(--rust);
+  }
+}
+
+.theme-toggle:not([data-ready]) {
+  visibility: hidden;
 }
 
 .masthead-rule {
@@ -2473,8 +2524,14 @@ figure {
   }
 
   .endorsement {
+    order: 1;
     margin-left: 0;
     flex: 1 0 100%;
+  }
+
+  .theme-toggle {
+    margin-left: auto;
+    padding: 9px 11px;
   }
 
   .brief-body table {
@@ -2594,6 +2651,7 @@ figure {
   }
 
   .site-nav,
+  .theme-toggle,
   .site-footer,
   .home-footer-links,
   .masthead-sub .chip {

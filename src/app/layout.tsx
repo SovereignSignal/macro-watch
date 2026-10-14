@@ -5,6 +5,7 @@ import { Endorsement } from '@/components/Endorsement';
 import { Mark } from '@/components/Mark';
 import { MastheadUpdated } from '@/components/MastheadUpdated';
 import { SiteNav } from '@/components/SiteNav';
+import { THEME_INIT_SCRIPT, ThemeToggle } from '@/components/ThemeToggle';
 import { siteUrl } from '@/lib/site-url';
 // Sovereign Signal house style: self-hosted brand fonts, then the shared
 // tokens, then this site's sheet. No runtime font requests leave the site.
@@ -26,13 +27,24 @@ export const metadata: Metadata = {
   },
 };
 
+// Both papers from the shared tokens. The toggle's script rewrites these to
+// whichever paper is showing once a visitor pins a theme.
 export const viewport: Viewport = {
   colorScheme: 'light dark',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#F3EFE6' },
+    { media: '(prefers-color-scheme: dark)', color: '#141418' },
+  ],
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    // suppressHydrationWarning: the pre-paint script may set data-theme on
+    // <html> before React hydrates, and that attribute is the point.
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
       <body>
         <header className="site-header">
           <div className="masthead">
@@ -48,6 +60,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <MastheadUpdated />
             </Suspense>
             <Endorsement />
+            <ThemeToggle />
           </div>
         </header>
         {children}

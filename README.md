@@ -121,9 +121,11 @@ publish theme state first, then theme events.
 - **Structure:** hairline rules instead of boxes. The masthead ends with the double rule
   from the Sovereign Signal logo, and its sub-line carries the endorsement line (small
   compass plus "A Sovereign Signal project", `src/components/Endorsement.tsx`).
-- **Themes:** light and dark are both first-class (`prefers-color-scheme`); the
-  status-mark palette is independently contrast-validated per theme (see the comments in
-  `globals.css` next to `--mark-*`).
+- **Themes:** light and dark are both first-class. The page follows the visitor's system
+  setting (`prefers-color-scheme`); the masthead toggle pins either with `data-theme` on
+  `<html>` and remembers it in `localStorage` under `theme`, the same attribute and key as
+  sovereignsignal.com. The status-mark palette is independently contrast-validated per
+  theme (see the comments in `globals.css` next to `--mark-*`).
 - **Rendering:** server components throughout. Two client components in the whole tree:
   `UpdatedAgo.tsx`, which needs `Date.now()` for a ticking "updated Nm ago" stamp, and
   `SiteNav.tsx`, which reads the current path to mark the current page.
