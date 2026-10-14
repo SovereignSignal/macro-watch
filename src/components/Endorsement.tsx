@@ -24,7 +24,7 @@ export function Endorsement({ className }: { className?: string }) {
         <path fill="var(--paper, #F3EFE6)" d="M32 25.5 L38.5 32 L32 38.5 L25.5 32Z" />
         <path fill="var(--rust, #B4482A)" d="M32 27.3 L36.7 32 L32 36.7 L27.3 32Z" />
       </svg>
-      <span>A Sovereign Signal project</span>
+      <span className="endorsement-text">A Sovereign Signal project</span>
     </p>
   );
 }
