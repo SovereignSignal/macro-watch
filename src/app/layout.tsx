@@ -1,27 +1,16 @@
 import type { Metadata, Viewport } from 'next';
-import { Fraunces, IBM_Plex_Mono } from 'next/font/google';
 import Link from 'next/link';
 import { Suspense } from 'react';
+import { Endorsement } from '@/components/Endorsement';
 import { Mark } from '@/components/Mark';
 import { MastheadUpdated } from '@/components/MastheadUpdated';
 import { SiteNav } from '@/components/SiteNav';
 import { siteUrl } from '@/lib/site-url';
+// Sovereign Signal house style: self-hosted brand fonts, then the shared
+// tokens, then this site's sheet. No runtime font requests leave the site.
+import '@/styles/brand/fonts/fonts.css';
+import '@/styles/brand/tokens.css';
 import './globals.css';
-
-// Self-hosted at build time by next/font. No runtime requests leave the site.
-const fraunces = Fraunces({
-  subsets: ['latin'],
-  weight: ['500', '700'],
-  variable: '--font-display',
-  display: 'swap',
-});
-
-const plexMono = IBM_Plex_Mono({
-  subsets: ['latin'],
-  weight: ['400', '500'],
-  variable: '--font-mono',
-  display: 'swap',
-});
 
 const siteOrigin = siteUrl();
 
@@ -43,22 +32,23 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${fraunces.variable} ${plexMono.variable}`}>
+    <html lang="en">
       <body>
         <header className="site-header">
           <div className="masthead">
-            <div>
-              <Link href="/" className="site-name" aria-label="Sovs Macro home">
-                <Mark className="site-mark" size={26} />
-                <span className="site-wordmark">Sovs Macro</span>
-              </Link>
-              <p className="byline">A Sovereign Signal project</p>
-            </div>
+            <Link href="/" className="site-name" aria-label="Sovs Macro home">
+              <Mark className="site-mark" size={26} />
+              <span className="site-wordmark">Sovs Macro</span>
+            </Link>
+            <SiteNav />
+          </div>
+          <div className="masthead-rule" aria-hidden="true" />
+          <div className="masthead-sub">
             <Suspense fallback={null}>
               <MastheadUpdated />
             </Suspense>
+            <Endorsement />
           </div>
-          <SiteNav />
         </header>
         {children}
         <footer className="site-footer">
