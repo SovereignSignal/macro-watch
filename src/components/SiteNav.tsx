@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 const LINKS: { href: string; label: string; match: (path: string) => boolean }[] = [
   { href: '/', label: 'Brief', match: (path) => path === '/' },
@@ -19,6 +19,21 @@ const LINKS: { href: string; label: string; match: (path: string) => boolean }[]
 export function SiteNav() {
   const pathname = usePathname() ?? '/';
   const navRef = useRef<HTMLElement>(null);
+  // Whether the phone strip has more links past its right edge; drives the
+  // chevron cue. Starts true so the cue is there on first paint on phones.
+  const [more, setMore] = useState(true);
+  useEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+    const update = () => setMore(nav.scrollLeft + nav.clientWidth < nav.scrollWidth - 4);
+    update();
+    nav.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    return () => {
+      nav.removeEventListener('scroll', update);
+      window.removeEventListener('resize', update);
+    };
+  }, [pathname]);
   // On phones the nav is one sideways-scrolling row. Bring the current page's
   // link into view without moving the page vertically.
   useEffect(() => {
@@ -31,19 +46,24 @@ export function SiteNav() {
     nav.scrollLeft += linkBox.left - navBox.left - (navBox.width - linkBox.width) / 2;
   }, [pathname]);
   return (
-    <nav ref={navRef} className="site-nav" aria-label="Site">
-      {LINKS.map((link) => {
-        const current = link.match(pathname);
-        return (
-          <Link
-            key={link.href}
-            href={link.href}
-            aria-current={current ? 'page' : undefined}
-          >
-            {link.label}
-          </Link>
-        );
-      })}
-    </nav>
+    <div className="site-nav-wrap" data-more={more ? 'true' : 'false'}>
+      <nav ref={navRef} className="site-nav" aria-label="Site">
+        {LINKS.map((link) => {
+          const current = link.match(pathname);
+          return (
+            <Link
+              key={link.href}
+              href={link.href}
+              aria-current={current ? 'page' : undefined}
+            >
+              {link.label}
+            </Link>
+          );
+        })}
+      </nav>
+      <span className="site-nav-more" aria-hidden="true">
+        ›
+      </span>
+    </div>
   );
 }

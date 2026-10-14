@@ -15,7 +15,7 @@
    site's own category colours: direction (up/down/hold) and grading marks.
    They mark data only, never links, buttons or emphasis. */
 :root {
-  --up: #1e7f4f;
+  --up: #1a7347;
   --down: #b3362c;
   --hold: #8a8578;
   /* Status-mark tokens (accountability book/chips). Validated as a set with
@@ -219,6 +219,14 @@ h3,
 
 .site-wordmark {
   display: inline-block;
+}
+
+.site-nav-wrap {
+  display: contents;
+}
+
+.site-nav-more {
+  display: none;
 }
 
 .site-nav {
@@ -2484,8 +2492,14 @@ figure {
     gap: 0.75rem;
   }
 
-  .site-nav {
+  .site-nav-wrap {
+    display: block;
+    position: relative;
     flex: 1 0 100%;
+    min-width: 0;
+  }
+
+  .site-nav {
     flex-wrap: nowrap;
     gap: 1.1rem;
     overflow-x: auto;
@@ -2493,14 +2507,40 @@ figure {
     scrollbar-width: none;
     overscroll-behavior-x: contain;
     margin-left: -0.75rem;
-    padding: 0 1.5rem 0.15rem 0.75rem;
+    padding: 0 2.25rem 0.15rem 0.75rem;
     /* Both edges fade: the left so a scrolled nav does not hard-clip, the
-       right so a cut-off item reads as more to scroll. The left fade sits in
-       the page gutter (negative margin, matching padding), so at rest the
+       right hard enough that the cut-off item plainly reads as more to
+       scroll; the chevron below sits in that faded end. The left fade sits
+       in the page gutter (negative margin, matching padding), so at rest the
        first item stays aligned with the wordmark and fully inked; the end
-       padding lets the last item clear the right fade. */
-    -webkit-mask-image: linear-gradient(to right, transparent, #000 0.75rem, #000 calc(100% - 1.5rem), transparent);
-    mask-image: linear-gradient(to right, transparent, #000 0.75rem, #000 calc(100% - 1.5rem), transparent);
+       padding lets the last item clear the fade and chevron. */
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 0.75rem, #000 calc(100% - 3.25rem), transparent calc(100% - 1rem));
+    mask-image: linear-gradient(to right, transparent, #000 0.75rem, #000 calc(100% - 3.25rem), transparent calc(100% - 1rem));
+  }
+
+  /* More-to-scroll cue: a small ink chevron at the strip's right edge,
+     absolutely placed so it never shifts layout, hidden once the strip is
+     scrolled to its end (or does not overflow). Decorative: aria-hidden. */
+  .site-nav-more {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0.15rem;
+    width: 1.25rem;
+    pointer-events: none;
+    color: var(--ink-2);
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 0.9rem;
+    line-height: 1;
+    transition: opacity 0.15s;
+  }
+
+  .site-nav-wrap[data-more='false'] .site-nav-more {
+    opacity: 0;
   }
 
   .site-nav::-webkit-scrollbar {
@@ -2651,6 +2691,7 @@ figure {
   }
 
   .site-nav,
+  .site-nav-more,
   .theme-toggle,
   .site-footer,
   .home-footer-links,
