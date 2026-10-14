@@ -27,7 +27,6 @@
   --mark-pending: #8a8578;
   --mark-judgment: #6b6e76;
   --mark-faint: #9a9da4;
-  --bar-amber: #94743a; /* horizon bars: amber-neutral */
   --maxw: 44rem;
   --maxw-wide: 70rem;
 }
@@ -45,7 +44,6 @@
     --mark-pending: #7a766b;
     --mark-judgment: #9b978c;
     --mark-faint: #6b675e;
-    --bar-amber: #a58a4e;
   }
 }
 
@@ -72,6 +70,7 @@ body {
   font-family: var(--serif);
   font-size: 1.125rem;
   line-height: 1.55;
+  font-variation-settings: "opsz" 16;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -107,7 +106,7 @@ h3 {
 }
 
 h1 {
-  font-weight: 600;
+  font-weight: 500;
   font-size: 2.3rem;
   line-height: 1.12;
   letter-spacing: -0.015em;
@@ -122,6 +121,29 @@ h2 {
 h3 {
   font-size: 1.15rem;
   margin: 1.5rem 0 0.5rem;
+}
+
+/* Newsreader optical sizes (BRAND.md type scale): the display cut for
+   headlines, the heading cut for section heads and the wordmark, the subhead
+   cut for card titles. Body text stays on opsz 16 (set on body). */
+h1,
+.dossier-head h1,
+.accountability-summary h2,
+.grade-hero {
+  font-variation-settings: "opsz" 72;
+}
+
+.site-name,
+h2,
+.theme-dormant > summary,
+.panel-head h2 {
+  font-variation-settings: "opsz" 48;
+}
+
+h3,
+.theme-card h3,
+.strip-name {
+  font-variation-settings: "opsz" 36;
 }
 
 .container {
@@ -396,6 +418,19 @@ a:focus-visible {
 
 .updated-ago {
   color: var(--ink-3);
+}
+
+/* Panel and page freshness is plain data text; only the masthead stamp
+   carries the label capitals and the rust dot. */
+.panel-head .updated-ago,
+.page-head .updated-ago {
+  border: 0;
+  padding: 0;
+  font-family: var(--mono);
+  font-weight: 400;
+  font-size: 0.72rem;
+  text-transform: none;
+  letter-spacing: 0.02em;
 }
 
 .empty-state {
@@ -1246,11 +1281,12 @@ a:focus-visible {
   display: flex;
   justify-content: space-between;
   margin: 0 0 0.35rem 0;
-  padding-left: calc(100% - 5.6rem);
+  gap: 0.6rem;
+  padding-left: calc(100% - 7rem);
   font-family: var(--sans);
   font-weight: 600;
-  font-size: 0.64rem;
-  letter-spacing: 0.12em;
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--ink-3);
 }
@@ -1282,7 +1318,7 @@ a:focus-visible {
 
 .field-lane a {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) 5.6rem;
+  grid-template-columns: auto minmax(0, 1fr) 7rem;
   grid-template-rows: auto auto;
   column-gap: 0.65rem;
   align-items: center;
@@ -1320,7 +1356,7 @@ a:focus-visible {
   grid-row: 1 / span 2;
   grid-column: 3;
   height: 1.35rem;
-  width: 5.6rem;
+  width: 7rem;
 }
 
 .field-meter-track {
@@ -1464,9 +1500,9 @@ a:focus-visible {
 
 .fn-label {
   fill: var(--ink);
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.01em;
+  font-family: var(--serif);
+  font-size: 11px;
+  letter-spacing: 0;
 }
 
 .field-node.is-shelf .fn-label {
@@ -1548,7 +1584,7 @@ figure {
 }
 
 .data-table--claims {
-  min-width: 72rem;
+  min-width: 66rem;
 }
 
 /* The detail ledger reads tighter than the general table default. */
@@ -1560,22 +1596,28 @@ figure {
    let the themes list wrap instead of forcing the table wide. */
 .data-table--claims td:nth-child(2),
 .data-table--claims th:nth-child(2) {
-  min-width: 16rem;
+  min-width: 13rem;
 }
 
+/* Track labels may break between words so the ledger fits the wide
+   container at desktop widths instead of scrolling. */
 .data-table--claims td:nth-child(3),
 .data-table--claims th:nth-child(3) {
-  min-width: 9.5rem;
+  min-width: 7rem;
+}
+
+.data-table--claims tbody td.cell-mono:nth-child(3) {
+  white-space: normal;
 }
 
 .data-table--claims td:nth-child(7),
 .data-table--claims th:nth-child(7) {
-  min-width: 8.5rem;
+  min-width: 8rem;
 }
 
 .data-table--claims td:nth-child(8),
 .data-table--claims th:nth-child(8) {
-  min-width: 14rem;
+  min-width: 12rem;
 }
 
 .data-table--claims tbody td.cell-mono:nth-child(4) {
@@ -2128,7 +2170,7 @@ figure {
 .grade-hero {
   margin: 0.35rem 0 0;
   font-family: var(--serif);
-  font-weight: 600;
+  font-weight: 500;
   font-size: 2.7rem;
   line-height: 1.05;
   letter-spacing: -0.02em;
@@ -2243,7 +2285,8 @@ figure {
 }
 
 .horizon-bar {
-  fill: var(--bar-amber);
+  fill: var(--ink);
+  fill-opacity: 0.85;
 }
 
 .horizon-slot {
@@ -2355,6 +2398,12 @@ figure {
     display: none;
   }
 
+  /* Related claims on a dossier: three columns fit a phone once the
+     desktop floor is lifted, so the claim wraps instead of scrolling. */
+  .data-table--compact {
+    min-width: 0;
+  }
+
   .data-table--claims tbody tr {
     display: block;
     padding: 0.85rem 0;
@@ -2371,6 +2420,7 @@ figure {
     padding: 0.15rem 0;
     text-align: left;
     white-space: normal;
+    border-bottom: none;
   }
 
   .data-table--claims tbody td::before {

@@ -55,7 +55,7 @@ it('orients the reader and renders track scoreboards below the headline-rate flo
   expect(markup).toContain('Decided claims by evidence type');
   expect(markup).toContain('rates'); // market_type class board
   expect(markup).toContain('2y UST closes above 4.40%'); // claims table row
-  expect(markup).toContain('rows 1–5 of 5'); // a single ledger page still reports its range
+  expect(markup).toContain('rows 1 to 5 of 5'); // a single ledger page still reports its range
   expect(markup).toContain('1 of 8 decisions');
   expect(markup).toContain('1 correct');
   expect(markup).not.toContain('decision accuracy');
@@ -181,7 +181,7 @@ it('combines filters with paging and keeps them in the page links', async () => 
   expect(filtered.rows.every((c) => c.kind === 'map')).toBe(true);
 
   const ledger = ledgerOf(renderToStaticMarkup(await page({ kind: 'map', page: '2' })));
-  expect(ledger).toContain('rows 26–30 of 30');
+  expect(ledger).toContain('rows 26 to 30 of 30');
   expect((ledger.slice(ledger.indexOf('<tbody>')).match(/<tr>/g) ?? []).length).toBe(5);
   expect(ledger).toContain('map claim 4</span>'); // the oldest five map claims
   expect(ledger).not.toContain('map claim 5</span>');
@@ -192,13 +192,13 @@ it('combines filters with paging and keeps them in the page links', async () => 
   expect(ledger).not.toContain('Older entries');
 
   const firstPage = ledgerOf(renderToStaticMarkup(await page({ kind: 'smart_money' })));
-  expect(firstPage).toContain('rows 1–25 of 40');
+  expect(firstPage).toContain('rows 1 to 25 of 40');
   expect(firstPage).toContain('href="/accountability?kind=smart_money&amp;page=2"');
   expect(firstPage).not.toContain('Newer entries');
 
   // Past the end clamps to the last page; garbage falls back to the first.
-  expect(ledgerOf(renderToStaticMarkup(await page({ kind: 'smart_money', page: '99' })))).toContain('rows 26–40 of 40');
-  expect(ledgerOf(renderToStaticMarkup(await page({ page: 'abc' })))).toContain('rows 1–25 of 70');
+  expect(ledgerOf(renderToStaticMarkup(await page({ kind: 'smart_money', page: '99' })))).toContain('rows 26 to 40 of 40');
+  expect(ledgerOf(renderToStaticMarkup(await page({ page: 'abc' })))).toContain('rows 1 to 25 of 70');
 });
 
 it('summary counts and the book cover the whole record on any page', async () => {

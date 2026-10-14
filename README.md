@@ -113,8 +113,8 @@ publish theme state first, then theme events.
   Tailwind anywhere in this repo; layout lives in plain CSS.
 - **Tokens:** the shared palette (`--paper`, `--ink`, `--ink-2`, `--ink-3`, `--rule`,
   `--rust`) comes from `tokens.css` and is never redefined here. `src/app/globals.css`
-  opens with Sovs Macro's personality block: up/down/hold, the `--mark-*` status set and
-  `--bar-amber`, reserved for direction and grading semantics (never decoration).
+  opens with Sovs Macro's personality block: up/down/hold and the `--mark-*` status set,
+  reserved for direction and grading semantics (never decoration).
 - **Rust:** one thing per screen, the diamond beside the masthead's Updated stamp. Links
   are ink with a 1px underline and turn rust on hover; data marks (conviction diamonds,
   sparklines, the field) are ink.

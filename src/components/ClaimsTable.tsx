@@ -194,7 +194,7 @@ export function ClaimsTable(props: {
           ) : (
             <span />
           )}
-          <span className="ledger-range">{`rows ${from}–${to} of ${total}`}</span>
+          <span className="ledger-range">{`rows ${from} to ${to} of ${total}`}</span>
           {hasOlder ? (
             <Link rel="next" href={ledgerHref(props.filters, page + 1)}>
               Older entries →
