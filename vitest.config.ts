@@ -7,7 +7,6 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, 'src'),
       // Build-only modules are replaced with inert Node test stubs.
-      'next/font/google': path.resolve(__dirname, 'tests', 'helpers', 'next-font-stub.ts'),
       'server-only': path.resolve(__dirname, 'tests', 'helpers', 'server-only-stub.ts'),
     },
   },

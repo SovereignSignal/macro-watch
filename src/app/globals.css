@@ -1,36 +1,66 @@
 /* ------------------------------------------------------------------------- */
 /* Sovs Macro: the house sheet.                                              */
-/* A printed market note holding live instruments: Georgia body, Fraunces     */
-/* display, IBM Plex Mono for everything that is data. Bone & ink, venom      */
-/* amber accent. Direction colors (up/down/hold) are reserved for direction   */
-/* and grading semantics, never decoration. Light + dark (spec §8).          */
+/* Sovereign Signal house style (src/styles/brand: tokens.css v1.0.0 and the  */
+/* self-hosted fonts). Paper and ink, Newsreader for headings and reading     */
+/* text, Instrument Sans capitals for navigation and labels, IBM Plex Mono    */
+/* for data only. Rust goes on one thing per screen: the live dot beside the  */
+/* masthead's Updated stamp. Links are ink and turn rust on hover.            */
+/* Light + dark follow prefers-color-scheme (spec section 8); the masthead     */
+/* toggle pins either with data-theme on <html>, stored under "theme".        */
 /* ------------------------------------------------------------------------- */
 
+/* Sovs Macro personality block. The shared tokens (--paper, --ink, --ink-2,
+   --ink-3, --rule, --rust, --serif, --sans, --mono, --radius) come from
+   src/styles/brand/tokens.css and are never redefined here. These are the
+   site's own category colours: direction (up/down/hold) and grading marks.
+   They mark data only, never links, buttons or emphasis. */
 :root {
-  color-scheme: light dark;
-  --bg: #fafaf7; /* bone */
-  --ink: #16181d;
-  --muted: #6b6e76;
-  --faint: #9a9da4; /* derived third text level (legacy token) */
-  --rule: #e3e0d8;
-  --card: #ffffff;
-  --accent: #a66b00; /* venom amber */
   --up: #1e7f4f;
   --down: #b3362c;
   --hold: #8a8578;
   /* Status-mark tokens (accountability book/chips). Validated as a set with
-     the dataviz six checks on this surface (#fafaf7): worst all-pairs CVD
-     ΔE 14.4, all marks >= 3:1 except --mark-faint (2.60), the deliberately
-     receded expired/void state, relieved by glyph + tooltip + ledger. */
+     the dataviz six checks on the original bone ground: worst all-pairs CVD
+     ΔE 14.4, all marks >= 3:1 except --mark-faint, the deliberately receded
+     expired/void state, relieved by glyph + tooltip + ledger. */
   --mark-hit: #1e7f4f;
   --mark-miss: #b3362c;
   --mark-partial: #a66b00;
   --mark-pending: #8a8578;
   --mark-judgment: #6b6e76;
   --mark-faint: #9a9da4;
-  --bar-amber: #94743a; /* horizon bars: amber-neutral, 4.17:1 on bone */
   --maxw: 44rem;
   --maxw-wide: 70rem;
+}
+
+/* Dark category colours, keyed exactly like the shared tokens: the system
+   setting unless the page pins light, and the page pinning dark. Keep the
+   two blocks identical. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme=light]) {
+    --up: #4da37a;
+    --down: #d46a5a;
+    --hold: #7a766b;
+    /* Dark marks: miss and partial are snapped shades (house hues, stepped
+       into the dark lightness band), all four chromatic marks >= 3:1. */
+    --mark-hit: #4da37a;
+    --mark-miss: #c95a49;
+    --mark-partial: #bd852c;
+    --mark-pending: #7a766b;
+    --mark-judgment: #9b978c;
+    --mark-faint: #6b675e;
+  }
+}
+
+[data-theme=dark] {
+  --up: #4da37a;
+  --down: #d46a5a;
+  --hold: #7a766b;
+  --mark-hit: #4da37a;
+  --mark-miss: #c95a49;
+  --mark-partial: #bd852c;
+  --mark-pending: #7a766b;
+  --mark-judgment: #9b978c;
+  --mark-faint: #6b675e;
 }
 
 .sr-only {
@@ -45,130 +75,143 @@
   border: 0;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #101215; /* charcoal */
-    --ink: #e8e4da; /* warm paper */
-    --muted: #9b978c;
-    --faint: #6b675e;
-    --rule: #26282e;
-    --card: #16181d;
-    --accent: #d9a03f;
-    --up: #4da37a;
-    --down: #d46a5a;
-    --hold: #7a766b;
-    /* Dark marks re-validated on #101215: miss and partial are snapped
-       shades (house hues, stepped into the dark lightness band), worst
-       all-pairs CVD ΔE 17.4, all four chromatic marks >= 3:1. */
-    --mark-hit: #4da37a;
-    --mark-miss: #c95a49;
-    --mark-partial: #bd852c;
-    --mark-pending: #7a766b;
-    --mark-judgment: #9b978c;
-    --mark-faint: #6b675e;
-    --bar-amber: #a58a4e; /* 5.67:1 on charcoal */
-  }
-}
-
 * {
   box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  background: var(--bg);
+  background: var(--paper);
   color: var(--ink);
-  font-family: Georgia, 'Times New Roman', Times, serif;
-  font-size: 1.0625rem;
+  font-family: var(--serif);
+  font-size: 1.125rem;
   line-height: 1.55;
+  font-variation-settings: "opsz" 16;
+  -webkit-font-smoothing: antialiased;
 }
 
 ::selection {
-  background: color-mix(in srgb, var(--accent) 24%, transparent);
+  background: color-mix(in srgb, var(--ink) 18%, transparent);
 }
 
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--ink);
   outline-offset: 2px;
-  border-radius: 2px;
+  border-radius: var(--radius);
 }
 
+/* Links are ink with a 1px underline and turn rust on hover. */
 a {
-  color: var(--accent);
+  color: var(--ink);
+  text-decoration: underline;
   text-decoration-thickness: 1px;
-  text-underline-offset: 2px;
+  text-underline-offset: 3px;
+}
+
+a:hover {
+  color: var(--rust);
 }
 
 h1,
 h2,
 h3 {
-  font-family: var(--font-display, Georgia, serif);
+  font-family: var(--serif);
   font-weight: 500;
-  line-height: 1.22;
-  letter-spacing: -0.015em;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
 }
 
 h1 {
-  font-weight: 700;
-  font-size: 2.05rem;
-  letter-spacing: -0.02em;
+  font-weight: 500;
+  font-size: 2.3rem;
+  line-height: 1.12;
+  letter-spacing: -0.015em;
   margin: 0.5rem 0 1rem;
 }
 
 h2 {
-  font-size: 1.3rem;
+  font-size: 1.5rem;
   margin: 2.6rem 0 0.8rem;
 }
 
 h3 {
-  font-size: 1.05rem;
+  font-size: 1.15rem;
   margin: 1.5rem 0 0.5rem;
+}
+
+/* Newsreader optical sizes (BRAND.md type scale): the display cut for
+   headlines, the heading cut for section heads and the wordmark, the subhead
+   cut for card titles. Body text stays on opsz 16 (set on body). */
+h1,
+.dossier-head h1,
+.accountability-summary h2,
+.grade-hero {
+  font-variation-settings: "opsz" 72;
+}
+
+.site-name,
+h2,
+.theme-dormant > summary,
+.panel-head h2 {
+  font-variation-settings: "opsz" 48;
+}
+
+h3,
+.theme-card h3,
+.strip-name {
+  font-variation-settings: "opsz" 36;
 }
 
 .container {
   max-width: var(--maxw);
   margin: 0 auto;
-  padding: 1.5rem 1.25rem 4rem;
+  padding: 2rem 1.25rem 4rem;
 }
 
 .container-wide {
   max-width: var(--maxw-wide);
   margin: 0 auto;
-  padding: 1.5rem 1.25rem 4rem;
+  padding: 2rem 1.25rem 4rem;
 }
 
 /* --- masthead ------------------------------------------------------------ */
+/* Scorpion and name on the left, navigation on the right, then the double
+   rule from the Sovereign Signal logo, then the sub-line: the live Updated
+   stamp and the endorsement line. */
 
 .site-header {
   max-width: var(--maxw-wide);
   margin: 0 auto;
-  padding: 2rem 1.25rem 1rem;
-  border-bottom: 1px solid var(--rule);
+  padding: 1.9rem 1.25rem 0;
 }
 
 .masthead {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  gap: 1rem;
+  align-items: center;
+  gap: 0.9rem 2rem;
   flex-wrap: wrap;
 }
 
 .site-name {
   display: inline-flex;
   align-items: center;
-  gap: 0.55rem;
-  font-family: var(--font-display, Georgia, serif);
-  font-weight: 700;
-  font-size: 1.7rem;
-  letter-spacing: -0.02em;
+  gap: 0.6rem;
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 1.9rem;
+  line-height: 1;
+  letter-spacing: -0.01em;
   color: var(--ink);
   text-decoration: none;
 }
 
-/* The scorpion mark: body inherits ink via currentColor; the amber stinger is
-   the one spent color (set inside the component from --accent). It sits a hair
-   low so its visual mass lines up with the wordmark's baseline weight. */
+.site-name:hover {
+  color: var(--ink);
+}
+
+/* The scorpion mark sits a hair low so its visual mass lines up with the
+   wordmark's baseline weight. */
 .site-mark {
   flex: none;
   transform: translateY(1px);
@@ -178,109 +221,186 @@ h3 {
   display: inline-block;
 }
 
-.site-name-tld {
-  color: var(--accent);
-}
-
-.byline {
-  margin: 0.35rem 0 0;
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
-  font-size: 0.66rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
 .site-nav {
-  margin-top: 1.1rem;
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem 1.35rem;
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
-  font-size: 0.74rem;
-  letter-spacing: 0.05em;
+  gap: 0.5rem 1.4rem;
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 .site-nav a {
-  color: var(--muted);
+  color: var(--ink-2);
   text-decoration: none;
-  padding: 0.25rem 0;
+  padding: 0.3rem 0;
+  border-bottom: 1.5px solid transparent;
 }
 
 a:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--ink);
   outline-offset: 3px;
 }
 
 .site-nav a:hover {
-  color: var(--ink);
-  text-decoration: underline;
-  text-decoration-color: var(--accent);
-  text-underline-offset: 4px;
+  color: var(--rust);
 }
 
+/* The current page is underlined in ink, never rust. */
 .site-nav a[aria-current='page'] {
   color: var(--ink);
-  text-decoration: underline;
-  text-decoration-color: var(--accent);
-  text-underline-offset: 4px;
+  border-bottom-color: var(--ink);
 }
 
+/* The theme toggle ends the sub-line: the same hairline ink box as
+   sovereignsignal.com, set in the label voice. Its label names the mode it
+   switches to. It stays invisible (but keeps its space) until the client
+   knows the current theme, so the masthead never shifts. */
+.theme-toggle {
+  flex: none;
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 0.6875rem;
+  line-height: 1;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  background: none;
+  color: var(--ink);
+  border: 1px solid var(--ink);
+  border-radius: var(--radius);
+  padding: 9px 14px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 150ms, border-color 150ms;
+}
+
+/* Hover turns rust like a link, on devices that hover: a tapped button
+   would otherwise hold the rust after the mode has already changed. */
+@media (hover: hover) {
+  .theme-toggle:hover {
+    color: var(--rust);
+    border-color: var(--rust);
+  }
+}
+
+.theme-toggle:not([data-ready]) {
+  visibility: hidden;
+}
+
+.masthead-rule {
+  box-sizing: border-box;
+  height: var(--rule-double);
+  margin-top: 1.1rem;
+  border-top: var(--rule-double-top) solid var(--ink);
+  border-bottom: var(--rule-double-bottom) solid var(--ink);
+}
+
+.masthead-sub {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem 1.5rem;
+  flex-wrap: wrap;
+  padding: 0.7rem 0 0;
+}
+
+/* The live indicator: the one rust mark on every page. Set at the label
+   size so it matches the endorsement line and the nav. */
+.masthead-sub .updated-ago {
+  gap: 0.6rem;
+  font-size: 0.6875rem;
+  color: var(--ink);
+}
+
+.masthead-sub .updated-ago::before {
+  content: '';
+  flex: none;
+  width: 7px;
+  height: 7px;
+  margin: 0 1px;
+  background: var(--rust);
+  transform: rotate(45deg);
+}
+
+.endorsement {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0 auto;
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 0.6875rem;
+  line-height: 1;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.endorsement-mark {
+  flex: none;
+  color: var(--ink);
+}
+
+/* Sized like the header's content box so the rule lines up with the
+   masthead rule above. */
 .site-footer {
-  max-width: var(--maxw-wide);
+  width: calc(100% - 2.5rem);
+  max-width: calc(var(--maxw-wide) - 2.5rem);
   margin: 3rem auto 0;
-  padding: 1.5rem 1.25rem 3rem;
+  padding: 1.5rem 0 3rem;
   border-top: 1px solid var(--rule);
-  color: var(--muted);
-  font-size: 0.85rem;
+  color: var(--ink-3);
+  font-size: 0.875rem;
 }
 
 .site-footer p {
   margin: 0.35rem 0;
 }
 
-.footer-mark {
-  color: var(--accent);
-  font-size: 0.7rem;
-  vertical-align: 1px;
+.footer-links {
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding-top: 0.5rem;
 }
 
-.footer-links {
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
-  font-size: 0.72rem;
-  letter-spacing: 0.05em;
-  padding-top: 0.35rem;
+.footer-links a {
+  color: var(--ink-2);
 }
 
 /* --- shared atoms ---------------------------------------------------------- */
 
-/* Chips: the freshness/state micro-vocabulary. Mono, machined corners. */
+/* Chips: the freshness/state micro-vocabulary. Plain label capitals, no box:
+   ink-3 at rest, ink when live or active. Boxes stay on real form controls. */
 .chip,
 .badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.4em;
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
-  font-size: 0.66rem;
-  letter-spacing: 0.09em;
-  border: 1px solid var(--rule);
-  border-radius: 3px;
-  padding: 0.1rem 0.45rem;
-  color: var(--muted);
+  gap: 0.45em;
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 0.625rem;
+  line-height: 1.5;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
   white-space: nowrap;
   vertical-align: middle;
   font-style: normal;
 }
 
 .chip-live {
-  color: var(--accent);
-  border-color: color-mix(in srgb, var(--accent) 50%, var(--rule));
+  color: var(--ink);
 }
 
 .chip-live::before {
   content: '';
-  width: 0.45em;
-  height: 0.45em;
+  width: 0.5em;
+  height: 0.5em;
   border-radius: 50%;
   background: currentColor;
   flex: none;
@@ -307,74 +427,94 @@ a:focus-visible {
 }
 
 .chip-unverified {
-  border-style: dashed;
-  color: var(--faint);
+  color: var(--ink-3);
 }
 
 .chip-pending {
-  color: var(--faint);
-}
-
-.badge-weekend {
-  border-color: color-mix(in srgb, var(--accent) 50%, var(--rule));
-  color: var(--accent);
+  color: var(--ink-3);
 }
 
 .badge-active {
   color: var(--ink);
 }
 
-.badge-candidate {
-  border-style: dashed;
-}
-
 .badge-retired {
-  color: var(--faint);
+  color: var(--ink-3);
 }
 
-/* A dormant candidate: still dashed (a candidate underneath), gone faint. */
+/* A dormant candidate: gone quiet. */
 .badge-dormant {
-  border-style: dashed;
-  color: var(--faint);
+  color: var(--ink-3);
 }
 
 .updated-ago {
-  color: var(--muted);
+  color: var(--ink-3);
+}
+
+/* Panel and page freshness is plain data text; only the masthead stamp
+   carries the label capitals and the rust dot. */
+.panel-head .updated-ago,
+.page-head .updated-ago {
+  font-family: var(--mono);
+  font-weight: 400;
+  font-size: 0.72rem;
+  text-transform: none;
+  letter-spacing: 0.02em;
 }
 
 .empty-state {
-  color: var(--muted);
+  color: var(--ink-3);
   font-style: italic;
-  border-left: 2px solid var(--rule);
+  border-left: 1px solid var(--rule);
   padding-left: 0.9rem;
   margin: 1.5rem 0;
 }
 
 .brief-meta {
-  color: var(--muted);
+  color: var(--ink-3);
   font-size: 0.9rem;
 }
 
 .date {
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
-  color: var(--muted);
-  font-size: 0.76rem;
+  font-family: var(--mono);
+  color: var(--ink-3);
+  font-size: 0.78rem;
   letter-spacing: 0.02em;
   margin-right: 0.6rem;
 }
 
+/* The brief kind is plain label text after the date, no box. */
+.brief-kind {
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+
+.date + .brief-kind::before {
+  content: '\00B7';
+  margin-right: 0.6rem;
+  letter-spacing: 0;
+}
+
 .crumb {
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
-  font-size: 0.74rem;
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 .crumb a {
-  color: var(--muted);
+  color: var(--ink-3);
   text-decoration: none;
 }
 
 .crumb a:hover {
-  color: var(--accent);
+  color: var(--rust);
 }
 
 .page-head {
@@ -423,8 +563,8 @@ a:focus-visible {
 .brief-body blockquote {
   margin: 1rem 0;
   padding-left: 1rem;
-  border-left: 2px solid var(--accent);
-  color: var(--muted);
+  border-left: 2px solid var(--ink);
+  color: var(--ink-2);
 }
 
 .brief-body img {
@@ -449,7 +589,7 @@ a:focus-visible {
 
 .brief-body .forward-event,
 .brief-body .event-resolution {
-  border-left-color: var(--accent);
+  border-left-color: var(--ink);
 }
 
 .brief-body .insight > p,
@@ -464,14 +604,14 @@ a:focus-visible {
 .brief-body .insight-title,
 .brief-body .delta-title,
 .brief-body .event-title {
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .brief-body .small,
 .brief-body .event-theme,
 .brief-body .open {
-  color: var(--muted);
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  color: var(--ink-3);
+  font-family: var(--mono);
   font-size: 0.72rem;
   letter-spacing: 0.02em;
 }
@@ -498,7 +638,7 @@ a:focus-visible {
 
 .brief-body .sources li,
 .brief-body .sources p {
-  color: var(--muted);
+  color: var(--ink-3);
   font-size: 0.92rem;
   line-height: 1.45;
 }
@@ -514,8 +654,9 @@ a:focus-visible {
 }
 
 .brief-body .prediction-strip-title {
-  color: var(--muted);
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  color: var(--ink-3);
+  font-family: var(--sans);
+  font-weight: 600;
   font-size: 0.65rem;
   letter-spacing: 0.12em;
   margin-bottom: 0.35rem;
@@ -527,13 +668,13 @@ a:focus-visible {
 }
 
 .brief-body .prediction-card {
-  border-left: 2px solid var(--accent);
+  border-left: 2px solid var(--ink);
   margin: 1rem 0;
   padding: 0.2rem 0 0.2rem 1rem;
 }
 
 .brief-body .prediction-card-title {
-  font-weight: 700;
+  font-weight: 600;
   margin-bottom: 0.3rem;
 }
 
@@ -546,7 +687,7 @@ a:focus-visible {
 .brief-body .prediction-card-quality,
 .brief-body .prediction-card-read,
 .brief-body .prediction-lens-read {
-  color: var(--muted);
+  color: var(--ink-2);
   font-size: 0.86rem;
 }
 
@@ -562,12 +703,11 @@ a:focus-visible {
 
 /* --- panels (dashboard, odds lens) ------------------------------------------- */
 
+/* No boxes: a panel is an ink rule over its contents. */
 .panel {
-  border: 1px solid var(--rule);
-  border-radius: 3px;
-  background: var(--card);
-  padding: 1rem 1.25rem;
-  margin: 2rem 0;
+  border-top: 1px solid var(--ink);
+  padding: 0.85rem 0 0;
+  margin: 2.5rem 0;
 }
 
 .panel-head {
@@ -579,13 +719,13 @@ a:focus-visible {
 
 .panel-head h2 {
   margin: 0;
-  font-size: 1.05rem;
+  font-size: 1.3rem;
 }
 
 .panel-summary {
   margin: 0.35rem 0 0;
-  color: var(--muted);
-  font-size: 0.78rem;
+  color: var(--ink-3);
+  font-size: 0.875rem;
 }
 
 .panel-table-scroll {
@@ -595,8 +735,8 @@ a:focus-visible {
 }
 
 .section-count {
-  color: var(--muted);
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  color: var(--ink-3);
+  font-family: var(--mono);
   font-size: 0.72rem;
   font-weight: 400;
   letter-spacing: 0.04em;
@@ -606,7 +746,7 @@ a:focus-visible {
   width: 100%;
   border-collapse: collapse;
   margin-top: 0.6rem;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
 }
 
 .panel-table th,
@@ -617,12 +757,23 @@ a:focus-visible {
 
 .panel-table thead th {
   text-align: left;
+  font-family: var(--sans);
   font-weight: 600;
+  font-size: 0.625rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  border-bottom-color: var(--ink);
 }
 
 .panel-table tbody th {
   text-align: left;
   font-weight: 400;
+}
+
+/* Headers over right-aligned figures sit over their column's figures. */
+.panel-table thead th.num-head {
+  text-align: right;
 }
 
 .panel-table tbody tr:last-child th,
@@ -632,7 +783,7 @@ a:focus-visible {
 
 .num {
   text-align: right;
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-family: var(--mono);
   font-size: 0.85rem;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -641,7 +792,7 @@ a:focus-visible {
 .quote-freshness {
   display: block;
   margin-top: 0.12rem;
-  color: var(--muted);
+  color: var(--ink-3);
   font-size: 0.68rem;
   font-weight: 400;
   letter-spacing: 0.01em;
@@ -649,7 +800,7 @@ a:focus-visible {
 }
 
 .quote-freshness.quote-delayed {
-  color: var(--accent);
+  color: var(--ink);
   font-weight: 600;
   letter-spacing: 0.03em;
 }
@@ -663,7 +814,7 @@ a:focus-visible {
 }
 
 .panel-note {
-  color: var(--faint);
+  color: var(--ink-3);
   font-size: 0.85rem;
 }
 
@@ -676,32 +827,31 @@ a:focus-visible {
 }
 
 .track-rate {
-  font-family: var(--font-display, Georgia, serif);
-  font-size: 1.55rem;
-  letter-spacing: -0.02em;
+  font-family: var(--serif);
+  font-size: 1.7rem;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
 }
 
 .track-counts,
 .track-brier {
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-family: var(--mono);
   font-size: 0.78rem;
-  color: var(--muted);
+  color: var(--ink-3);
 }
 
 .stale-notice {
   margin: 0.45rem 0 0;
-  color: var(--muted);
+  color: var(--ink-3);
   font-size: 0.9rem;
 }
 
 .badge-hit {
   color: var(--mark-hit);
-  border-color: color-mix(in srgb, var(--mark-hit) 45%, var(--rule));
 }
 
 .badge-miss {
   color: var(--mark-miss);
-  border-color: color-mix(in srgb, var(--mark-miss) 45%, var(--rule));
 }
 
 .badge-void,
@@ -711,7 +861,6 @@ a:focus-visible {
 
 .badge-open {
   color: var(--mark-pending);
-  border-style: dashed;
 }
 
 /* --- instrument cards (theme map, strip, dossier): the signature ------------- */
@@ -719,7 +868,7 @@ a:focus-visible {
 .theme-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
-  gap: 1rem;
+  gap: 2rem 2rem;
   padding: 0;
   list-style: none;
 }
@@ -731,28 +880,22 @@ a:focus-visible {
 
 .theme-dormant > summary {
   cursor: pointer;
-  font-family: var(--font-display, Georgia, serif);
+  font-family: var(--serif);
   font-weight: 500;
-  font-size: 1.3rem;
-  line-height: 1.22;
-  letter-spacing: -0.015em;
-  color: var(--muted);
+  font-size: 1.5rem;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--ink-3);
 }
 
 .theme-dormant[open] > summary {
   margin-bottom: 0.8rem;
 }
 
+/* Instruments sit under an ink rule, no box. */
 .theme-card {
-  border: 1px solid var(--rule);
-  border-radius: 3px;
-  background: var(--card);
-  padding: 0.95rem 1.1rem 1rem;
-  transition: border-color 0.15s ease;
-}
-
-.theme-card:hover {
-  border-color: color-mix(in srgb, var(--accent) 40%, var(--rule));
+  border-top: 1px solid var(--ink);
+  padding: 0.85rem 0 0.25rem;
 }
 
 /* One orchestrated moment: the grid rises into place on load. */
@@ -784,7 +927,7 @@ a:focus-visible {
 
 .theme-card h3 {
   margin: 0;
-  font-size: 1.12rem;
+  font-size: 1.3rem;
 }
 
 .theme-card h3 a {
@@ -793,37 +936,37 @@ a:focus-visible {
 }
 
 .theme-card h3 a:hover {
-  color: var(--accent);
+  color: var(--rust);
   text-decoration: underline;
 }
 
 /* The conviction gauge: ◆◆◇ */
 .conv-scale {
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-family: var(--mono);
   font-size: 0.78rem;
   letter-spacing: 0.22em;
   white-space: nowrap;
 }
 
 .conv-scale .d-lit {
-  color: var(--accent);
+  color: var(--ink);
 }
 
 .conv-scale .d-off {
-  color: var(--faint);
+  color: var(--ink-3);
 }
 
 /* A retired instrument reads powered-down: gauge and trace go faint. */
 .is-retired .conv-scale .d-lit {
-  color: var(--faint);
+  color: var(--ink-3);
 }
 
 .is-retired .spark-line {
-  stroke: var(--faint);
+  stroke: var(--ink-3);
 }
 
 .is-retired .spark-dot {
-  fill: var(--faint);
+  fill: var(--ink-3);
 }
 
 .theme-card-gauge {
@@ -839,11 +982,12 @@ a:focus-visible {
 }
 
 .conv {
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-family: var(--sans);
+  font-weight: 600;
   font-size: 0.66rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--ink-3);
 }
 
 .conv-high {
@@ -852,22 +996,22 @@ a:focus-visible {
 }
 
 .conv-medium {
-  color: var(--muted);
+  color: var(--ink-2);
 }
 
 .conv-low {
-  color: var(--faint);
+  color: var(--ink-3);
 }
 
 .read {
   margin: 0.65rem 0 0.15rem;
-  font-size: 0.98rem;
+  font-size: 1.05rem;
 }
 
 .theme-description {
   margin: 0.45rem 0 0;
-  color: var(--muted);
-  font-size: 0.88rem;
+  color: var(--ink-2);
+  font-size: 0.95rem;
   line-height: 1.45;
 }
 
@@ -876,9 +1020,9 @@ a:focus-visible {
   list-style: none;
   padding: 0;
   margin: 0.7rem 0 0;
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-family: var(--mono);
   font-size: 0.74rem;
-  color: var(--muted);
+  color: var(--ink-3);
 }
 
 .trigger-list li {
@@ -901,15 +1045,15 @@ a:focus-visible {
   flex: none;
   width: 1em;
   text-align: center;
-  color: var(--faint);
+  color: var(--ink-3);
 }
 
 .tick-live {
-  color: var(--accent);
+  color: var(--ink);
 }
 
 .tick-watching {
-  color: var(--muted);
+  color: var(--ink-3);
 }
 
 /* Micro conviction trace on each instrument. */
@@ -919,13 +1063,13 @@ a:focus-visible {
 }
 
 .spark-line {
-  stroke: var(--accent);
+  stroke: var(--ink);
   stroke-width: 1.5;
   fill: none;
 }
 
 .spark-dot {
-  fill: var(--accent);
+  fill: var(--ink);
 }
 
 /* Home strip: the same instruments, compact. */
@@ -933,43 +1077,36 @@ a:focus-visible {
   list-style: none;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
-  gap: 0.65rem;
+  gap: 1.25rem 1.5rem;
   padding: 0;
 }
 
 .theme-strip li {
-  border: 1px solid var(--rule);
-  border-radius: 3px;
-  background: var(--card);
-  padding: 0.55rem 0.75rem 0.6rem;
+  border-top: 1px solid var(--ink);
+  padding: 0.6rem 0 0;
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
-  transition: border-color 0.15s ease;
-}
-
-.theme-strip li:hover {
-  border-color: color-mix(in srgb, var(--accent) 40%, var(--rule));
 }
 
 .strip-name {
-  font-family: var(--font-display, Georgia, serif);
+  font-family: var(--serif);
   font-weight: 500;
-  font-size: 0.98rem;
-  letter-spacing: -0.01em;
+  font-size: 1.1rem;
+  letter-spacing: -0.005em;
   color: var(--ink);
   text-decoration: none;
 }
 
 .strip-name:hover {
-  color: var(--accent);
+  color: var(--rust);
   text-decoration: underline;
 }
 
 .strip-description {
   margin: 0;
-  color: var(--muted);
-  font-size: 0.78rem;
+  color: var(--ink-2);
+  font-size: 0.875rem;
   line-height: 1.4;
   display: -webkit-box;
   -webkit-box-orient: vertical;
@@ -994,22 +1131,24 @@ a:focus-visible {
 }
 
 .map-link {
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
-  font-size: 0.78rem;
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 /* Dossier header: the instrument panel at full size. */
 .dossier-head {
-  border: 1px solid var(--rule);
-  border-radius: 3px;
-  background: var(--card);
-  padding: 1.1rem 1.25rem 1.15rem;
+  border-top: 1px solid var(--ink);
+  border-bottom: 1px solid var(--rule);
+  padding: 1rem 0 1.15rem;
   margin: 0.9rem 0 1.6rem;
 }
 
 .dossier-head h1 {
   margin: 0;
-  font-size: 1.65rem;
+  font-size: 2.1rem;
 }
 
 .dossier-head .theme-card-gauge {
@@ -1025,18 +1164,18 @@ a:focus-visible {
 }
 
 .since {
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-family: var(--mono);
   font-size: 0.7rem;
   letter-spacing: 0.04em;
-  color: var(--faint);
+  color: var(--ink-3);
 }
 
 /* Raise/lower condition headings use direction semantics and color. */
 .cond {
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
-  font-weight: 400;
+  font-family: var(--sans);
+  font-weight: 600;
   font-size: 0.68rem;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   margin: 1.2rem 0 0.4rem;
 }
@@ -1058,17 +1197,16 @@ a:focus-visible {
 }
 
 .timeline li {
-  border-left: 2px solid var(--rule);
+  border-left: 1px solid var(--rule);
   padding: 0 0 0.75rem 1.05rem;
 }
 
 .dir {
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
-  font-size: 0.66rem;
-  letter-spacing: 0.1em;
-  padding: 0.06rem 0.4rem;
-  border: 1px solid currentColor;
-  border-radius: 3px;
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 0.625rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   white-space: nowrap;
 }
 
@@ -1085,12 +1223,12 @@ a:focus-visible {
 }
 
 .dir-candidate {
-  color: var(--muted);
+  color: var(--ink-3);
 }
 
 .dir-invalidate,
 .dir-retire {
-  color: var(--faint);
+  color: var(--ink-3);
 }
 
 .evidence {
@@ -1098,23 +1236,21 @@ a:focus-visible {
 }
 
 .meta {
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-family: var(--mono);
   font-size: 0.7rem;
   letter-spacing: 0.02em;
-  color: var(--faint);
+  color: var(--ink-3);
   margin: 0;
 }
 
 /* --- the field (map hero) -------------------------------------------------- */
 /* Position is the encoding: conviction band (y) × 30-day pressure (x).
-   Marks reuse the validated house tokens: amber lit diamonds, faint off
-   states, hairline rules; the halo is the standard ~10% accent wash. */
+   Marks are ink: lit diamonds solid, off states in ink-3, hairline rules;
+   the halo is a ~10% ink wash. */
 
 .field {
-  border: 1px solid var(--rule);
-  border-radius: 3px;
-  background: var(--card);
-  padding: 0.9rem 0.9rem 0.75rem;
+  border-top: 1px solid var(--ink);
+  padding: 0.9rem 0 0.75rem;
   margin: 1.1rem 0 0.5rem;
 }
 
@@ -1132,11 +1268,12 @@ a:focus-visible {
 }
 
 .field-legend-axes dt {
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-family: var(--sans);
+  font-weight: 600;
   font-size: 0.68rem;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--ink-3);
 }
 
 .field-legend-axes dd {
@@ -1152,10 +1289,12 @@ a:focus-visible {
   margin: 0;
   padding: 0;
   list-style: none;
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
-  font-size: 0.7rem;
-  letter-spacing: 0.03em;
-  color: var(--muted);
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 0.625rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
 }
 
 .field-legend-marks li {
@@ -1170,7 +1309,7 @@ a:focus-visible {
   width: 0.72rem;
   height: 0.72rem;
   border-radius: 50%;
-  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  background: color-mix(in srgb, var(--ink) 22%, transparent);
 }
 
 .field-lanes {
@@ -1179,20 +1318,24 @@ a:focus-visible {
 
 .field-lanes-lead {
   margin: 0 0 0.7rem;
-  font-size: 0.9rem;
-  color: var(--muted);
+  font-size: 0.95rem;
+  color: var(--ink-2);
 }
 
 .field-lanes-axis {
   display: flex;
   justify-content: space-between;
   margin: 0 0 0.35rem 0;
-  padding-left: calc(100% - 5.6rem);
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
-  font-size: 0.64rem;
-  letter-spacing: 0.06em;
+  gap: 0.6rem;
+  /* Over the meter column, inset from the edge by the same 0.25rem as the
+     meters below it. */
+  padding: 0 0.25rem 0 calc(100% - 7.25rem);
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--ink-3);
 }
 
 .field-lane {
@@ -1200,12 +1343,12 @@ a:focus-visible {
 }
 
 .field-lane h3 {
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-family: var(--sans);
+  font-weight: 600;
   font-size: 0.7rem;
-  font-weight: 500;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--ink-3);
   margin: 0 0 0.35rem;
 }
 
@@ -1222,11 +1365,11 @@ a:focus-visible {
 
 .field-lane a {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) 5.6rem;
+  grid-template-columns: auto minmax(0, 1fr) 7rem;
   grid-template-rows: auto auto;
   column-gap: 0.65rem;
   align-items: center;
-  padding: 0.55rem 0;
+  padding: 0.55rem 0.25rem 0.55rem 0;
   text-decoration: none;
   color: inherit;
 }
@@ -1237,22 +1380,22 @@ a:focus-visible {
 
 .field-lane-name {
   color: var(--ink);
-  font-size: 0.95rem;
+  font-size: 1rem;
   line-height: 1.3;
   overflow-wrap: anywhere;
 }
 
 .field-lane a:hover .field-lane-name,
 .field-lane a:focus-visible .field-lane-name {
-  color: var(--accent);
+  color: var(--rust);
 }
 
 .field-lane-meta {
   grid-column: 2;
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
-  font-size: 0.68rem;
-  letter-spacing: 0.02em;
-  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 0.64rem;
+  letter-spacing: 0;
+  color: var(--ink-3);
 }
 
 .field-meter {
@@ -1260,7 +1403,7 @@ a:focus-visible {
   grid-row: 1 / span 2;
   grid-column: 3;
   height: 1.35rem;
-  width: 5.6rem;
+  width: 7rem;
 }
 
 .field-meter-track {
@@ -1278,7 +1421,7 @@ a:focus-visible {
   top: 50%;
   width: 1px;
   height: 0.7rem;
-  background: var(--muted);
+  background: var(--ink-3);
   transform: translate(-50%, -50%);
 }
 
@@ -1287,7 +1430,7 @@ a:focus-visible {
   top: 50%;
   width: 7px;
   height: 7px;
-  background: var(--accent);
+  background: var(--ink);
   transform: translate(-50%, -50%) rotate(45deg);
 }
 
@@ -1297,7 +1440,7 @@ a:focus-visible {
 
 .field-lane.is-shelf .field-lane-name,
 .field-lane.is-shelf .field-lane-meta {
-  color: var(--faint);
+  color: var(--ink-3);
 }
 
 .field-scroll {
@@ -1313,47 +1456,37 @@ a:focus-visible {
   height: auto;
 }
 
-.field-band-fill-high {
-  fill: color-mix(in srgb, var(--accent) 7%, transparent);
-}
-
-.field-band-fill-medium {
-  fill: color-mix(in srgb, var(--ink) 3.5%, transparent);
-}
-
+/* Bands are separated by hairlines and the dashed zero line, never by fills. */
+.field-band-fill-high,
+.field-band-fill-medium,
 .field-band-fill-low {
   fill: transparent;
 }
 
-.field-band-label {
-  fill: var(--muted);
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-}
-
-.field-axis-title {
-  fill: var(--muted);
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
-  font-size: 10px;
-  letter-spacing: 0.1em;
+.field-band-label,
+.field-axis-title,
+.field-axis-label {
+  fill: var(--ink-3);
+  font-family: var(--sans);
+  font-weight: 600;
+  /* The field SVG scales up with the page, so this renders near 12px. */
+  font-size: 8.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 .field-axis-label {
-  fill: var(--ink);
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
-  font-size: 10.5px;
-  letter-spacing: 0.06em;
+  fill: var(--ink-2);
 }
 
 .field-axis-rule,
 .field-tick {
-  stroke: var(--muted);
+  stroke: var(--ink-3);
   stroke-width: 1;
 }
 
 .field-zero {
-  stroke: var(--muted);
+  stroke: var(--ink-3);
   stroke-width: 1;
   stroke-dasharray: 3 3;
 }
@@ -1381,22 +1514,22 @@ a:focus-visible {
 }
 
 .fn-halo {
-  fill: color-mix(in srgb, var(--accent) 10%, transparent);
+  fill: color-mix(in srgb, var(--ink) 10%, transparent);
 }
 
 .fn-lit {
-  fill: var(--accent);
+  fill: var(--ink);
 }
 
 .fn-cand {
   fill: none;
-  stroke: var(--accent);
+  stroke: var(--ink);
   stroke-width: 1.3;
 }
 
 .fn-off {
   fill: none;
-  stroke: var(--faint);
+  stroke: var(--ink-3);
   stroke-width: 1;
 }
 
@@ -1409,13 +1542,13 @@ a:focus-visible {
 
 .fn-label {
   fill: var(--ink);
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
-  font-size: 10px;
-  letter-spacing: 0.01em;
+  font-family: var(--serif);
+  font-size: 11px;
+  letter-spacing: 0;
 }
 
 .field-node.is-shelf .fn-label {
-  fill: var(--faint);
+  fill: var(--ink-3);
 }
 
 .field-hit {
@@ -1428,15 +1561,14 @@ a:focus-visible {
 
 .field a:hover .fn-label,
 .field a:focus-visible .fn-label {
-  fill: var(--accent);
+  fill: var(--rust);
 }
 
 .field figcaption {
   margin-top: 0.55rem;
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
-  color: var(--faint);
-  font-size: 0.7rem;
-  letter-spacing: 0.02em;
+  color: var(--ink-3);
+  font-style: italic;
+  font-size: 0.9rem;
 }
 
 /* --- charts -------------------------------------------------------------------- */
@@ -1456,23 +1588,22 @@ figure {
 }
 
 .chart-label {
-  fill: var(--faint);
+  fill: var(--ink-3);
   font-size: 9px;
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-family: var(--mono);
   letter-spacing: 0.08em;
 }
 
 .chart-line {
-  stroke: var(--accent);
+  stroke: var(--ink);
   stroke-width: 2;
   fill: none;
 }
 
 .conviction-chart figcaption {
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
-  color: var(--faint);
-  font-size: 0.7rem;
-  letter-spacing: 0.02em;
+  color: var(--ink-3);
+  font-style: italic;
+  font-size: 0.9rem;
 }
 
 /* --- data tables (claims, related claims) ---------------------------------------- */
@@ -1486,7 +1617,7 @@ figure {
 .data-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   margin: 1rem 0;
 }
 
@@ -1495,7 +1626,7 @@ figure {
 }
 
 .data-table--claims {
-  min-width: 72rem;
+  min-width: 66rem;
 }
 
 /* The detail ledger reads tighter than the general table default. */
@@ -1507,22 +1638,24 @@ figure {
    let the themes list wrap instead of forcing the table wide. */
 .data-table--claims td:nth-child(2),
 .data-table--claims th:nth-child(2) {
-  min-width: 16rem;
+  min-width: 13rem;
 }
 
+/* Track labels are prose, set in the serif, and may break between words so
+   the ledger fits the wide container at desktop widths instead of scrolling. */
 .data-table--claims td:nth-child(3),
 .data-table--claims th:nth-child(3) {
-  min-width: 9.5rem;
+  min-width: 7rem;
 }
 
 .data-table--claims td:nth-child(7),
 .data-table--claims th:nth-child(7) {
-  min-width: 8.5rem;
+  min-width: 8rem;
 }
 
 .data-table--claims td:nth-child(8),
 .data-table--claims th:nth-child(8) {
-  min-width: 14rem;
+  min-width: 12rem;
 }
 
 .data-table--claims tbody td.cell-mono:nth-child(4) {
@@ -1535,12 +1668,12 @@ figure {
 
 .data-table th {
   text-align: left;
-  font-weight: 400;
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-family: var(--sans);
+  font-weight: 600;
   font-size: 0.62rem;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--ink-3);
   border-bottom: 1px solid var(--ink);
   padding: 0.4rem 0.75rem 0.4rem 0;
   white-space: nowrap;
@@ -1553,7 +1686,7 @@ figure {
 }
 
 .cell-mono {
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-family: var(--mono);
   font-size: 0.76rem;
   letter-spacing: 0.02em;
   white-space: nowrap;
@@ -1563,7 +1696,7 @@ figure {
    judgment-required|void). hit/miss/partial are grading (PnL) semantics;
    direction colors apply; the rest are neutral states. */
 .status-pending {
-  color: var(--muted);
+  color: var(--ink-3);
 }
 
 .status-hit {
@@ -1579,12 +1712,12 @@ figure {
 }
 
 .status-judgment-required {
-  color: var(--accent);
+  color: var(--ink);
 }
 
 .status-expired,
 .status-void {
-  color: var(--faint);
+  color: var(--ink-3);
 }
 
 /* --- forms (filters, search) ------------------------------------------------------ */
@@ -1601,20 +1734,21 @@ figure {
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-family: var(--sans);
+  font-weight: 600;
   font-size: 0.64rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--ink-3);
 }
 
 .filters select {
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
-  font-size: 0.82rem;
+  font-family: var(--sans);
+  font-size: 0.875rem;
   color: var(--ink);
-  background: var(--card);
-  border: 1px solid var(--rule);
-  border-radius: 3px;
+  background: var(--paper);
+  border: 1px solid var(--ink-3);
+  border-radius: var(--radius);
   padding: 0.32rem 0.5rem;
 }
 
@@ -1622,37 +1756,42 @@ figure {
   font-family: inherit;
   font-size: 1rem;
   color: var(--ink);
-  background: var(--card);
-  border: 1px solid var(--rule);
-  border-radius: 3px;
+  background: transparent;
+  border: 1px solid var(--ink-3);
+  border-radius: var(--radius);
   padding: 0.35rem 0.6rem;
 }
 
 .filters button,
 .search-form button {
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
-  font-size: 0.74rem;
-  letter-spacing: 0.06em;
-  background: var(--card);
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  background: transparent;
   color: var(--ink);
-  border: 1px solid var(--muted);
-  border-radius: 3px;
-  padding: 0.4rem 1rem;
+  border: 1px solid var(--ink);
+  border-radius: var(--radius);
+  padding: 0.5rem 1rem;
   cursor: pointer;
   transition: border-color 0.15s ease, color 0.15s ease;
 }
 
 .filters button:hover,
 .search-form button:hover {
-  border-color: var(--accent);
-  color: var(--accent);
+  border-color: var(--rust);
+  color: var(--rust);
 }
 
 .filters > a {
   align-self: center;
   margin-top: 1rem;
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
-  font-size: 0.72rem;
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 .search-form {
@@ -1679,43 +1818,50 @@ figure {
 }
 
 .excerpt {
-  color: var(--muted);
+  color: var(--ink-2);
   margin: 0.25rem 0 0;
   font-size: 0.95rem;
 }
 
 .archive-month {
   margin: 1.6rem 0 0.15rem;
-  font-size: 1.02rem;
+  font-size: 1.2rem;
   border-bottom: 1px solid var(--rule);
   padding-bottom: 0.25rem;
 }
 
 .archive > section:first-child .archive-month {
-  margin-top: 0.35rem;
+  margin-top: 1.25rem;
 }
 
 .kind-filters {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
+  gap: 0.4rem 1.4rem;
   margin: 0.9rem 0 0.2rem;
 }
 
+/* Archive filters read like the site nav: label capitals, the current one
+   underlined in ink. */
 .kind-filters a {
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
-  font-size: 0.72rem;
-  letter-spacing: 0.06em;
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 0.6875rem;
+  text-decoration: none;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  border: 1px solid var(--rule);
-  border-radius: 3px;
-  padding: 0.28rem 0.55rem;
-  color: var(--muted);
+  padding: 0.3rem 0;
+  border-bottom: 1.5px solid transparent;
+  color: var(--ink-2);
+}
+
+.kind-filters a:hover {
+  color: var(--rust);
 }
 
 .kind-filters a[aria-current='true'] {
   color: var(--ink);
-  border-color: var(--ink);
+  border-bottom-color: var(--ink);
 }
 
 .spark-cell {
@@ -1729,13 +1875,16 @@ figure {
   justify-content: space-between;
   gap: 1rem;
   margin: 1.5rem 0;
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
-  font-size: 0.78rem;
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 /* The ledger pager shares the archive layout; its row-range readout sits between the links. */
 .ledger-pagination .ledger-range {
-  color: var(--muted);
+  color: var(--ink-3);
 }
 
 /* --- accountability: orientation ---------------------------------------------------------- */
@@ -1743,8 +1892,8 @@ figure {
 .accountability-lede {
   max-width: 49rem;
   margin: 0.4rem 0 2rem;
-  color: var(--muted);
-  font-size: 1.08rem;
+  color: var(--ink-2);
+  font-size: 1.15rem;
   line-height: 1.55;
 }
 
@@ -1758,10 +1907,11 @@ figure {
 .accountability-phase,
 .method-number {
   margin: 0;
-  color: var(--accent);
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-weight: 600;
   font-size: 0.65rem;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
@@ -1781,31 +1931,32 @@ figure {
 .accountability-stats div {
   min-width: 0;
   padding-left: 0.75rem;
-  border-left: 2px solid var(--rule);
+  border-left: 1px solid var(--rule);
 }
 
 .accountability-stats dt {
-  color: var(--muted);
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  color: var(--ink-3);
+  font-family: var(--sans);
+  font-weight: 600;
   font-size: 0.62rem;
-  letter-spacing: 0.09em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
 .accountability-stats dd {
   margin: 0.15rem 0 0;
-  font-family: var(--font-display, Georgia, serif);
+  font-family: var(--serif);
   font-size: 1.7rem;
   font-variant-numeric: tabular-nums;
 }
 
 .accountability-stats .is-quiet dd {
-  color: var(--muted);
+  color: var(--ink-3);
   font-size: 1.25rem;
 }
 
 .accountability-stats .is-focus {
-  border-left-color: var(--accent);
+  border-left-color: var(--ink);
 }
 
 .accountability-stats .is-focus dd {
@@ -1815,37 +1966,34 @@ figure {
 .accountability-method {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1rem;
+  gap: 1.5rem;
   margin: 1rem 0;
 }
 
 .accountability-method article {
-  padding: 0.95rem 1rem;
-  border: 1px solid var(--rule);
-  border-radius: 3px;
-  background: var(--card);
+  padding: 0.85rem 0 0;
+  border-top: 1px solid var(--ink);
 }
 
 .accountability-method h3 {
-  margin: 0.25rem 0 0.4rem;
-  font-size: 1rem;
+  margin: 0.35rem 0 0.4rem;
+  font-size: 1.15rem;
 }
 
 .accountability-method article > p:last-child {
   margin: 0;
-  color: var(--muted);
-  font-size: 0.88rem;
+  color: var(--ink-2);
+  font-size: 0.95rem;
   line-height: 1.5;
 }
 
 .coverage-note,
 .qualitative-note {
   margin: 1rem 0 2.5rem;
-  padding: 0.8rem 1rem;
-  border-left: 3px solid var(--accent);
-  background: color-mix(in srgb, var(--accent) 5%, var(--card));
-  color: var(--muted);
-  font-size: 0.9rem;
+  padding: 0.2rem 0 0.2rem 1rem;
+  border-left: 2px solid var(--ink);
+  color: var(--ink-2);
+  font-size: 0.95rem;
   line-height: 1.55;
 }
 
@@ -1856,7 +2004,7 @@ figure {
 .qualitative-note h2 {
   margin: 0 0 0.3rem;
   color: var(--ink);
-  font-size: 1.1rem;
+  font-size: 1.2rem;
 }
 
 .qualitative-note p {
@@ -1920,7 +2068,7 @@ figure {
 
 .mk-judgment {
   fill: var(--mark-judgment);
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-family: var(--mono);
   font-size: 11px;
   font-weight: 500;
 }
@@ -1933,10 +2081,8 @@ figure {
 }
 
 .book {
-  border: 1px solid var(--rule);
-  border-radius: 3px;
-  background: var(--card);
-  padding: 1.1rem 1.25rem 1.25rem;
+  border-top: 1px solid var(--ink);
+  padding: 0.9rem 0 1.25rem;
   margin: 1.25rem 0 0.5rem;
 }
 
@@ -1947,10 +2093,12 @@ figure {
   margin: 0 0 1rem;
   padding-bottom: 0.9rem;
   border-bottom: 1px solid var(--rule);
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
-  font-size: 0.7rem;
-  letter-spacing: 0.05em;
-  color: var(--muted);
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 0.625rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
 }
 
 .legend-item {
@@ -1962,6 +2110,10 @@ figure {
 
 .legend-count {
   color: var(--ink);
+  font-family: var(--mono);
+  font-weight: 500;
+  font-size: 0.75rem;
+  letter-spacing: 0;
   font-variant-numeric: tabular-nums;
 }
 
@@ -1980,16 +2132,16 @@ figure {
   align-items: baseline;
   gap: 0.7em;
   margin: 0 0 0.55rem;
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-family: var(--sans);
+  font-weight: 600;
   font-size: 0.64rem;
-  font-weight: 400;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--ink-3);
 }
 
 .book-count {
-  color: var(--faint);
+  color: var(--ink-3);
   letter-spacing: 0.04em;
 }
 
@@ -2009,27 +2161,25 @@ figure {
 .grade-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 13.5rem), 1fr));
-  gap: 1rem;
+  gap: 1.5rem;
   margin: 1.25rem 0 1.75rem;
 }
 
 .grade {
-  border: 1px solid var(--rule);
-  border-radius: 3px;
-  background: var(--card);
-  padding: 1rem 1.1rem 1.05rem;
+  border-top: 1px solid var(--ink);
+  padding: 0.85rem 0 0.25rem;
 }
 
 .grade h3 {
   margin: 0;
-  font-size: 0.98rem;
+  font-size: 1.15rem;
 }
 
 .grade-description {
   min-height: 2.7em;
   margin: 0.35rem 0 0;
-  color: var(--muted);
-  font-size: 0.8rem;
+  color: var(--ink-2);
+  font-size: 0.875rem;
   line-height: 1.4;
 }
 
@@ -2045,26 +2195,25 @@ figure {
 
 .meter span {
   flex: 1;
-  border-radius: 1px;
-  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  background: color-mix(in srgb, var(--ink) 16%, transparent);
 }
 
 .meter .m-fill {
-  background: var(--accent);
+  background: var(--ink);
 }
 
 .grade-note {
   margin: 0;
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-family: var(--mono);
   font-size: 0.7rem;
   letter-spacing: 0.03em;
-  color: var(--muted);
+  color: var(--ink-3);
 }
 
 .grade-hero {
   margin: 0.35rem 0 0;
-  font-family: var(--font-display, Georgia, serif);
-  font-weight: 700;
+  font-family: var(--serif);
+  font-weight: 500;
   font-size: 2.7rem;
   line-height: 1.05;
   letter-spacing: -0.02em;
@@ -2072,11 +2221,12 @@ figure {
 
 .grade-sub {
   margin: 0.05rem 0 0.6rem;
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-family: var(--sans);
+  font-weight: 600;
   font-size: 0.64rem;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--ink-3);
 }
 
 .grade-record {
@@ -2084,10 +2234,10 @@ figure {
   align-items: center;
   gap: 0.4em;
   margin: 0;
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-family: var(--mono);
   font-size: 0.76rem;
   letter-spacing: 0.02em;
-  color: var(--muted);
+  color: var(--ink-3);
   font-variant-numeric: tabular-nums;
 }
 
@@ -2102,8 +2252,8 @@ figure {
 .grade-context,
 .grade-benchmark {
   margin: 0.45rem 0 0;
-  color: var(--faint);
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  color: var(--ink-3);
+  font-family: var(--mono);
   font-size: 0.66rem;
   line-height: 1.45;
 }
@@ -2111,7 +2261,7 @@ figure {
 .grade-benchmark {
   padding-top: 0.45rem;
   border-top: 1px solid var(--rule);
-  color: var(--muted);
+  color: var(--ink-3);
 }
 
 /* Per-theme / per-class: the same two states as quiet ledger rows. */
@@ -2137,9 +2287,8 @@ figure {
 .grade-row-name {
   flex: 1 1 11rem;
   min-width: 0;
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
-  font-size: 0.76rem;
-  letter-spacing: 0.02em;
+  font-family: var(--serif);
+  font-size: 0.95rem;
   color: var(--ink);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2156,7 +2305,7 @@ figure {
 }
 
 .grade-row-rate {
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-family: var(--mono);
   font-weight: 500;
   font-size: 0.9rem;
   font-variant-numeric: tabular-nums;
@@ -2178,7 +2327,8 @@ figure {
 }
 
 .horizon-bar {
-  fill: var(--bar-amber);
+  fill: var(--ink);
+  fill-opacity: 0.85;
 }
 
 .horizon-slot {
@@ -2191,28 +2341,27 @@ figure {
 }
 
 .horizon-label {
-  fill: var(--muted);
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  fill: var(--ink-3);
+  font-family: var(--mono);
   font-size: 8.5px;
   letter-spacing: 0.08em;
 }
 
 .horizon-year {
-  fill: var(--faint);
+  fill: var(--ink-3);
 }
 
 .horizon-count {
-  fill: var(--muted);
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  fill: var(--ink-3);
+  font-family: var(--mono);
   font-size: 10px;
 }
 
 .horizon figcaption {
   margin-top: 0.4rem;
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
-  color: var(--faint);
-  font-size: 0.7rem;
-  letter-spacing: 0.02em;
+  color: var(--ink-3);
+  font-style: italic;
+  font-size: 0.9rem;
 }
 
 /* --- accountability: ledger status chips ----------------------------------------------------- */
@@ -2222,12 +2371,11 @@ figure {
   display: inline-flex;
   align-items: center;
   gap: 0.45em;
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
-  font-size: 0.68rem;
-  letter-spacing: 0.07em;
-  border: 1px solid var(--rule);
-  border-radius: 3px;
-  padding: 0.12rem 0.5rem 0.12rem 0.4rem;
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 0.625rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   color: var(--ink);
   white-space: nowrap;
 }
@@ -2238,7 +2386,7 @@ figure {
 
 .status-chip--expired,
 .status-chip--void {
-  color: var(--faint);
+  color: var(--ink-3);
 }
 
 .claim-predicate {
@@ -2249,8 +2397,8 @@ figure {
 .claim-meta-line {
   display: block;
   margin-top: 0.22rem;
-  color: var(--faint);
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  color: var(--ink-3);
+  font-family: var(--mono);
   font-size: 0.68rem;
   line-height: 1.4;
 }
@@ -2263,11 +2411,9 @@ figure {
 /* --- catalysts ---------------------------------------------------------------------------- */
 
 .catalyst {
-  border: 1px solid var(--rule);
-  border-radius: 3px;
-  background: var(--card);
-  padding: 1rem 1.1rem;
-  margin: 1rem 0;
+  border-top: 1px solid var(--ink);
+  padding: 0.85rem 0 0.5rem;
+  margin: 1.5rem 0;
 }
 
 .catalyst h3 {
@@ -2291,6 +2437,12 @@ figure {
     display: none;
   }
 
+  /* Related claims on a dossier: three columns fit a phone once the
+     desktop floor is lifted, so the claim wraps instead of scrolling. */
+  .data-table--compact {
+    min-width: 0;
+  }
+
   .data-table--claims tbody tr {
     display: block;
     padding: 0.85rem 0;
@@ -2307,15 +2459,17 @@ figure {
     padding: 0.15rem 0;
     text-align: left;
     white-space: normal;
+    border-bottom: none;
   }
 
   .data-table--claims tbody td::before {
     content: attr(data-label);
     display: block;
-    color: var(--muted);
-    font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+    color: var(--ink-3);
+    font-family: var(--sans);
+  font-weight: 600;
     font-size: 0.62rem;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
     margin-bottom: 0.1rem;
   }
@@ -2324,15 +2478,60 @@ figure {
     padding-top: 1.25rem;
   }
 
-  .site-nav {
-    gap: 0.25rem 1rem;
-    line-height: 1.55;
+  /* Phones: the wordmark on its own row, then the nav as one full-width row
+     that scrolls sideways, so the masthead stays three short rows. */
+  .masthead {
+    gap: 0.75rem;
   }
 
-  .masthead .chip {
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  .site-nav {
+    flex: 1 0 100%;
+    flex-wrap: nowrap;
+    gap: 1.1rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+    margin-left: -0.75rem;
+    padding: 0 1.5rem 0.15rem 0.75rem;
+    /* Both edges fade: the left so a scrolled nav does not hard-clip, the
+       right so a cut-off item reads as more to scroll. The left fade sits in
+       the page gutter (negative margin, matching padding), so at rest the
+       first item stays aligned with the wordmark and fully inked; the end
+       padding lets the last item clear the right fade. */
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 0.75rem, #000 calc(100% - 1.5rem), transparent);
+    mask-image: linear-gradient(to right, transparent, #000 0.75rem, #000 calc(100% - 1.5rem), transparent);
+  }
+
+  .site-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .site-nav a {
+    flex: none;
+    white-space: nowrap;
+  }
+
+  .masthead-rule {
+    margin-top: 0.6rem;
+  }
+
+  /* The sub-line wraps: the stamp on its row, the endorsement on its own row
+     below, so the full line and its compass stay visible on every phone. */
+  .masthead-sub {
+    row-gap: 0.4rem;
+    padding-top: 0.6rem;
+  }
+
+  .endorsement {
+    order: 1;
+    margin-left: 0;
+    flex: 1 0 100%;
+  }
+
+  .theme-toggle {
+    margin-left: auto;
+    padding: 9px 11px;
   }
 
   .brief-body table {
@@ -2374,10 +2573,11 @@ figure {
   .panel-table--stack tbody td::before {
     content: attr(data-label);
     display: block;
-    color: var(--muted);
-    font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+    color: var(--ink-3);
+    font-family: var(--sans);
+  font-weight: 600;
     font-size: 0.62rem;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
     margin-bottom: 0.1rem;
   }
@@ -2385,12 +2585,12 @@ figure {
 
 .vs h4 {
   margin: 0 0 0.3rem;
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  font-family: var(--sans);
+  font-weight: 600;
   font-size: 0.68rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--ink);
-  font-weight: 500;
 }
 
 .vs p {
@@ -2399,44 +2599,46 @@ figure {
 
 .home-footer-links {
   margin-top: 3rem;
-  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
-  font-size: 0.76rem;
-  color: var(--muted);
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
 }
 
 /* --- small screens (down to 380px) ----------------------------------------------------------- */
 
 @media (max-width: 30rem) {
-  body {
-    font-size: 1rem;
-  }
-
-  h1 {
-    font-size: 1.65rem;
-  }
-
   .site-header {
     padding-top: 1.4rem;
   }
 
-  .site-name {
-    font-size: 1.45rem;
-  }
-
   .container,
   .container-wide,
-  .site-header,
-  .site-footer {
+  .site-header {
     padding-left: 1rem;
     padding-right: 1rem;
   }
 
-  .site-nav {
-    gap: 0.4rem 1.05rem;
+  .site-footer {
+    width: calc(100% - 2rem);
   }
 
-  .panel {
-    padding: 0.8rem 0.9rem;
+  body {
+    font-size: 1.0625rem;
+  }
+
+  h1 {
+    font-size: 1.85rem;
+  }
+
+  .site-name {
+    font-size: 1.6rem;
+  }
+
+  .site-nav {
+    gap: 1rem;
   }
 }
 
@@ -2449,21 +2651,25 @@ figure {
   }
 
   .site-nav,
+  .theme-toggle,
   .site-footer,
   .home-footer-links,
-  .masthead .chip {
+  .masthead-sub .chip {
     display: none;
   }
 
   .site-header {
-    border-bottom: 1px solid #000;
     padding-top: 0;
   }
 
   .site-name,
-  .site-name-tld,
-  .byline {
+  .endorsement,
+  .endorsement-mark {
     color: #000;
+  }
+
+  .masthead-rule {
+    border-color: #000;
   }
 
   a {

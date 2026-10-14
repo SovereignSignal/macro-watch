@@ -31,7 +31,7 @@ function nodeTitle(n: FieldNode): string {
   return parts.join(', ');
 }
 
-/** The ◆◆◇ gauge as a field marker: lit positions amber (hollow while a
+/** The ◆◆◇ gauge as a field marker: lit positions ink (hollow while a
  *  candidate), unlit positions faint, matching the cards below. */
 function Cluster({ n }: { n: FieldNode }) {
   if (n.shelf) {

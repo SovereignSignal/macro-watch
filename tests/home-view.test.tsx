@@ -183,8 +183,8 @@ it('renders the prediction market lens as a distinct homepage panel', () => {
   expect(markup).toContain('current evidence not assessed');
   expect(markup).toContain('<caption class="sr-only">Prediction Market Lens</caption>');
   expect(markup).toContain('<th scope="col">Market</th>');
-  expect(markup).toContain('<th scope="col">Odds</th>');
-  expect(markup).toContain('<th scope="col">24-hour flow</th>');
+  expect(markup).toContain('<th scope="col" class="num-head">Odds</th>');
+  expect(markup).toContain('<th scope="col" class="num-head">24-hour flow</th>');
   expect(markup).toContain('<th scope="row">Will the U.S. invade Iran before 2027?');
 });
 

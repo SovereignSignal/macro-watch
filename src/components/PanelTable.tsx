@@ -42,9 +42,11 @@ export function PanelTable(props: {
             <caption className="sr-only">{props.title}</caption>
             <thead>
               <tr>
-                {columns.map((column) => <th key={column} scope="col">{column}</th>)}
-                {horizonColumns.map((column) => <th key={column.key} scope="col">{column.label}</th>)}
-                {showTrend ? <th scope="col">Trend</th> : null}
+                {columns.map((column, index) => (
+                  <th key={column} scope="col" className={index > 0 ? 'num-head' : undefined}>{column}</th>
+                ))}
+                {horizonColumns.map((column) => <th key={column.key} scope="col" className="num-head">{column.label}</th>)}
+                {showTrend ? <th scope="col" className="num-head">Trend</th> : null}
               </tr>
             </thead>
             <tbody>

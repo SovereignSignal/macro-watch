@@ -1,27 +1,17 @@
 import type { Metadata, Viewport } from 'next';
-import { Fraunces, IBM_Plex_Mono } from 'next/font/google';
 import Link from 'next/link';
 import { Suspense } from 'react';
+import { Endorsement } from '@/components/Endorsement';
 import { Mark } from '@/components/Mark';
 import { MastheadUpdated } from '@/components/MastheadUpdated';
 import { SiteNav } from '@/components/SiteNav';
+import { THEME_INIT_SCRIPT, ThemeToggle } from '@/components/ThemeToggle';
 import { siteUrl } from '@/lib/site-url';
+// Sovereign Signal house style: self-hosted brand fonts, then the shared
+// tokens, then this site's sheet. No runtime font requests leave the site.
+import '@/styles/brand/fonts/fonts.css';
+import '@/styles/brand/tokens.css';
 import './globals.css';
-
-// Self-hosted at build time by next/font. No runtime requests leave the site.
-const fraunces = Fraunces({
-  subsets: ['latin'],
-  weight: ['500', '700'],
-  variable: '--font-display',
-  display: 'swap',
-});
-
-const plexMono = IBM_Plex_Mono({
-  subsets: ['latin'],
-  weight: ['400', '500'],
-  variable: '--font-mono',
-  display: 'swap',
-});
 
 const siteOrigin = siteUrl();
 
@@ -37,36 +27,46 @@ export const metadata: Metadata = {
   },
 };
 
+// Both papers from the shared tokens. The toggle's script rewrites these to
+// whichever paper is showing once a visitor pins a theme.
 export const viewport: Viewport = {
   colorScheme: 'light dark',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#F3EFE6' },
+    { media: '(prefers-color-scheme: dark)', color: '#141418' },
+  ],
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${fraunces.variable} ${plexMono.variable}`}>
+    // suppressHydrationWarning: the pre-paint script may set data-theme on
+    // <html> before React hydrates, and that attribute is the point.
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
       <body>
         <header className="site-header">
           <div className="masthead">
-            <div>
-              <Link href="/" className="site-name" aria-label="Sovs Macro home">
-                <Mark className="site-mark" size={26} />
-                <span className="site-wordmark">Sovs Macro</span>
-              </Link>
-              <p className="byline">A Sovereign Signal project</p>
-            </div>
+            <Link href="/" className="site-name" aria-label="Sovs Macro home">
+              <Mark className="site-mark" size={26} />
+              <span className="site-wordmark">Sovs Macro</span>
+            </Link>
+            <SiteNav />
+          </div>
+          <div className="masthead-rule" aria-hidden="true" />
+          <div className="masthead-sub">
             <Suspense fallback={null}>
               <MastheadUpdated />
             </Suspense>
+            <Endorsement />
+            <ThemeToggle />
           </div>
-          <SiteNav />
         </header>
         {children}
         <footer className="site-footer">
           <p className="footer-byline">
-            <span className="footer-mark" aria-hidden="true">
-              ◆
-            </span>{' '}
-            Sovs Macro is a Sovereign Signal project. AI composed. Brief HTML is sanitized before publication; verified panels disclose source coverage.
+            AI composed. Brief HTML is sanitized before publication; verified panels disclose source coverage.
           </p>
           <p>
             Research only. No buy or sell recommendations.

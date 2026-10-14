@@ -1,5 +1,5 @@
 /**
- * Micro step-trace of a conviction series (ordinal levels 1–3), the
+ * Micro step-trace of a conviction series (ordinal levels 1 to 3), the
  * instrument-panel counterpart of the dossier's full step chart. Index-scaled
  * (one step per snapshot), not time-scaled: it is a trend glyph, not an axis.
  */
@@ -13,7 +13,7 @@ export function Sparkline({
   levels: number[];
   width?: number;
   height?: number;
-  /** Ordinal keeps the 1–3 conviction step trace. Linear scales to the series. */
+  /** Ordinal keeps the 1 to 3 conviction step trace. Linear scales to the series. */
   scale?: 'ordinal' | 'linear';
   label?: string;
 }) {

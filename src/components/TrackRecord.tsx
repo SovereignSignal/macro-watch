@@ -79,7 +79,7 @@ function openCallTable(calls: Scoreboard['open'], caption: string) {
         <thead>
           <tr>
             <th scope="col">Call</th>
-            <th scope="col">Made</th>
+            <th scope="col" className="num-head">Made</th>
             <th scope="col">Horizon</th>
           </tr>
         </thead>
@@ -135,7 +135,7 @@ export function TrackRecord({ scoreboard }: { scoreboard: Scoreboard | null }) {
                 <tr>
                   <th scope="col">Call</th>
                   <th scope="col">Status</th>
-                  <th scope="col">Resolved</th>
+                  <th scope="col" className="num-head">Resolved</th>
                   <th scope="col">Note</th>
                 </tr>
               </thead>
