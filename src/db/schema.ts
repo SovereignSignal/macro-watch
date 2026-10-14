@@ -126,7 +126,7 @@ export const forwardEvents = pgTable('forward_events', {
 
 // Daily research memos from the paid Decision Research loop (07:00 UTC,
 // weekdays + Saturday). One memo per day; structured sections, never raw
-// email content — the memo is Parallel web research over public sources.
+// email content: the memo is Parallel web research over public sources.
 export const researchMemos = pgTable(
   'research_memos',
   {
@@ -136,7 +136,7 @@ export const researchMemos = pgTable(
     changed: text('changed').notNull(),
     decision: text('decision').notNull(),
     watch: text('watch').notNull(),
-    // [{url, title?}] — public https URLs only (publisher + ingest sanitized)
+    // [{url, title?}]: public https URLs only (publisher + ingest sanitized)
     citations: jsonb('citations').notNull().default(sql`'[]'::jsonb`),
     generatedAt: timestamp('generated_at', { withTimezone: true, mode: 'date' }).notNull(),
     ingestedAt: timestamp('ingested_at', { withTimezone: true, mode: 'date' })
