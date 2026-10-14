@@ -48,8 +48,8 @@ export function parseBriefKindFilter(value: string | string[] | undefined): Brie
 /** Weekend and week-ahead notes are badged; daily is badged so the archive can be scanned. */
 export function briefKindBadge(kind: string, subject: string): BriefKindBadge | null {
   const slug = briefPermalinkKind(kind, subject);
-  if (slug === 'week-ahead') return { label: 'Week ahead', className: 'badge badge-weekend' };
-  if (slug === 'weekend') return { label: 'Weekend review', className: 'badge badge-weekend' };
-  if (slug === 'daily') return { label: 'Daily', className: 'badge' };
+  if (slug === 'week-ahead') return { label: 'Week ahead', className: 'brief-kind' };
+  if (slug === 'weekend') return { label: 'Weekend review', className: 'brief-kind' };
+  if (slug === 'daily') return { label: 'Daily', className: 'brief-kind' };
   return null;
 }

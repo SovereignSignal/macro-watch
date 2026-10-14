@@ -395,11 +395,6 @@ a:focus-visible {
   color: var(--ink-3);
 }
 
-.badge-weekend {
-  border-color: var(--ink);
-  color: var(--ink);
-}
-
 .badge-active {
   color: var(--ink);
 }
@@ -454,6 +449,23 @@ a:focus-visible {
   font-size: 0.78rem;
   letter-spacing: 0.02em;
   margin-right: 0.6rem;
+}
+
+/* The brief kind is plain label text after the date, no box. */
+.brief-kind {
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+
+.date + .brief-kind::before {
+  content: '\00B7';
+  margin-right: 0.6rem;
+  letter-spacing: 0;
 }
 
 .crumb {
@@ -1806,26 +1818,31 @@ figure {
 .kind-filters {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
+  gap: 0.4rem 1.4rem;
   margin: 0.9rem 0 0.2rem;
 }
 
+/* Archive filters read like the site nav: label capitals, the current one
+   underlined in ink. */
 .kind-filters a {
   font-family: var(--sans);
   font-weight: 600;
   font-size: 0.6875rem;
   text-decoration: none;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  border: 1px solid var(--rule);
-  border-radius: var(--radius);
-  padding: 0.28rem 0.55rem;
-  color: var(--ink-3);
+  padding: 0.3rem 0;
+  border-bottom: 1.5px solid transparent;
+  color: var(--ink-2);
+}
+
+.kind-filters a:hover {
+  color: var(--rust);
 }
 
 .kind-filters a[aria-current='true'] {
   color: var(--ink);
-  border-color: var(--ink);
+  border-bottom-color: var(--ink);
 }
 
 .spark-cell {
