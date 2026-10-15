@@ -92,3 +92,9 @@ it('keeps the endorsement and theme toggle for everyone', async () => {
     expect(html).not.toContain('Gmail');
   }
 });
+
+it('uses the scorpion, not the compass, in the endorsement line', () => {
+  expect(markup).toContain('class="endorsement-mark"');
+  expect(markup).toContain('🦂');
+  expect(markup).not.toContain('viewBox="0 0 64 64"');
+});
