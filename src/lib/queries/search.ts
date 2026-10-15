@@ -16,6 +16,14 @@ export type SearchResult = {
   date: string;
 };
 
+export type SearchOptions = {
+  /**
+   * Claim hits are members-only. Defaults to false (fail closed): the claims
+   * table is not even queried unless the caller says the visitor is a member.
+   */
+  includeClaims?: boolean;
+};
+
 const LIMIT = 20;
 
 /**
@@ -24,7 +32,8 @@ const LIMIT = 20;
  * string-concatenated, so quotes and injection attempts are just inert
  * search text (see tests/search.test.tsx).
  */
-export async function searchAll(db: Db, q: string): Promise<SearchResult[]> {
+export async function searchAll(db: Db, q: string, options: SearchOptions = {}): Promise<SearchResult[]> {
+  const includeClaims = options.includeClaims === true;
   const query = q.trim();
   if (query === '' || mentionsBlockedPublisher(query)) return [];
 
@@ -49,17 +58,19 @@ export async function searchAll(db: Db, q: string): Promise<SearchResult[]> {
     .orderBy(desc(themeEvents.date))
     .limit(LIMIT);
 
-  const claimHits = await db
-    .select({
-      claimId: claims.claimId,
-      openedAt: claims.openedAt,
-      payload: claims.payload,
-      status: claims.status,
-    })
-    .from(claims)
-    .where(sql`${claims.search} @@ websearch_to_tsquery('english', ${query})`)
-    .orderBy(desc(claims.openedAt))
-    .limit(LIMIT);
+  const claimHits = includeClaims
+    ? await db
+        .select({
+          claimId: claims.claimId,
+          openedAt: claims.openedAt,
+          payload: claims.payload,
+          status: claims.status,
+        })
+        .from(claims)
+        .where(sql`${claims.search} @@ websearch_to_tsquery('english', ${query})`)
+        .orderBy(desc(claims.openedAt))
+        .limit(LIMIT)
+    : [];
 
   const researchHits = await db
     .select({

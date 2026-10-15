@@ -7,7 +7,8 @@ import { listResearch } from '@/lib/queries/research';
 import { safeQuery } from '@/lib/safe';
 import { siteUrl } from '@/lib/site-url';
 
-const STATIC_PATHS = ['/', '/briefs', '/research', '/map', '/track-record', '/accountability', '/catalysts', '/about', '/search'];
+// Members-only pages (/track-record, /accountability) are deliberately absent.
+const STATIC_PATHS = ['/', '/briefs', '/research', '/map', '/catalysts', '/about', '/search'];
 
 function urlEntry(loc: string, lastmod?: Date): string {
   const last = lastmod ? `\n    <lastmod>${xmlEscape(lastmod.toISOString())}</lastmod>` : '';
