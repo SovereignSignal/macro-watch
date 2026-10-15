@@ -1,9 +1,11 @@
 import { renderToStaticMarkup } from 'react-dom/server';
-import { expect, it } from 'vitest';
+import { expect, it, vi } from 'vitest';
 import { BriefArticle } from '@/components/BriefArticle';
 import { briefs, claims, researchMemos, themeEvents, themes, themeState } from '@/db/schema';
 import { searchAll } from '@/lib/queries/search';
 import { createTestDb } from './helpers/db';
+
+vi.mock('@/lib/member-session', () => ({ isMember: async () => true }));
 
 const { default: MapPage } = await import('@/app/map/page');
 const { default: ThemePage } = await import('@/app/map/[theme]/page');
@@ -101,7 +103,7 @@ it('does not render private outlets on the map, in search, or in a brief', async
   const map = renderToStaticMarkup(await MapPage());
   const theme = renderToStaticMarkup(await ThemePage({ params: Promise.resolve({ theme: 'copper-demand' }) }));
   const search = renderToStaticMarkup(await SearchPage({ searchParams: Promise.resolve({ q: 'copper' }) }));
-  const results = await searchAll(db, 'copper');
+  const results = await searchAll(db, 'copper', { includeClaims: true });
   const brief = renderToStaticMarkup(
     <BriefArticle
       brief={{
