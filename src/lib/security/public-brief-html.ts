@@ -1,4 +1,5 @@
 import 'server-only';
+import { hasPrivateClass } from './private-classes';
 
 import { isIP } from 'node:net';
 import sanitizeHtml, { type Attributes, type IOptions } from 'sanitize-html';
@@ -455,13 +456,8 @@ function blankPlaceholderCells(html: string): string {
   return html.replace(EMPTY_DASH_CELL_RE, (_, tag: string, attribs = '') => `<${tag}${attribs}></${tag}>`);
 }
 
-const PRIVATE_CLASS_RE = /\b(?:email-derived|email-intake|research-inputs)\b/i;
 const VOID_TAGS = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'source', 'track', 'wbr']);
 
-function classAttr(attrs: string): string | null {
-  const match = /\bclass\s*=\s*(["'])([^"']*)\1/i.exec(attrs);
-  return match ? match[2] : null;
-}
 
 /**
  * Drop email-only blocks before they can be unwrapped into public text.
@@ -501,7 +497,8 @@ export function stripUnpublishedClassBlocks(html: string): string {
     const tag = (match[2] ?? '').toLowerCase();
     const attrs = match[3] ?? '';
     const selfClosing = /\/\s*$/.test(attrs) || VOID_TAGS.has(tag);
-    const drop = PRIVATE_CLASS_RE.test(classAttr(attrs) ?? '');
+    // Shared marker list; quoted, single-quoted and unquoted class values.
+    const drop = hasPrivateClass(attrs);
     if (selfClosing) {
       if (depth === 0 && !drop) result += full;
       continue;
