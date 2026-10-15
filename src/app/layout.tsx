@@ -27,6 +27,8 @@ export const metadata: Metadata = {
     title: 'Sovs Macro',
     description: 'Macro briefs, a theme map, and a catalysts calendar. The graded call record is for members.',
   },
+  // The card image itself is src/app/opengraph-image.png (Next picks it up by file name).
+  twitter: { card: 'summary_large_image' },
 };
 
 // Both papers from the shared tokens. The toggle's script rewrites these to
