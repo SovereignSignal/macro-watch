@@ -18,6 +18,8 @@ export function HomeView(props: {
   sparks?: Record<string, number[]>;
   asOf?: string;
   watch?: PublishedWatch | null;
+  /** Members see the track record widget. Defaults to false (fail closed). */
+  member?: boolean;
 }) {
   const dashboard = presentDashboardRows(props.panel?.rows ?? [], props.panel?.history, props.panel?.takenAt);
   const oddsRows = presentPanelRows(props.oddsPanel?.rows ?? [], props.oddsPanel?.takenAt).map((row) => ({
@@ -55,7 +57,7 @@ export function HomeView(props: {
           />
         </section>
       ) : null}
-      <TrackRecordSummary scoreboard={watch.scoreboard} />
+      {props.member ? <TrackRecordSummary scoreboard={watch.scoreboard} /> : null}
       <KalshiMovers movers={watch.kalshiMovers} />
       <section aria-label="Theme map">
         <h2>Theme map</h2>
