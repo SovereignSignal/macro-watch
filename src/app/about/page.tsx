@@ -2,7 +2,7 @@ import { pageMetadata } from '@/lib/metadata';
 
 export const metadata = pageMetadata({
   title: 'About',
-  description: 'What Sovs Macro publishes, how the record is scored, and which sources are used.',
+  description: 'What Sovs Macro publishes, how calls are scored, and which sources are used.',
   path: '/about',
 });
 
@@ -15,9 +15,10 @@ export default function AboutPage() {
     <main className="container">
       <h1>About Sovs Macro</h1>
       <p>
-        Sovs Macro is the public site for a macro research pipeline. It publishes a daily brief,
-        a weekend review, a week-ahead note, a theme map, research memos, a catalyst board, a
-        track record of its own calls, and an accountability ledger. Sovs Macro is a Sovereign Signal project.
+        Sovs Macro is the site for a macro research pipeline. It publishes a daily brief,
+        a weekend review, a week-ahead note, a theme map, research memos, and a catalyst board.
+        The brief, the theme map and the catalysts calendar are public reading material. The
+        graded call record is for members while it builds a track record. Sovs Macro is a Sovereign Signal project.
       </p>
 
       <h2>Daily brief</h2>
@@ -49,7 +50,7 @@ export default function AboutPage() {
 
       <h2>Track record</h2>
       <p>
-        The <a href="/track-record">track record</a> is Sovs Macro&rsquo;s own calls: a hit rate,
+        Members can see the <a href="/track-record">track record</a>, which covers Sovs Macro&rsquo;s own calls: a hit rate,
         a Brier score when one is published, recently resolved calls, and the calls still open.
         The biggest Kalshi odds moves sit on the home page, with the window they were measured
         over and a stale notice when the feed is late.
@@ -61,7 +62,7 @@ export default function AboutPage() {
         rate counts hits divided by hits plus misses. Pending calls are not in that denominator.
         Partial, expired, judgment-required, and void outcomes are listed and are not scored as
         hits or misses. Forecast accuracy includes only eligible calls recorded before their
-        outcome. <a href="/accountability">Accountability</a> shows the record.
+        outcome. Members can see the record on the <a href="/accountability">accountability</a> page.
       </p>
 
       <h2>Catalysts</h2>
@@ -79,7 +80,7 @@ export default function AboutPage() {
 
       <h2>Sources</h2>
       <p>
-        The site cites public primary sources. Content from paid or licensed sources (for example Bloomberg or The Economist) is not used in anything published here. Text
+        The site cites public primary sources. Content from paid or licensed sources is not used in anything published here. Text
         and links from licensed news are rejected when a brief, memo, claim, or theme event is
         submitted, and stripped again when a stored page is rendered. Optional source blocks may
         be omitted when unavailable. Verified panels disclose source coverage and freshness.
@@ -88,7 +89,7 @@ export default function AboutPage() {
       <h2>Disclaimer</h2>
       <p>
         Automated research. No investment advice or buy or sell recommendations. See the{' '}
-        <a href="/accountability">public record</a>.
+        <a href="/accountability">members&rsquo; call record</a>.
       </p>
       <p>
         <a href="/feed.xml">Subscribe via RSS</a>

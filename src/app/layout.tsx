@@ -20,12 +20,12 @@ const siteOrigin = siteUrl();
 export const metadata: Metadata = {
   metadataBase: new URL(siteOrigin),
   title: { default: 'Sovs Macro', template: '%s · Sovs Macro' },
-  description: 'Macro briefs, live themes, catalysts, and a public record of what held up.',
+  description: 'Macro briefs, a theme map, and a catalysts calendar. The graded call record is for members.',
   openGraph: {
     type: 'website',
     siteName: 'Sovs Macro',
     title: 'Sovs Macro',
-    description: 'Macro briefs, live themes, catalysts, and a public record of what held up.',
+    description: 'Macro briefs, a theme map, and a catalysts calendar. The graded call record is for members.',
   },
 };
 
