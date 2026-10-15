@@ -77,7 +77,7 @@ describe('/accountability logged out', () => {
     expectGate(html, '/accountability');
     const lower = html.toLowerCase();
     expect(html).not.toContain('Smart-money markets');
-    expect(html).not.toContain('Public ledger');
+    expect(html).not.toContain('Call ledger');
     expect(html).not.toContain('Claim history');
     expect(lower).not.toContain('hit rate');
     expect(html).not.toContain('role="alert"');

@@ -35,7 +35,7 @@ function syntheticClaims(n: number, kind: 'smart_money' | 'map', prefix: string)
 }
 
 function ledgerOf(markup: string): string {
-  return markup.slice(markup.indexOf('Public ledger'));
+  return markup.slice(markup.indexOf('Call ledger'));
 }
 
 it('getClaims filters by kind, status, theme, and quality class', async () => {
@@ -91,7 +91,7 @@ it('filters narrow the table but never the scoreboards', async () => {
   const markup = renderToStaticMarkup(await page({ status: 'miss' }));
   // The book above the ledger always shows every claim (no memory-holing), so
   // scope the narrowing assertions to the ledger table itself.
-  const ledger = markup.slice(markup.indexOf('Public ledger'));
+  const ledger = markup.slice(markup.indexOf('Call ledger'));
   expect(ledger).toContain('LME copper closes above'); // the one miss claim
   expect(ledger).not.toContain('EURUSD trades 1.14'); // expired claim filtered out of table
   // Scoreboards are still computed from the full ledger, filter or no.
@@ -102,7 +102,7 @@ it('the quality class filter narrows the table by market_type', async () => {
   const db = await createTestDb();
   await seedAll(db);
   const markup = renderToStaticMarkup(await page({ class: 'commodities' }));
-  const ledger = markup.slice(markup.indexOf('Public ledger'));
+  const ledger = markup.slice(markup.indexOf('Call ledger'));
   expect(ledger).toContain('LME copper closes above'); // the one commodities claim
   expect(ledger).not.toContain('2y UST closes above 4.40%'); // a rates claim, filtered out
 });
@@ -221,7 +221,7 @@ it('summary counts and the book cover the whole record on any page', async () =>
   expect(markup).toContain('<dt>Not scored</dt><dd>0</dd>');
   expect(markup).toContain('70 listed markets are still open.');
   // Per-track counts in the book are unaffected by the ledger's filter or page.
-  const book = markup.slice(markup.indexOf('Claim history'), markup.indexOf('Public ledger'));
+  const book = markup.slice(markup.indexOf('Claim history'), markup.indexOf('Call ledger'));
   expect(book).toContain('Wallet signals <span class="book-count">40</span>');
   expect(book).toContain('Map calls <span class="book-count">30</span>');
   expect((book.match(/<svg /g) ?? []).length).toBeGreaterThanOrEqual(70);

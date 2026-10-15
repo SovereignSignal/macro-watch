@@ -3,10 +3,11 @@
 **Live:** https://macro-watch-production.up.railway.app
 
 Sovs Macro is a Sovereign Signal project. It publishes the
-sovs-macro pipeline's output as a free, public macro-intelligence site: the daily/weekend
-brief, a living theme map with full history, a public record that grades eligible market
-claims against external outcomes, and a
-forward-looking catalyst board. Nothing on the site is hand-edited: every page renders
+sovs-macro pipeline's output as a macro-intelligence site. The daily/weekend
+brief, a living theme map with full history, and a forward-looking catalyst board are
+public reading material. A graded call record, which grades eligible market
+claims against external outcomes, is for members while it builds a track record.
+Nothing on the site is hand-edited: every page renders
 from data pushed here by the upstream pipeline. See `docs/specs/2026-07-11-macro-watch-design.md`
 for the full design spec this repo implements.
 
@@ -38,8 +39,8 @@ projection were dropped, re-publishing from pipeline state would rebuild it.
 | `/` | Today's brief in full, the dashboard panel, track-record summary, Kalshi movers, a compact theme-map strip |
 | `/briefs`, `/briefs/[date]`, `/briefs/[date]/[kind]` | Brief archive with permalinks (`daily`, `weekend`, `week-ahead`) |
 | `/map`, `/map/[theme]` | The living theme map (see below) + per-theme event timeline, related claims, conviction-over-time |
-| `/track-record` | Sovs Macro's own calls: hit rate, Brier, recent resolutions, open calls |
-| `/accountability` | Method and coverage, track-specific performance, upcoming decisions, qualitative review, and a source-linked public ledger |
+| `/track-record` | Members only. Sovs Macro's own calls: hit rate, Brier, recent resolutions, open calls |
+| `/accountability` | Members only. Method and coverage, track-specific performance, upcoming decisions, qualitative review, and a source-linked call ledger |
 | `/catalysts` | Upcoming forward events (what-would-surprise framing) and resolved events (expectation vs. outcome) |
 | `/research`, `/research/[date]` | Daily decision-research memos |
 | `/search` | Postgres full-text search across briefs, theme events, claims, and research |

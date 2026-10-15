@@ -2,7 +2,8 @@ import { z } from 'zod';
 
 /**
  * Paywalled and email-only publishers that must not be stored or rendered.
- * Bloomberg, Alpha Picks (AP Research), Alyosha (including the jj745 host),
+ * Bloomberg (and its newsletters that appear without the name, Money Stuff and
+ * Businessweek), Alpha Picks (AP Research), Alyosha (including the jj745 host),
  * Market Vibes, and The Economist are always included, so an env override
  * cannot publish them. `BLOCKED_PUBLISHERS` adds more case-insensitive
  * substrings (comma-separated), matched against text and link domains.
@@ -11,6 +12,8 @@ import { z } from 'zod';
 const DEFAULT_TERMS = [
   'bloomberg.com',
   'bloomberg',
+  'money stuff',
+  'businessweek',
   'alphapicks',
   'alpha picks',
   'ap research',

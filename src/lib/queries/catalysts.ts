@@ -1,7 +1,7 @@
 import { asc } from 'drizzle-orm';
 import type { Db } from '@/db/client';
 import { forwardEvents } from '@/db/schema';
-import { publicText } from '@/lib/public-copy';
+import { publicHttpsUrl, publicText } from '@/lib/public-copy';
 
 export type ForwardEventRow = typeof forwardEvents.$inferSelect;
 
@@ -23,14 +23,10 @@ function str(v: unknown): string {
   return typeof v === 'string' ? publicText(v) : '';
 }
 
+// Same rule as every other public link: https only, and never a paid or
+// blocked publisher's domain (the guard test seeds a bloomberg.com source).
 function safeHttpsUrl(v: unknown): string | null {
-  if (typeof v !== 'string') return null;
-  try {
-    const url = new URL(v);
-    return url.protocol === 'https:' && !url.username && !url.password ? url.toString() : null;
-  } catch {
-    return null;
-  }
+  return typeof v === 'string' ? publicHttpsUrl(v) : null;
 }
 
 export function catalystFields(payload: unknown): {

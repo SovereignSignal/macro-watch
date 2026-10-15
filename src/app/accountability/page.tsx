@@ -49,7 +49,7 @@ export default async function AccountabilityPage({
   };
   const page = pageNumber(sp.page);
   const db = getDb();
-  // Filters and paging only narrow the public ledger. Everything else on the
+  // Filters and paging only narrow the ledger. Everything else on the
   // page (counts, boards, the book, the horizon) reads the whole record.
   const [all, ledger, themeNames] = await Promise.all([
     safeQuery(() => getClaims(db), []),
@@ -77,7 +77,7 @@ export default async function AccountabilityPage({
     <main className="container-wide">
       <h1>Accountability</h1>
       <p className="accountability-lede">
-        A public record of calls and outcomes. Forecast accuracy includes only eligible calls recorded before their outcome.
+        The graded record of calls and outcomes, for members while it builds a track record. Forecast accuracy includes only eligible calls recorded before their outcome.
         Historical conditions and ambiguous tests remain visible for review and are excluded from that score.
       </p>
 
@@ -215,7 +215,7 @@ export default async function AccountabilityPage({
       </section>
 
       <section aria-labelledby="public-ledger">
-        <h2 id="public-ledger">Public ledger</h2>
+        <h2 id="public-ledger">Call ledger</h2>
         <p className="brief-meta">Filters only affect this ledger.</p>
         <ClaimsTable
           page={ledger}
