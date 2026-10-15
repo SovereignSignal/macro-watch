@@ -1,5 +1,6 @@
 import { sql, type SQL } from 'drizzle-orm';
 import {
+  bigint,
   customType,
   index,
   jsonb,
@@ -31,6 +32,8 @@ export const briefs = pgTable(
     ingestedAt: timestamp('ingested_at', { withTimezone: true, mode: 'date' })
       .notNull()
       .defaultNow(),
+    // Producer-assigned revision (µs since epoch); 0 = legacy. Stale writes are rejected.
+    revision: bigint('revision', { mode: 'number' }).notNull().default(0),
     search: tsvector('search').generatedAlwaysAs(
       (): SQL =>
         sql`to_tsvector('english', coalesce(${briefs.subject}, '') || ' ' || regexp_replace(coalesce(${briefs.html}, ''), '<[^>]*>', ' ', 'g'))`,
@@ -109,6 +112,10 @@ export const claims = pgTable(
     openedAt: text('opened_at').notNull(), // YYYY-MM-DD
     expiresAt: text('expires_at'), // YYYY-MM-DD
     resolvedAt: text('resolved_at'), // YYYY-MM-DD
+    // Producer-assigned revision (µs since epoch); 0 = legacy. Stale writes are rejected.
+    revision: bigint('revision', { mode: 'number' }).notNull().default(0),
+    // First-seen prediction fields; immutable once stored (null on pre-0003 rows).
+    original: jsonb('original'),
     search: tsvector('search').generatedAlwaysAs(
       (): SQL =>
         sql`to_tsvector('english', coalesce(${claims.payload}->>'predicate', '') || ' ' || coalesce(${claims.payload}->>'data_anchor', ''))`,
@@ -122,6 +129,8 @@ export const forwardEvents = pgTable('forward_events', {
   eventDate: text('event_date').notNull(), // YYYY-MM-DD
   payload: jsonb('payload').notNull(), // event, expectation, what-would-surprise framing
   resolution: jsonb('resolution'), // null until reconciled
+  // Producer-assigned revision (µs since epoch); 0 = legacy. Stale writes are rejected.
+  revision: bigint('revision', { mode: 'number' }).notNull().default(0),
 });
 
 // Daily research memos from the paid Decision Research loop (07:00 UTC,

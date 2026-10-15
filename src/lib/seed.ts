@@ -19,14 +19,14 @@ function load(name: string): unknown {
 export async function seedAll(db: Db): Promise<Record<string, number>> {
   const counts: Record<string, number> = { briefs: 0, themeEvents: 0, themeState: 0, panels: 0, claims: 0, forwardEvents: 0 };
   for (const b of load('briefs.json') as unknown[]) {
-    counts.briefs += await upsertBrief(db, briefSchema.parse(b));
+    counts.briefs += (await upsertBrief(db, briefSchema.parse(b))).upserted;
   }
   counts.themeEvents = await upsertThemeEvents(db, themeEventsBodySchema.parse(load('theme-events.json')));
   counts.themeState = await upsertThemeState(db, themeStateSchema.parse(load('theme-state.json')));
   for (const p of load('panels.json') as unknown[]) {
     counts.panels += await upsertPanel(db, panelSchema.parse(p));
   }
-  counts.claims = await upsertClaims(db, claimsBodySchema.parse(load('claims.json')));
-  counts.forwardEvents = await upsertForwardEvents(db, forwardEventsBodySchema.parse(load('forward-events.json')));
+  counts.claims = (await upsertClaims(db, claimsBodySchema.parse(load('claims.json')))).upserted;
+  counts.forwardEvents = (await upsertForwardEvents(db, forwardEventsBodySchema.parse(load('forward-events.json')))).upserted;
   return counts;
 }

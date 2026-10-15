@@ -12,6 +12,7 @@ const BRIEF: BriefRow = {
   sentVerifiedAt: new Date('2026-07-11T12:02:33Z'),
   ingestedAt: new Date('2026-07-11T12:03:00Z'),
   search: '',
+  revision: 0,
 };
 
 it('strips embedded dashboard and lens sections that the homepage already renders', () => {

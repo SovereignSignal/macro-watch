@@ -1,9 +1,12 @@
-import { notInArray } from 'drizzle-orm';
+import { and, eq, lte, notInArray, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import type { Db } from '@/db/client';
 import { claims, forwardEvents } from '@/db/schema';
 import { publicHttpsUrl, publicValue } from '@/lib/public-copy';
 import { rejectBlockedPublishers } from '@/lib/security/blocked-publishers';
+import { revisionSchema, type UpsertCounts } from './revision';
+
+type Tx = Parameters<Parameters<Db['transaction']>[0]>[0];
 
 // ---------------------------------------------------------------- claims ---
 
@@ -48,6 +51,7 @@ export const claimSchema = z
     status: z.enum(CLAIM_STATUSES),
     resolved_at: z.string().regex(DATE_RE).nullish(),
     resolution_note: z.string().nullish(),
+    revision: revisionSchema,
   })
   .passthrough()
   .superRefine((claim, ctx) => {
@@ -74,25 +78,118 @@ export const claimsBodySchema = rejectBlockedPublishers(z.union([
   claimSchema.transform((c) => [c]),
 ]));
 
-/** Idempotent upsert on claim_id; the full body rides in payload jsonb. */
-export async function upsertClaims(db: Db, list: ClaimPayload[]): Promise<number> {
-  for (const c of list) {
-    const clean = publicValue(c);
-    const row = {
-      kind: clean.kind,
-      themes: clean.themes,
-      payload: clean as Record<string, unknown>,
-      status: clean.status,
-      openedAt: clean.opened_at,
-      expiresAt: clean.expires_at ?? null,
-      resolvedAt: clean.resolved_at ?? null,
-    };
-    await db
-      .insert(claims)
-      .values({ claimId: c.claim_id, ...row })
-      .onConflictDoUpdate({ target: claims.claimId, set: row });
+/** Prediction fields that are frozen at first sight of a claim. */
+const PREDICTION_KEYS = [
+  'predicate',
+  'opening_probability',
+  'opened_at',
+  'data_anchor',
+  'kind',
+  'themes',
+  'claim_kind',
+  'market_type',
+] as const;
+
+function pickPrediction(src: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const key of PREDICTION_KEYS) out[key] = src[key] ?? null;
+  return out;
+}
+
+function applyOriginal(
+  payload: Record<string, unknown>,
+  original: Record<string, unknown>,
+): Record<string, unknown> {
+  const next = { ...payload };
+  for (const key of PREDICTION_KEYS) {
+    const value = original[key];
+    if (value === null || value === undefined) delete next[key];
+    else next[key] = value;
   }
-  return list.length;
+  return next;
+}
+
+async function lockClaim(tx: Tx, claimId: string) {
+  const rows = await tx.select().from(claims).where(eq(claims.claimId, claimId)).for('update');
+  return rows[0];
+}
+
+/**
+ * Idempotent upsert on claim_id; the full body rides in payload jsonb.
+ *
+ * - A payload whose revision is lower than the stored one is stale and ignored.
+ * - The prediction fields of the first stored version are immutable; later
+ *   revisions may only change resolution/status/expiry/score fields.
+ */
+export async function upsertClaims(db: Db, list: ClaimPayload[]): Promise<UpsertCounts> {
+  return db.transaction(async (tx) => {
+    let upserted = 0;
+    let stale = 0;
+    for (const c of list) {
+      const clean = publicValue(c);
+      const revision = c.revision ?? 0;
+      const cleanPayload = clean as Record<string, unknown>;
+
+      let existing = await lockClaim(tx, c.claim_id);
+      if (!existing) {
+        const inserted = await tx
+          .insert(claims)
+          .values({
+            claimId: c.claim_id,
+            kind: clean.kind,
+            themes: clean.themes,
+            payload: cleanPayload,
+            status: clean.status,
+            openedAt: clean.opened_at,
+            expiresAt: clean.expires_at ?? null,
+            resolvedAt: clean.resolved_at ?? null,
+            revision,
+            original: pickPrediction(cleanPayload),
+          })
+          .onConflictDoNothing()
+          .returning({ claimId: claims.claimId });
+        if (inserted.length > 0) {
+          upserted += 1;
+          continue;
+        }
+        // Lost a race with a concurrent insert; fall through to the update path.
+        existing = await lockClaim(tx, c.claim_id);
+        if (!existing) {
+          stale += 1;
+          continue;
+        }
+      }
+
+      if (revision < existing.revision) {
+        stale += 1;
+        continue;
+      }
+
+      // Legacy rows (pre-migration) have no `original`: freeze what is stored.
+      const original =
+        (existing.original as Record<string, unknown> | null) ??
+        pickPrediction(existing.payload as Record<string, unknown>);
+
+      const updated = await tx
+        .update(claims)
+        .set({
+          kind: (original.kind as 'smart_money' | 'map' | null) ?? clean.kind,
+          themes: (original.themes as string[] | null) ?? clean.themes,
+          payload: applyOriginal(cleanPayload, original),
+          status: clean.status,
+          openedAt: (original.opened_at as string | null) ?? clean.opened_at,
+          expiresAt: clean.expires_at ?? null,
+          resolvedAt: clean.resolved_at ?? null,
+          revision,
+          original,
+        })
+        .where(and(eq(claims.claimId, c.claim_id), lte(claims.revision, revision)))
+        .returning({ claimId: claims.claimId });
+      if (updated.length > 0) upserted += 1;
+      else stale += 1;
+    }
+    return { upserted, stale };
+  });
 }
 
 // -------------------------------------------------------- forward events ---
@@ -112,6 +209,7 @@ export const forwardEventSchema = z
       })
       .passthrough()
       .nullish(),
+    revision: revisionSchema,
   })
   .passthrough();
 
@@ -120,43 +218,132 @@ export type ForwardEventPayload = z.infer<typeof forwardEventSchema>;
 const forwardEventSnapshotSchema = z.object({
   events: z.array(forwardEventSchema),
   replace: z.literal(true),
+  // Applies to events that do not carry their own revision.
+  revision: revisionSchema,
 });
 
 export const forwardEventsBodySchema = z.union([
   forwardEventSnapshotSchema,
-  z.array(forwardEventSchema).min(1).transform((events) => ({ events, replace: false as const })),
-  forwardEventSchema.transform((event) => ({ events: [event], replace: false as const })),
+  z.array(forwardEventSchema).min(1).transform((events) => ({
+    events,
+    replace: false as const,
+    revision: undefined as number | undefined,
+  })),
+  forwardEventSchema.transform((event) => ({
+    events: [event],
+    replace: false as const,
+    revision: undefined as number | undefined,
+  })),
 ]);
 
 export type ForwardEventsBody = z.infer<typeof forwardEventsBodySchema>;
 
+async function lockForwardEvent(tx: Tx, eventId: string) {
+  const rows = await tx
+    .select()
+    .from(forwardEvents)
+    .where(eq(forwardEvents.eventId, eventId))
+    .for('update');
+  return rows[0];
+}
+
+function snapshotRevision(body: ForwardEventsBody): number {
+  if (body.revision !== undefined) return body.revision;
+  let max = 0;
+  for (const event of body.events) max = Math.max(max, event.revision ?? 0);
+  return max;
+}
+
 /**
  * Idempotent upsert on event_id. Authoritative snapshots also remove rows that
  * are no longer in the public projection; incremental legacy posts never do.
+ *
+ * - Rows with a lower revision than stored are stale and ignored.
+ * - The first stored `expectation` and `surprise` are immutable.
+ * - A replace snapshot older than the newest stored row skips its delete step
+ *   (still applying guarded per-row upserts) and is reported as stale.
  */
-export async function upsertForwardEvents(db: Db, body: ForwardEventsBody): Promise<number> {
-  await db.transaction(async (tx) => {
+export async function upsertForwardEvents(db: Db, body: ForwardEventsBody): Promise<UpsertCounts> {
+  return db.transaction(async (tx) => {
+    let upserted = 0;
+    let stale = 0;
+    let snapshotStale = false;
+
+    if (body.replace) {
+      const [{ max }] = await tx
+        .select({ max: sql<number>`coalesce(max(${forwardEvents.revision}), 0)`.mapWith(Number) })
+        .from(forwardEvents);
+      snapshotStale = snapshotRevision(body) < max;
+    }
+
     for (const f of body.events) {
       const clean = publicValue(f);
+      const revision = f.revision ?? body.revision ?? 0;
       const { resolution, event_id, date, ...payload } = clean;
-      const row = {
-        eventDate: date,
-        payload: { event_id, date, ...payload } as Record<string, unknown>,
-        resolution: (resolution ?? null) as Record<string, unknown> | null,
-      };
-      await tx
-        .insert(forwardEvents)
-        .values({ eventId: event_id, ...row })
-        .onConflictDoUpdate({ target: forwardEvents.eventId, set: row });
+      const newPayload = { event_id, date, ...payload } as Record<string, unknown>;
+      const newResolution = (resolution ?? null) as Record<string, unknown> | null;
+
+      let existing = await lockForwardEvent(tx, event_id);
+      if (!existing) {
+        const inserted = await tx
+          .insert(forwardEvents)
+          .values({
+            eventId: event_id,
+            eventDate: date,
+            payload: newPayload,
+            resolution: newResolution,
+            revision,
+          })
+          .onConflictDoNothing()
+          .returning({ eventId: forwardEvents.eventId });
+        if (inserted.length > 0) {
+          upserted += 1;
+          continue;
+        }
+        existing = await lockForwardEvent(tx, event_id);
+        if (!existing) {
+          stale += 1;
+          continue;
+        }
+      }
+
+      if (revision < existing.revision) {
+        stale += 1;
+        continue;
+      }
+
+      const stored = existing.payload as Record<string, unknown>;
+      const nextPayload = { ...newPayload };
+      if (typeof stored.expectation === 'string') nextPayload.expectation = stored.expectation;
+      if (typeof stored.surprise === 'string') nextPayload.surprise = stored.surprise;
+
+      const updated = await tx
+        .update(forwardEvents)
+        .set({
+          eventDate: date,
+          payload: nextPayload,
+          resolution: newResolution,
+          revision,
+        })
+        .where(and(eq(forwardEvents.eventId, event_id), lte(forwardEvents.revision, revision)))
+        .returning({ eventId: forwardEvents.eventId });
+      if (updated.length > 0) upserted += 1;
+      else stale += 1;
     }
+
     if (body.replace) {
-      const ids = body.events.map((event) => event.event_id);
-      if (ids.length > 0) {
-        await tx.delete(forwardEvents).where(notInArray(forwardEvents.eventId, ids));
+      if (snapshotStale) {
+        // The snapshot itself is out of date: never delete newer rows.
+        stale = Math.max(stale, 1);
       } else {
-        await tx.delete(forwardEvents);
+        const ids = body.events.map((event) => event.event_id);
+        if (ids.length > 0) {
+          await tx.delete(forwardEvents).where(notInArray(forwardEvents.eventId, ids));
+        } else {
+          await tx.delete(forwardEvents);
+        }
       }
     }
+    return { upserted, stale };
   });
-  return body.events.length;
 }
