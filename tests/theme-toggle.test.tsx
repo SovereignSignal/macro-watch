@@ -5,15 +5,12 @@ import { describe, expect, it, vi } from 'vitest';
 vi.mock('next/navigation', () => ({
   usePathname: () => '/',
 }));
+vi.mock('@/lib/member-session', () => ({ isMember: async () => false }));
 
 const { THEME_INIT_SCRIPT, ThemeToggle } = await import('@/components/ThemeToggle');
 const { default: RootLayout, viewport } = await import('@/app/layout');
 
-const layoutMarkup = renderToStaticMarkup(
-  <RootLayout>
-    <p>page content</p>
-  </RootLayout>,
-);
+const layoutMarkup = renderToStaticMarkup(await RootLayout({ children: <p>page content</p> }));
 
 describe('theme toggle', () => {
   it('renders an accessible button that is hidden until the client knows the theme', () => {

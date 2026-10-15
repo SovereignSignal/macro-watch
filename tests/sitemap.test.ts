@@ -35,9 +35,17 @@ it('sitemap lists static routes, kind permalinks, research, and themes', async (
   expect(xml).toContain('https://macro-watch-production.up.railway.app/briefs/2026-07-11/weekend');
   expect(xml).toContain('https://macro-watch-production.up.railway.app/research/2026-08-17');
   expect(xml).toContain('https://macro-watch-production.up.railway.app/map/rate-path-repricing');
-  expect(xml).toContain('https://macro-watch-production.up.railway.app/track-record');
+  expect(xml).toContain('https://macro-watch-production.up.railway.app/catalysts');
   expect(xml).toContain('https://macro-watch-production.up.railway.app/about');
   expect(xml).not.toContain('/api/');
+});
+
+it('sitemap leaves out the members-only pages', async () => {
+  const db = await createTestDb();
+  await seedAll(db);
+  const xml = await buildSitemap();
+  expect(xml).not.toContain('/track-record');
+  expect(xml).not.toContain('/accountability');
 });
 
 it('sitemap route and robots route return the documents', async () => {

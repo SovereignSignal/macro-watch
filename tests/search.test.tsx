@@ -1,13 +1,24 @@
 import { renderToStaticMarkup } from 'react-dom/server';
-import { expect, it } from 'vitest';
+import { beforeEach, expect, it, vi } from 'vitest';
 import { upsertBrief } from '@/lib/ingest/briefs';
 import { upsertResearch } from '@/lib/ingest/research';
 import { searchAll } from '@/lib/queries/search';
 import { seedAll } from '@/lib/seed';
 import { createTestDb } from './helpers/db';
 
+const session = vi.hoisted(() => ({ member: false }));
+
+// next/headers cookies() fails outside a request, so stub the session.
+vi.mock('@/lib/member-session', () => ({
+  isMember: async () => session.member,
+}));
+
 const { default: SearchPage } = await import('@/app/search/page');
 const { default: AboutPage, dynamic: aboutDynamic } = await import('@/app/about/page');
+
+beforeEach(() => {
+  session.member = false;
+});
 
 it('finds briefs by words in the html body', async () => {
   const db = await createTestDb();
@@ -17,14 +28,27 @@ it('finds briefs by words in the html body', async () => {
   expect(brief?.href).toBe('/briefs/2026-07-08/daily');
 });
 
-it('finds theme events by evidence and claims by predicate', async () => {
+it('finds theme events by evidence and claims by predicate (members)', async () => {
   const db = await createTestDb();
   await seedAll(db);
   const events = (await searchAll(db, 'hawkish minutes')).filter((r) => r.type === 'theme-event');
   expect(events[0]?.href).toBe('/map/rate-path-repricing');
-  const claimHits = (await searchAll(db, 'copper')).filter((r) => r.type === 'claim');
+  const claimHits = (await searchAll(db, 'copper', { includeClaims: true })).filter((r) => r.type === 'claim');
   expect(claimHits[0]?.href).toBe('/accountability');
   expect(claimHits[0]?.title).toContain('LME copper');
+});
+
+it('excludes claim hits unless the caller opts in (fail closed)', async () => {
+  const db = await createTestDb();
+  await seedAll(db);
+  const without = await searchAll(db, 'copper');
+  expect(without.filter((r) => r.type === 'claim')).toEqual([]);
+  const explicitOff = await searchAll(db, 'copper', { includeClaims: false });
+  expect(explicitOff.filter((r) => r.type === 'claim')).toEqual([]);
+  // Non-claim hits are unaffected by the option.
+  const brief = (await searchAll(db, 'term premium')).find((r) => r.type === 'brief');
+  const briefMember = (await searchAll(db, 'term premium', { includeClaims: true })).find((r) => r.type === 'brief');
+  expect(brief?.href).toBe(briefMember?.href);
 });
 
 it('returns nothing for an empty or whitespace query', async () => {
@@ -43,6 +67,7 @@ it('never interpolates the query into SQL — quotes and injection attempts are 
   // returns a normal (empty) result set.
   await expect(searchAll(db, "term'; DROP TABLE briefs; --")).resolves.toEqual([]);
   await expect(searchAll(db, "o'brien")).resolves.toEqual([]);
+  await expect(searchAll(db, "o'brien", { includeClaims: true })).resolves.toEqual([]);
   // Confirm the table really does survive: a legitimate search still works.
   const results = await searchAll(db, 'term premium');
   expect(results.find((r) => r.type === 'brief')?.href).toBe('/briefs/2026-07-08/daily');
@@ -56,6 +81,29 @@ it('search page renders results for ?q=', async () => {
   );
   expect(markup).toContain('href="/briefs/2026-07-08/daily"');
   expect(markup).toMatch(/\d+ results?/);
+});
+
+it('search page hides claim hits from logged-out visitors', async () => {
+  const db = await createTestDb();
+  await seedAll(db);
+  session.member = false;
+  const markup = renderToStaticMarkup(
+    await SearchPage({ searchParams: Promise.resolve({ q: 'copper' }) }),
+  );
+  expect(markup).not.toContain('LME copper');
+  expect(markup).not.toContain('href="/accountability"');
+  expect(markup).not.toContain('claims, research');
+});
+
+it('search page shows claim hits to members', async () => {
+  const db = await createTestDb();
+  await seedAll(db);
+  session.member = true;
+  const markup = renderToStaticMarkup(
+    await SearchPage({ searchParams: Promise.resolve({ q: 'copper' }) }),
+  );
+  expect(markup).toContain('LME copper');
+  expect(markup).toContain('href="/accountability"');
 });
 
 it('search page renders a no-results state', async () => {
