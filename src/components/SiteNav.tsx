@@ -3,20 +3,26 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+import { MemberLock } from './MemberLock';
 
-const LINKS: { href: string; label: string; match: (path: string) => boolean }[] = [
+const LINKS: {
+  href: string;
+  label: string;
+  members?: boolean;
+  match: (path: string) => boolean;
+}[] = [
   { href: '/', label: 'Brief', match: (path) => path === '/' },
   { href: '/briefs', label: 'Archive', match: (path) => path.startsWith('/briefs') },
   { href: '/map', label: 'Theme map', match: (path) => path.startsWith('/map') },
   { href: '/research', label: 'Research', match: (path) => path.startsWith('/research') },
-  { href: '/track-record', label: 'Track record', match: (path) => path.startsWith('/track-record') },
-  { href: '/accountability', label: 'Accountability', match: (path) => path.startsWith('/accountability') },
+  { href: '/track-record', label: 'Track record', members: true, match: (path) => path.startsWith('/track-record') },
+  { href: '/accountability', label: 'Accountability', members: true, match: (path) => path.startsWith('/accountability') },
   { href: '/catalysts', label: 'Catalysts', match: (path) => path.startsWith('/catalysts') },
   { href: '/search', label: 'Search', match: (path) => path.startsWith('/search') },
   { href: '/about', label: 'About', match: (path) => path.startsWith('/about') },
 ];
 
-export function SiteNav() {
+export function SiteNav({ member }: { member: boolean }) {
   const pathname = usePathname() ?? '/';
   const navRef = useRef<HTMLElement>(null);
   // Whether the phone strip has more links past its right edge; drives the
@@ -57,6 +63,7 @@ export function SiteNav() {
               aria-current={current ? 'page' : undefined}
             >
               {link.label}
+              {link.members && !member ? <MemberLock /> : null}
             </Link>
           );
         })}
