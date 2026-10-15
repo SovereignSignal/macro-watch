@@ -1,6 +1,7 @@
 import { desc, sql } from 'drizzle-orm';
 import type { Db } from '@/db/client';
 import { briefs, claims, researchMemos, themeEvents } from '@/db/schema';
+import { containsRestricted, redactRestrictedText, type Audience } from '@/lib/audience';
 import { PUBLIC_BRIEF_MIN_DATE } from '@/lib/queries/briefs';
 import { isPlaceholderResearch, publicResearchText } from '@/lib/research-public';
 import { briefPath } from '@/lib/brief-kind';
@@ -22,9 +23,26 @@ export type SearchOptions = {
    * table is not even queried unless the caller says the visitor is a member.
    */
   includeClaims?: boolean;
+  /** Defaults to 'public' (fail closed): smart-money text is redacted. */
+  audience?: Audience;
 };
 
 const LIMIT = 20;
+
+function redactHit(hit: SearchResult): SearchResult[] {
+  const title = redactRestrictedText(hit.title, 'public');
+  const snippet = redactRestrictedText(hit.snippet, 'public');
+  if (
+    snippet === '' &&
+    (title === '' ||
+      containsRestricted(hit.title) ||
+      (hit.type === 'theme-event' && hit.snippet.trim() !== ''))
+  ) {
+    return [];
+  }
+  const fallback = hit.type === 'brief' ? 'Brief' : 'Research memo';
+  return [{ ...hit, title: title || fallback, snippet }];
+}
 
 /**
  * Postgres full-text across briefs, theme events, claims, and research.
@@ -34,8 +52,10 @@ const LIMIT = 20;
  */
 export async function searchAll(db: Db, q: string, options: SearchOptions = {}): Promise<SearchResult[]> {
   const includeClaims = options.includeClaims === true;
+  const audience = options.audience ?? 'public';
   const query = q.trim();
   if (query === '' || mentionsBlockedPublisher(query)) return [];
+  if (audience === 'public' && containsRestricted(query)) return [];
 
   const briefHits = await db
     .select({ date: briefs.date, kind: briefs.kind, subject: briefs.subject, ping: briefs.ping, html: briefs.html })
@@ -87,7 +107,7 @@ export async function searchAll(db: Db, q: string, options: SearchOptions = {}):
     .orderBy(desc(researchMemos.date))
     .limit(LIMIT);
 
-  return [
+  const results: SearchResult[] = [
     ...briefHits
       .filter((b) => !mentionsBlockedPublisher(`${b.subject}\n${b.ping}\n${b.html}`))
       .map(
@@ -137,4 +157,5 @@ export async function searchAll(db: Db, q: string, options: SearchOptions = {}):
         }),
       ),
   ];
+  return audience === 'public' ? results.flatMap(redactHit) : results;
 }

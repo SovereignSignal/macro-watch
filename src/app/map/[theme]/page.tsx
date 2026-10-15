@@ -7,6 +7,7 @@ import { Sparkline } from '@/components/Sparkline';
 import { ThemeTimeline } from '@/components/ThemeTimeline';
 import { TriggerList } from '@/components/TriggerList';
 import { getDb } from '@/db/client';
+import { audienceFor, redactCardText, redactRestrictedText } from '@/lib/audience';
 import { formatDate } from '@/lib/format';
 import { isMember } from '@/lib/member-session';
 import { pageMetadata } from '@/lib/metadata';
@@ -33,9 +34,10 @@ export async function generateMetadata({ params }: { params: Promise<{ theme: st
     });
   }
   const detail = await getThemeDetail(getDb(), theme);
+  const raw = detail?.card?.description ?? detail?.card?.read ?? '';
   return pageMetadata({
     title: detail ? detail.name : 'Theme',
-    description: detail?.card?.description ?? detail?.card?.read ?? 'A Sovs Macro theme dossier.',
+    description: redactRestrictedText(raw, 'public') || 'A Sovs Macro theme dossier.',
     path: `/map/${theme}`,
   });
 }
@@ -52,7 +54,20 @@ export default async function ThemePage({ params }: { params: Promise<{ theme: s
   const detail = await getThemeDetail(getDb(), theme);
   if (!detail) notFound();
   const member = await isMember();
-  const card = detail.card;
+  const audience = audienceFor(member);
+  const card = detail.card ? redactCardText(detail.card, audience) : detail.card;
+  const events = detail.events.flatMap((e) => {
+    const evidence = redactRestrictedText(e.evidence, audience);
+    if (evidence === '' && e.evidence.trim() !== '') return [];
+    return [
+      {
+        ...e,
+        evidence,
+        triggerState: e.triggerState ? redactRestrictedText(e.triggerState, audience) || null : null,
+        nextCheck: e.nextCheck ? redactRestrictedText(e.nextCheck, audience) || null : null,
+      },
+    ];
+  });
   // Same as-of read as /map: the map's own clock, so a stale candidate shows
   // as dormant here exactly when the map and the pipeline say so.
   const asOf =
@@ -126,7 +141,7 @@ export default async function ThemePage({ params }: { params: Promise<{ theme: s
 
       <section>
         <h2>Event timeline</h2>
-        <ThemeTimeline events={detail.events} briefDates={detail.briefDates} />
+        <ThemeTimeline events={events} briefDates={detail.briefDates} />
       </section>
 
       <section>
