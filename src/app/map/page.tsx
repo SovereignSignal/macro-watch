@@ -2,6 +2,8 @@ import { FieldMap } from '@/components/FieldMap';
 import { ThemeGrid } from '@/components/ThemeGrid';
 import { UpdatedAgo } from '@/components/UpdatedAgo';
 import { getDb } from '@/db/client';
+import { audienceFor, redactCardText } from '@/lib/audience';
+import { isMember } from '@/lib/member-session';
 import { getConvictionSparks, getRecentThemeEvents, getThemeMapCards } from '@/lib/queries/map';
 import { pageMetadata } from '@/lib/metadata';
 import { safeQuery } from '@/lib/safe';
@@ -16,15 +18,17 @@ export const metadata = pageMetadata({
 
 export default async function MapPage() {
   const db = getDb();
+  const audience = audienceFor(await isMember());
   const {
     takenAt,
-    cards,
+    cards: rawCards,
     asOf: mapClock,
   } = await safeQuery(() => getThemeMapCards(db), {
     takenAt: null,
     cards: [],
     asOf: null,
   });
+  const cards = rawCards.map((card) => redactCardText(card, audience));
   const sparks = await safeQuery(() => getConvictionSparks(db), {});
   // Dormancy and the 30-day field window run on the map's own clock (the
   // snapshot's newest event date), the same clock the pipeline uses; today

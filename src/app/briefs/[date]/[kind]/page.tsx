@@ -2,7 +2,9 @@ import type { Metadata } from 'next';
 import { notFound, permanentRedirect } from 'next/navigation';
 import { BriefArticle } from '@/components/BriefArticle';
 import { getDb } from '@/db/client';
+import { redactRestrictedText } from '@/lib/audience';
 import { isBriefKind, pickBriefForKind } from '@/lib/brief-kind';
+import { isMember } from '@/lib/member-session';
 import { listBriefsForDate } from '@/lib/queries/briefs';
 import { sanitizePublicBriefText } from '@/lib/security/public-brief-html';
 
@@ -19,8 +21,11 @@ export async function generateMetadata({
   if (!DATE_RE.test(date) || !isBriefKind(kind)) return { title: 'Brief' };
   const brief = pickBriefForKind(await listBriefsForDate(getDb(), date), kind);
   if (!brief) return { title: 'Brief' };
-  const publicSubject = sanitizePublicBriefText(brief.subject, brief.date) || 'Brief';
-  const description = sanitizePublicBriefText(brief.ping, brief.date).slice(0, 220) || publicSubject;
+  const publicSubject =
+    redactRestrictedText(sanitizePublicBriefText(brief.subject, brief.date), 'public') || 'Brief';
+  const description =
+    redactRestrictedText(sanitizePublicBriefText(brief.ping, brief.date), 'public').slice(0, 220) ||
+    publicSubject;
   const path = `/briefs/${date}/${kind}`;
   return {
     title: publicSubject,
@@ -50,9 +55,10 @@ export default async function BriefKindPage({
   if (rows.length === 0) notFound();
   const brief = pickBriefForKind(rows, kind);
   if (!brief) permanentRedirect(`/briefs/${date}`);
+  const member = await isMember();
   return (
     <main className="container">
-      <BriefArticle brief={brief} />
+      <BriefArticle brief={brief} member={member} />
     </main>
   );
 }

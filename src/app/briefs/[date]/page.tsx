@@ -3,7 +3,9 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { BriefArticle, BriefKindChip } from '@/components/BriefArticle';
 import { getDb } from '@/db/client';
+import { audienceFor, redactRestrictedText } from '@/lib/audience';
 import { briefPath } from '@/lib/brief-kind';
+import { isMember } from '@/lib/member-session';
 import { listBriefsForDate } from '@/lib/queries/briefs';
 import { sanitizePublicBriefText } from '@/lib/security/public-brief-html';
 
@@ -35,8 +37,11 @@ export async function generateMetadata({
     };
   }
   const brief = rows[0];
-  const publicSubject = sanitizePublicBriefText(brief.subject, brief.date) || 'Brief';
-  const description = sanitizePublicBriefText(brief.ping, brief.date).slice(0, 220) || publicSubject;
+  const publicSubject =
+    redactRestrictedText(sanitizePublicBriefText(brief.subject, brief.date), 'public') || 'Brief';
+  const description =
+    redactRestrictedText(sanitizePublicBriefText(brief.ping, brief.date), 'public').slice(0, 220) ||
+    publicSubject;
   return {
     title: publicSubject,
     description,
@@ -59,10 +64,12 @@ export default async function BriefPage({ params }: { params: Promise<{ date: st
   // (ISR stale-on-error) instead of replacing it with a 404.
   const rows = await listBriefsForDate(getDb(), date);
   if (rows.length === 0) notFound();
+  const member = await isMember();
+  const audience = audienceFor(member);
   if (rows.length === 1) {
     return (
       <main className="container">
-        <BriefArticle brief={rows[0]} />
+        <BriefArticle brief={rows[0]} member={member} />
       </main>
     );
   }
@@ -76,10 +83,13 @@ export default async function BriefPage({ params }: { params: Promise<{ date: st
             <BriefKindChip kind={brief.kind} subject={brief.subject} />
             <div>
               <Link href={briefPath(brief.date, brief.kind, brief.subject)}>
-                {sanitizePublicBriefText(brief.subject, brief.date) || 'Brief'}
+                {redactRestrictedText(sanitizePublicBriefText(brief.subject, brief.date), audience) ||
+                  'Brief'}
               </Link>
             </div>
-            <p className="excerpt">{sanitizePublicBriefText(brief.ping, brief.date)}</p>
+            <p className="excerpt">
+              {redactRestrictedText(sanitizePublicBriefText(brief.ping, brief.date), audience)}
+            </p>
           </li>
         ))}
       </ul>

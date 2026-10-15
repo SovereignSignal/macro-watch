@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { EmptyState } from '@/components/EmptyState';
 import { getDb } from '@/db/client';
+import { audienceFor, redactRestrictedText } from '@/lib/audience';
 import { formatDate } from '@/lib/format';
 import { isMember } from '@/lib/member-session';
 import { pageMetadata } from '@/lib/metadata';
@@ -20,10 +21,15 @@ export default async function SearchPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const sp = await searchParams;
-  const q = typeof sp.q === 'string' ? sp.q : '';
+  const rawQ = typeof sp.q === 'string' ? sp.q : '';
   const member = await isMember();
+  const audience = audienceFor(member);
+  const q = redactRestrictedText(rawQ, audience);
   const results =
-    q.trim() !== '' ? await safeQuery(() => searchAll(getDb(), q, { includeClaims: member }), []) : [];
+    rawQ.trim() !== ''
+      ? await safeQuery(() => searchAll(getDb(), rawQ, { includeClaims: member, audience }), [])
+      : [];
+  const noResults = q ? `No results for “${q}”.` : 'No results.';
   return (
     <main className="container">
       <h1>Search</h1>
@@ -37,7 +43,7 @@ export default async function SearchPage({
         />
         <button type="submit">Search</button>
       </form>
-      {q.trim() === '' ? (
+      {rawQ.trim() === '' ? (
         <p className="brief-meta">
           {member
             ? 'Search briefs, theme events, claims, and research.'
@@ -45,7 +51,7 @@ export default async function SearchPage({
         </p>
       ) : results.length === 0 ? (
         <EmptyState>
-          No results for “{q}”. Try a ticker, theme, or phrase.
+          {noResults} Try a ticker, theme, or phrase.
         </EmptyState>
       ) : (
         <>

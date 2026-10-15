@@ -21,10 +21,11 @@ export function PanelTable(props: {
   rows: PanelRowItem[];
   takenAt: string | null;
   summary?: string | null;
-  columns?: [string, string, string];
+  columns?: [string, string, string] | [string, string];
   horizonColumns?: readonly HorizonChangeColumn[];
 }) {
   const columns = props.columns ?? ['Market', 'Value', 'Change'];
+  const showChange = columns.length >= 3;
   const horizonColumns = props.horizonColumns ?? [];
   const showTrend = props.rows.some((row) => finiteSpark(row.spark));
   return (
@@ -68,7 +69,9 @@ export function PanelTable(props: {
                       )
                     ) : null}
                   </td>
-                  <td className={row.change ? changeClass(row.change) : 'num'}>{row.change ?? ''}</td>
+                  {showChange ? (
+                    <td className={row.change ? changeClass(row.change) : 'num'}>{row.change ?? ''}</td>
+                  ) : null}
                   {horizonColumns.map((column) => {
                     const value = row[column.key] ?? '';
                     return (

@@ -18,19 +18,20 @@ export function HomeView(props: {
   sparks?: Record<string, number[]>;
   asOf?: string;
   watch?: PublishedWatch | null;
-  /** Members see the track record widget. Defaults to false (fail closed). */
+  /** Members see the track record widget and smart-money data. Defaults to false (fail closed). */
   member?: boolean;
 }) {
+  const member = props.member === true;
   const dashboard = presentDashboardRows(props.panel?.rows ?? [], props.panel?.history, props.panel?.takenAt);
   const oddsRows = presentPanelRows(props.oddsPanel?.rows ?? [], props.oddsPanel?.takenAt).map((row) => ({
     ...row,
-    note: publicOddsNote(row.note),
+    note: member ? publicOddsNote(row.note) : null,
   }));
   const watch = props.watch ?? EMPTY_WATCH;
   return (
     <main className="container">
       {props.brief ? (
-        <BriefArticle brief={props.brief} stripDuplicatePanels />
+        <BriefArticle brief={props.brief} stripDuplicatePanels member={member} />
       ) : (
         <EmptyState>
           No brief yet. Daily briefs publish weekdays at 14:00 UTC, the Weekend Review Saturday
@@ -52,12 +53,12 @@ export function HomeView(props: {
             title="Prediction Market Lens"
             rows={oddsRows}
             takenAt={props.oddsPanel.takenAt}
-            summary={props.oddsPanel.summary}
-            columns={['Market', 'Odds', '24-hour flow']}
+            summary={member ? props.oddsPanel.summary : null}
+            columns={member ? ['Market', 'Odds', '24-hour flow'] : ['Market', 'Odds']}
           />
         </section>
       ) : null}
-      {props.member ? <TrackRecordSummary scoreboard={watch.scoreboard} /> : null}
+      {member ? <TrackRecordSummary scoreboard={watch.scoreboard} /> : null}
       <KalshiMovers movers={watch.kalshiMovers} />
       <section aria-label="Theme map">
         <h2>Theme map</h2>

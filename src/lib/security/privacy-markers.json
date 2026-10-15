@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "comment": "Shared by sovs-macro (config/privacy-markers.json) and macro-watch (src/lib/security/privacy-markers.json). Keep the two copies byte-identical; each repo pins the sha256 in a test.",
+  "private_classes": [
+    "email-derived",
+    "email-intake",
+    "email-only",
+    "interest-watch",
+    "research-inputs",
+    "private",
+    "members-only",
+    "smart-money"
+  ],
+  "restricted_patterns": [
+    "\\bwallets?\\b",
+    "\\bsmart[- ]money\\b",
+    "\\bwhales?\\b",
+    "\\btracked[- ]wallet",
+    "\\bwallet[- ]convergence\\b",
+    "\\bconverged (?:wallets|accounts)\\b",
+    "\\bhigh[- ]scored (?:wallets|accounts|traders)\\b",
+    "\\b(?:strong|top|tracked|sharp) (?:wallets|accounts|traders) (?:hold|sit|have|are|deployed)",
+    "\\$[0-9][0-9.,]*\\s*(?:[kmb]|thousand|million|billion)?\\s+(?:deployed|across [0-9]+ (?:accounts|wallets|traders))",
+    "\\b[0-9]+ (?:accounts|traders) (?:hold|have|sit)\\b",
+    "\\bdeployed capital\\b",
+    "\\b24[- ]?h(?:our)? flow\\b"
+  ]
+}
