@@ -1,5 +1,5 @@
 import { renderToStaticMarkup } from 'react-dom/server';
-import { expect, it } from 'vitest';
+import { beforeEach, expect, it, vi } from 'vitest';
 import { ThemeGrid } from '@/components/ThemeGrid';
 import { upsertClaims } from '@/lib/ingest/claims';
 import { upsertThemeEvents, upsertThemeState } from '@/lib/ingest/themes';
@@ -7,8 +7,19 @@ import { getThemeDetail, getThemeMapCards, type ThemeCard } from '@/lib/queries/
 import { seedAll } from '@/lib/seed';
 import { createTestDb } from './helpers/db';
 
+const session = vi.hoisted(() => ({ member: true }));
+
+// next/headers cookies() fails outside a request, so stub the session.
+vi.mock('@/lib/member-session', () => ({
+  isMember: async () => session.member,
+}));
+
 const { default: MapPage } = await import('@/app/map/page');
 const { default: ThemePage, generateMetadata } = await import('@/app/map/[theme]/page');
+
+beforeEach(() => {
+  session.member = true;
+});
 
 it('getThemeDetail assembles card, timeline, related claims, conviction series', async () => {
   const db = await createTestDb();
@@ -99,8 +110,24 @@ it('/map/[theme] renders the full dossier with brief-linked timeline', async () 
   expect(markup).toContain('href="/briefs/2026-07-08"'); // event linked to source brief
   expect(markup).toContain('dir-raise');
   expect(markup).toContain('dir-candidate');
-  expect(markup).toContain('2y UST closes above 4.40%'); // related claim
+  expect(markup).toContain('2y UST closes above 4.40%'); // related claim (member view)
   expect(markup).toContain('Two snapshots are needed.'); // 1 snapshot only
+});
+
+it('/map/[theme] replaces related claims with a members-only notice for logged-out visitors', async () => {
+  const db = await createTestDb();
+  await seedAll(db);
+  session.member = false;
+  const markup = renderToStaticMarkup(
+    await ThemePage({ params: Promise.resolve({ theme: 'rate-path-repricing' }) }),
+  );
+  // The rest of the dossier stays public.
+  expect(markup).toContain('Rate-path repricing');
+  expect(markup).toContain('Core CPI re-accelerates above 0.3% m/m');
+  expect(markup).toContain('Related claims');
+  expect(markup).toContain('Related claims are available to members.');
+  expect(markup).not.toContain('2y UST closes above 4.40%');
+  expect(markup).not.toContain('No claims reference this theme yet.');
 });
 
 it('/map/[theme] publishes its own canonical and Open Graph URL', async () => {
