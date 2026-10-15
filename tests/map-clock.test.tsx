@@ -1,9 +1,12 @@
 import { renderToStaticMarkup } from 'react-dom/server';
-import { expect, it } from 'vitest';
+import { expect, it, vi } from 'vitest';
 import { upsertThemeEvents, upsertThemeState } from '@/lib/ingest/themes';
 import { getMapClock, getThemeMapCards, mapClockOf } from '@/lib/queries/map';
 import { seedAll } from '@/lib/seed';
 import { createTestDb } from './helpers/db';
+
+
+vi.mock('@/lib/member-session', () => ({ isMember: async () => false }));
 
 const { default: MapPage } = await import('@/app/map/page');
 

@@ -1,8 +1,11 @@
 import { renderToStaticMarkup } from 'react-dom/server';
-import { expect, it } from 'vitest';
+import { expect, it, vi } from 'vitest';
 import { seedAll } from '@/lib/seed';
 import { briefs } from '@/db/schema';
 import { createTestDb } from './helpers/db';
+
+
+vi.mock('@/lib/member-session', () => ({ isMember: async () => false }));
 
 const { default: BriefsPage } = await import('@/app/briefs/page');
 const { default: BriefPage, generateMetadata } = await import('@/app/briefs/[date]/page');

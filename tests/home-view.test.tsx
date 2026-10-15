@@ -172,9 +172,11 @@ it('renders the prediction market lens as a distinct homepage panel', () => {
         }],
       }}
       cards={[]}
+      member
     />,
   );
   expect(markup).toContain('Prediction Market Lens');
+  // Members see the wallet coverage; the public view drops it (tests/audience-canary.test.tsx).
   expect(markup).toContain('8 markets from 53 tracked-wallet signals');
   expect(markup).not.toMatch(/schema|\bv2\b|AMS/i);
   expect(markup).toContain('Will the U.S. invade Iran before 2027?');
