@@ -65,7 +65,7 @@ export function TrackRecordSummary({ scoreboard }: { scoreboard: Scoreboard | nu
           {brier ? <span className="track-brier">Brier {brier}</span> : null}
         </p>
       ) : (
-        <EmptyState>No public calls yet.</EmptyState>
+        <EmptyState>No graded calls yet.</EmptyState>
       )}
     </section>
   );
