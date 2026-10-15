@@ -121,7 +121,7 @@ publish theme state first, then theme events.
   sparklines, the field) are ink.
 - **Structure:** hairline rules instead of boxes. The masthead ends with the double rule
   from the Sovereign Signal logo, and its sub-line carries the endorsement line (small
-  compass plus "A Sovereign Signal project", `src/components/Endorsement.tsx`).
+  🦂 scorpion plus "A Sovereign Signal project", `src/components/Endorsement.tsx`).
 - **Themes:** light and dark are both first-class. The page follows the visitor's system
   setting (`prefers-color-scheme`); the masthead toggle pins either with `data-theme` on
   `<html>` and remembers it in `localStorage` under `theme`, the same attribute and key as
