@@ -5,13 +5,20 @@ import { isAuthorized } from './auth';
 
 export type RevalidateTarget = { path: string; type?: 'page' | 'layout' };
 
+/** Upserts report either a bare written-row count or written + stale counts. */
+export type UpsertResult = number | { upserted: number; stale: number };
+
 /**
  * Every ingest endpoint is: auth -> JSON parse -> zod -> idempotent upsert
- * -> on-demand revalidation -> {ok, upserted, revalidated} (spec §3, §6, §7).
+ * -> on-demand revalidation -> {ok, upserted, [stale], revalidated} (spec §3, §6, §7).
+ *
+ * A stale replay (older revision than stored) is not an error: it answers 200
+ * with ok: true so the producer neither retries nor dead-letters it. `stale`
+ * defaults to 0 and is only serialized when non-zero.
  */
 export function createIngestHandler<S extends z.ZodTypeAny>(opts: {
   schema: S;
-  upsert: (db: Db, payload: z.output<S>) => Promise<number>;
+  upsert: (db: Db, payload: z.output<S>) => Promise<UpsertResult>;
   revalidate: (payload: z.output<S>) => RevalidateTarget[];
 }) {
   return async function POST(req: Request): Promise<Response> {
@@ -31,7 +38,9 @@ export function createIngestHandler<S extends z.ZodTypeAny>(opts: {
         { status: 422 },
       );
     }
-    const upserted = await opts.upsert(getDb(), parsed.data);
+    const result = await opts.upsert(getDb(), parsed.data);
+    const upserted = typeof result === 'number' ? result : result.upserted;
+    const stale = typeof result === 'number' ? 0 : result.stale;
     const targets = opts.revalidate(parsed.data);
     for (const t of targets) {
       try {
@@ -41,6 +50,11 @@ export function createIngestHandler<S extends z.ZodTypeAny>(opts: {
         console.warn('[sovs-macro] revalidate failed for', t.path, err);
       }
     }
-    return Response.json({ ok: true, upserted, revalidated: targets.map((t) => t.path) });
+    return Response.json({
+      ok: true,
+      upserted,
+      ...(stale > 0 ? { stale } : {}),
+      revalidated: targets.map((t) => t.path),
+    });
   };
 }
