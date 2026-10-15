@@ -4,6 +4,9 @@ import path from 'node:path';
 import { beforeEach, expect, it, vi } from 'vitest';
 import { createTestDb } from './helpers/db';
 
+// Members-only sections render for a signed-in member in these tests.
+vi.mock('@/lib/member-session', () => ({ isMember: async () => true }));
+
 vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }));
 
 const { POST: postBrief } = await import('@/app/api/ingest/briefs/route');

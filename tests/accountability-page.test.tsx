@@ -1,9 +1,14 @@
 import { renderToStaticMarkup } from 'react-dom/server';
-import { expect, it } from 'vitest';
+import { expect, it, vi } from 'vitest';
 import { claimsBodySchema, upsertClaims } from '@/lib/ingest/claims';
 import { getClaims, getClaimsPage, LEDGER_PAGE_SIZE } from '@/lib/queries/accountability';
 import { seedAll } from '@/lib/seed';
 import { createTestDb } from './helpers/db';
+
+// next/headers cookies() fails outside a request. These tests cover member content.
+vi.mock('@/lib/member-session', () => ({
+  isMember: async () => true,
+}));
 
 const { default: AccountabilityPage } = await import('@/app/accountability/page');
 
@@ -59,6 +64,7 @@ it('orients the reader and renders track scoreboards below the headline-rate flo
   expect(markup).toContain('1 of 8 decisions');
   expect(markup).toContain('1 correct');
   expect(markup).not.toContain('decision accuracy');
+  expect(markup).not.toContain('Members only');
 });
 
 it('does not call a past expiry the next decision', async () => {

@@ -277,3 +277,14 @@ it('keeps dormant candidates off the home strip when an as-of date is given', ()
   const withoutAsOf = renderToStaticMarkup(<HomeView brief={null} panel={null} cards={cards} />);
   expect(withoutAsOf).toContain('stale-candidate');
 });
+
+it('renders the track record widget only for members (default is fail closed)', () => {
+  const loggedOut = renderToStaticMarkup(<HomeView brief={null} panel={null} cards={[]} />);
+  const explicitOut = renderToStaticMarkup(<HomeView brief={null} panel={null} cards={[]} member={false} />);
+  const member = renderToStaticMarkup(<HomeView brief={null} panel={null} cards={[]} member />);
+  expect(explicitOut).toBe(loggedOut);
+  expect(member.length).toBeGreaterThan(loggedOut.length);
+  // The widget is the only difference: logged-out markup is a strict subset of the member markup.
+  expect(member).toContain('Theme map');
+  expect(loggedOut).toContain('Theme map');
+});

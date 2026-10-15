@@ -2,10 +2,12 @@ import { ClaimsBook } from '@/components/ClaimsBook';
 import { ClaimsTable } from '@/components/ClaimsTable';
 import { ExpiryHorizon } from '@/components/ExpiryHorizon';
 import { GradeMeter, GradeRow } from '@/components/GradeMeter';
+import { MembersOnly } from '@/components/MembersOnly';
 import { getDb } from '@/db/client';
 import { isQualitativeClaim, isScoreableClaim, qualityLabel } from '@/lib/claim-display';
 import { publicThemeLabel } from '@/lib/theme-display';
 import { formatDate } from '@/lib/format';
+import { isMember } from '@/lib/member-session';
 import { pageMetadata } from '@/lib/metadata';
 import { getClaims, getClaimsPage, getThemeNames, LEDGER_PAGE_SIZE } from '@/lib/queries/accountability';
 import { safeQuery } from '@/lib/safe';
@@ -36,6 +38,9 @@ export default async function AccountabilityPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const sp = await searchParams;
+  if (!(await isMember())) {
+    return <MembersOnly next="/accountability" error={sp.signin === 'failed'} />;
+  }
   const filters = {
     kind: one(sp.kind),
     status: one(sp.status),

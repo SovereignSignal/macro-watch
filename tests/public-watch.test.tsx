@@ -1,5 +1,5 @@
 import { renderToStaticMarkup } from 'react-dom/server';
-import { beforeEach, expect, it } from 'vitest';
+import { beforeEach, expect, it, vi } from 'vitest';
 import { HomeView } from '@/components/HomeView';
 import { KalshiMovers } from '@/components/KalshiMovers';
 import { MastheadUpdated } from '@/components/MastheadUpdated';
@@ -8,6 +8,9 @@ import { panelSnapshots } from '@/db/schema';
 import { upsertPanel } from '@/lib/ingest/panels';
 import { parsePublishedWatch } from '@/lib/public-watch';
 import { createTestDb } from './helpers/db';
+
+// Members-only sections render for a signed-in member in these tests.
+vi.mock('@/lib/member-session', () => ({ isMember: async () => true }));
 
 const { default: TrackRecordPage } = await import('@/app/track-record/page');
 
@@ -217,7 +220,7 @@ it('renders the track record and the Kalshi board from a full payload', async ()
   expect(page).not.toContain('Must not render');
 
   const home = renderToStaticMarkup(
-    <HomeView brief={null} panel={null} cards={[]} watch={parsePublishedWatch(FULL)} />,
+    <HomeView member brief={null} panel={null} cards={[]} watch={parsePublishedWatch(FULL)} />,
   );
   expect(home).toContain('62.5% hit rate');
   expect(home).toContain('5 hit · 3 miss · 1 void · 2 open');
@@ -278,7 +281,7 @@ it('renders empty states when the payload has none of the new keys', async () =>
   const page = renderToStaticMarkup(await TrackRecordPage());
   expect(page).toContain('No track record yet');
   expect(page).not.toContain('hit rate');
-  const home = renderToStaticMarkup(<HomeView brief={null} panel={null} cards={[]} />);
+  const home = renderToStaticMarkup(<HomeView member brief={null} panel={null} cards={[]} />);
   expect(home).toContain('No public calls yet.');
   expect(home).toContain('No odds moves yet.');
   expect(home).toContain('href="/track-record"');
@@ -309,7 +312,7 @@ it('still hides a private item that was stored before the ingest filter', async 
   expect(page).not.toContain('secret desk');
   const { getPublishedWatch } = await import('@/lib/queries/watch');
   const home = renderToStaticMarkup(
-    <HomeView brief={null} panel={null} cards={[]} watch={await getPublishedWatch(db)} />,
+    <HomeView member brief={null} panel={null} cards={[]} watch={await getPublishedWatch(db)} />,
   );
   expect(home).toContain('No markets moved in this window.');
   expect(home.toLowerCase()).not.toContain('economist');
