@@ -282,7 +282,7 @@ it('renders empty states when the payload has none of the new keys', async () =>
   expect(page).toContain('No track record yet');
   expect(page).not.toContain('hit rate');
   const home = renderToStaticMarkup(<HomeView member brief={null} panel={null} cards={[]} />);
-  expect(home).toContain('No public calls yet.');
+  expect(home).toContain('No graded calls yet.');
   expect(home).toContain('No odds moves yet.');
   expect(home).toContain('href="/track-record"');
 });
