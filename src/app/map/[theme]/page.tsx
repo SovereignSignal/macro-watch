@@ -8,6 +8,7 @@ import { ThemeTimeline } from '@/components/ThemeTimeline';
 import { TriggerList } from '@/components/TriggerList';
 import { getDb } from '@/db/client';
 import { formatDate } from '@/lib/format';
+import { isMember } from '@/lib/member-session';
 import { pageMetadata } from '@/lib/metadata';
 import { getMapClock, getThemeDetail, hasCanonicalTheme } from '@/lib/queries/map';
 import { canonicalThemeSlug } from '@/lib/theme-display';
@@ -50,6 +51,7 @@ export default async function ThemePage({ params }: { params: Promise<{ theme: s
   // background revalidation should keep serving the stale page, not 404 it.
   const detail = await getThemeDetail(getDb(), theme);
   if (!detail) notFound();
+  const member = await isMember();
   const card = detail.card;
   // Same as-of read as /map: the map's own clock, so a stale candidate shows
   // as dormant here exactly when the map and the pipeline say so.
@@ -129,7 +131,12 @@ export default async function ThemePage({ params }: { params: Promise<{ theme: s
 
       <section>
         <h2>Related claims</h2>
-        {detail.relatedClaims.length === 0 ? (
+        {!member ? (
+          <EmptyState>
+            Related claims are available to members.{' '}
+            <Link href="/accountability">Sign in</Link> to see them.
+          </EmptyState>
+        ) : detail.relatedClaims.length === 0 ? (
           <EmptyState>No claims reference this theme yet.</EmptyState>
         ) : (
           <div className="table-scroll">

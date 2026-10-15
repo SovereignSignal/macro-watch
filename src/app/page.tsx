@@ -1,5 +1,6 @@
 import { HomeView } from '@/components/HomeView';
 import { getDb } from '@/db/client';
+import { isMember } from '@/lib/member-session';
 import { panelRows } from '@/lib/panel-contract';
 import { getLatestBrief } from '@/lib/queries/briefs';
 import { getConvictionSparks, getThemeMapCards } from '@/lib/queries/map';
@@ -19,6 +20,7 @@ export const metadata = pageMetadata({
 });
 
 export default async function HomePage() {
+  const member = await isMember();
   const db = getDb();
   const brief = await safeQuery(() => getLatestBrief(db), null);
   const panel = await safeQuery(() => getLatestPanel(db, 'dashboard'), null);
@@ -46,6 +48,7 @@ export default async function HomePage() {
       sparks={sparks}
       asOf={asOf}
       watch={watch}
+      member={member}
     />
   );
 }
