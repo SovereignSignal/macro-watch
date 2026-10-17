@@ -2,24 +2,24 @@
 
 Macro Watch (repo `macro-watch`) is the public site for the SovsMacro intelligence system; the `macro.watch` domain is not ours. Two agents
 plus the owner build it; this file is how they coordinate. Its pipeline-side
-cousin is [`sovs-macro/OWNERS.md`]; the fuller narrative lives in Notion
-("macro.watch — Docs → How We Build It Together").
+cousin is [`sovs-macro/OWNERS.md`]; the fuller narrative lives in a private
+working doc.
 
 ## The model: two agents, one membrane
 
 **pipeline-host produces the intelligence and pushes it through the ingest contract;
-M5 receives it and presents it.** Everything upstream of the contract is
-pipeline-host's; everything downstream is M5's. That seam is the only thing both
+site-agent receives it and presents it.** Everything upstream of the contract is
+pipeline-host's; everything downstream is site-agent's. That seam is the only thing both
 sides must agree on — which is what lets two agents move fast in parallel.
 
 ## Cast
 
-- **pipeline-host** — the Nuc VM **and** the GPT 5.6 Sol agent resident on it; runs
+- **pipeline-host** — a VM **and** the agent resident on it; runs
   the sovs-macro pipeline, composes the briefs, reviews/contributes here.
   GitHub `sovs-claw`; commits as `SovsClaw <sov@sovereignsignal.com>`.
-- **M5** — Claude Code (MacBook); built this site, owns site + infra + design +
+- **site-agent** — a Claude Code agent; built this site, owns site + infra + design +
   docs; reaches the VM over SSH.
-- **Sov** — the owner. Final say; the only one who makes outward-facing or
+- **The owner** — final say; the only one who makes outward-facing or
   irreversible calls.
 
 ## Who owns what
@@ -27,14 +27,14 @@ sides must agree on — which is what lets two agents move fast in parallel.
 | Area | Owner |
 |---|---|
 | Pipeline core, compose model, brief content | pipeline-host |
-| `sovs-macro/scripts/site_publish.py` — publisher + payload shaping | pipeline-host (M5 co-touches) |
-| Ingest API, zod schemas, DB schema | M5 |
-| Pages, components, design system, charts | M5 |
-| Railway, deploys, DNS, env, ops | M5 |
+| `sovs-macro/scripts/site_publish.py` — publisher + payload shaping | pipeline-host (site-agent co-touches) |
+| Ingest API, zod schemas, DB schema | site-agent |
+| Pages, components, design system, charts | site-agent |
+| Railway, deploys, DNS, env, ops | site-agent |
 | **What** the site says — claim / theme / catalyst semantics | pipeline-host |
-| **How** the site says it — layout, render, plumbing | M5 |
+| **How** the site says it — layout, render, plumbing | site-agent |
 
-pipeline-host is closest to *meaning*; M5 is closest to *presentation and seams*.
+pipeline-host is closest to *meaning*; site-agent is closest to *presentation and seams*.
 Work routes itself accordingly.
 
 ## The one rule that matters
@@ -55,7 +55,7 @@ change.
    not platform-enforced.** Honor it; the discipline is the point.
 2. **CI green → review → merge.** Tests + typecheck + build must pass
    (`npm test` runs on PGlite, no database needed). For anything touching data
-   *meaning*, pipeline-host reviews; for structure/infra/design, M5 reviews.
+   *meaning*, pipeline-host reviews; for structure/infra/design, site-agent reviews.
 3. **Merge is deploy.** The `macro-watch` service (Railway project
    `sovs-macro-site`, `production`) deploys from Railway's GitHub source on
    `main`, so CI green plus review happens before merge, never after.
