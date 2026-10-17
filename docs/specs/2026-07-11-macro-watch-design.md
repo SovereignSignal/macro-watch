@@ -1,9 +1,9 @@
 # macro.watch — Design Spec
 
 - **Date:** 2026-07-11
-- **Status:** approved in discussion (Sov + M5); pending final review of this document
-- **Repos:** new `SovereignSignal/macro-watch` (the site) + publisher additions to `sovs-macro` (M5 lane)
-- **Hosting:** Railway (Sov-confirmed) — one project: Next.js web service + Railway Postgres. Deploy = push to main, same discipline as the pipeline.
+- **Status:** approved in discussion (owner + site-agent); pending final review of this document
+- **Repos:** new `SovereignSignal/macro-watch` (the site) + publisher additions to `sovs-macro` (site-agent lane)
+- **Hosting:** Railway (owner-confirmed) — one project: Next.js web service + Railway Postgres. Deploy = push to main, same discipline as the pipeline.
 
 ## 1. Product decisions (settled in brainstorm)
 
@@ -51,7 +51,7 @@ sanitizer unit test pins each rule.
 
 ## 4. Database schema (Postgres, Drizzle ORM)
 
-**Scope amendment (Sov, 2026-07-11): this Postgres is the sovs-macro system's
+**Scope amendment (the owner, 2026-07-11): this Postgres is the sovs-macro system's
 queryable projection, not just the site's store.** Any sovs-macro consumer
 (analytics, future graders, other services in the Railway project) may READ it.
 Two invariants keep that safe: (1) the pipeline on pipeline-host remains
@@ -127,7 +127,7 @@ implementation time. No app-dashboard aesthetics.
   Env: `DATABASE_URL` (reference variable to the Postgres service's private-network
   `DATABASE_URL`), `MACRO_WATCH_INGEST_TOKEN`, `SITE_URL`.
 - pipeline-host env additions (`.env.secrets`): `MACRO_WATCH_INGEST_URL`, `MACRO_WATCH_INGEST_TOKEN`.
-- Domain: `macro.watch` → Railway custom domain (Sov owns DNS).
+- Domain: `macro.watch` → Railway custom domain (the owner owns DNS).
 - Railway operations via the authenticated CLI (per house railway-ops practice), not MCP.
 
 ## 11. Launch & backfill
@@ -146,8 +146,8 @@ generation, no email signup (RSS only), no admin UI (ingest is the only write pa
 
 ## 13. Open items
 
-- `macro.watch` DNS access + Railway custom-domain setup (Sov).
+- `macro.watch` DNS access + Railway custom-domain setup (the owner).
 - `MACRO_WATCH_INGEST_TOKEN` provisioning (generate at implementation; store in Railway env
   + pipeline-host `.env.secrets`).
-- Scorpion/Sovereign Signal mark assets for the site header (Sov to supply or approve a
+- Scorpion/Sovereign Signal mark assets for the site header (the owner to supply or approve a
   simple text-mark for v1).

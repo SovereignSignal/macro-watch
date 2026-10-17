@@ -1,9 +1,9 @@
-# Sovs Macro
+# Macro Watch
 
 **Live:** https://macro-watch-production.up.railway.app
 
-Sovs Macro is a Sovereign Signal project. It publishes the
-sovs-macro pipeline's output as a macro-intelligence site. The daily/weekend
+Macro Watch publishes the sovs-macro pipeline's output as a macro-intelligence
+site (the live masthead still reads "Sovs Macro"). The daily/weekend
 brief, a living theme map with full history, and a forward-looking catalyst board are
 public reading material. A graded call record, which grades eligible market
 claims against external outcomes, is for members while it builds a track record.
@@ -39,13 +39,13 @@ projection were dropped, re-publishing from pipeline state would rebuild it.
 | `/` | Today's brief in full, the dashboard panel, track-record summary, Kalshi movers, a compact theme-map strip |
 | `/briefs`, `/briefs/[date]`, `/briefs/[date]/[kind]` | Brief archive with permalinks (`daily`, `weekend`, `week-ahead`) |
 | `/map`, `/map/[theme]` | The living theme map (see below) + per-theme event timeline, related claims, conviction-over-time |
-| `/track-record` | Members only. Sovs Macro's own calls: hit rate, Brier, recent resolutions, open calls |
+| `/track-record` | Members only. Macro Watch's own calls: hit rate, Brier, recent resolutions, open calls |
 | `/accountability` | Members only. Method and coverage, track-specific performance, upcoming decisions, qualitative review, and a source-linked call ledger |
 | `/catalysts` | Upcoming forward events (what-would-surprise framing) and resolved events (expectation vs. outcome) |
 | `/research`, `/research/[date]` | Daily decision-research memos |
 | `/search` | Postgres full-text search across briefs, theme events, claims, and research |
 | `/feed.xml` | RSS feed of briefs |
-| `/about` | What Sovs Macro is, the methodology, the sources policy, and the disclaimer |
+| `/about` | What Macro Watch is, the methodology, the sources policy, and the disclaimer |
 | `/sitemap.xml`, `/robots.txt` | Public URL list and crawler rules |
 
 `/map` is the flagship view: a field where each theme is placed by conviction band
@@ -102,7 +102,7 @@ publish theme state first, then theme events.
 
 ## Design system
 
-- **House style:** Sovs Macro follows the Sovereign Signal house style. The shared
+- **House style:** Macro Watch follows the Sovereign Signal house style. The shared
   tokens and fonts are copied unedited from the Sovereign Signal brand kit into
   `src/styles/brand/` (`tokens.css` v1.0.0, `fonts/fonts.css` plus the woff2 files and
   their OFL licences). Keep line 1 of `tokens.css` intact: the brand kit's `check.mjs`
@@ -114,7 +114,7 @@ publish theme state first, then theme events.
   Tailwind anywhere in this repo; layout lives in plain CSS.
 - **Tokens:** the shared palette (`--paper`, `--ink`, `--ink-2`, `--ink-3`, `--rule`,
   `--rust`) comes from `tokens.css` and is never redefined here. `src/app/globals.css`
-  opens with Sovs Macro's personality block: up/down/hold and the `--mark-*` status set,
+  opens with Macro Watch's personality block: up/down/hold and the `--mark-*` status set,
   reserved for direction and grading semantics (never decoration).
 - **Rust:** one thing per screen, the diamond beside the masthead's Updated stamp. Links
   are ink with a 1px underline and turn rust on hover; data marks (conviction diamonds,
@@ -135,7 +135,7 @@ publish theme state first, then theme events.
 - **Status glyphs:** claim status is always glyph + color together, never color alone:
   `pending ○ · hit ◆ · miss ✕ · partial ◐ · expired (a short bar) · judgment-required ? · void ∅`
   (`src/components/StatusMark.tsx`).
-- **Mark:** the 🦂 scorpion emoji, the Sovs Macro mark, in the masthead lockup
+- **Mark:** the 🦂 scorpion emoji, the Macro Watch mark, in the masthead lockup
   (`src/components/Mark.tsx`) and as the favicon (`src/app/icon.svg`, an emoji SVG). A
   hand-drawn scorpion was tried and dropped (it read as a blob at small sizes); the emoji
   is cleaner and unmistakable. `Mark.tsx` is a server component, `aria-hidden`; the
