@@ -24,7 +24,7 @@ function str(v: unknown): string {
 }
 
 // Same rule as every other public link: https only, and never a paid or
-// blocked publisher's domain (the guard test seeds a bloomberg.com source).
+// blocked publisher's domain (the guard test seeds a fictional blocked domain).
 function safeHttpsUrl(v: unknown): string | null {
   return typeof v === 'string' ? publicHttpsUrl(v) : null;
 }

@@ -1,23 +1,46 @@
 import { mentionsBlockedPublisher } from '@/lib/security/blocked-publishers';
+import { equalsHashed, hashTerm, type HashedTerm } from '@/lib/security/term-hash';
 
 /**
- * Exact source/publication names that are email-only or paywalled.
- * `ap` stays exact: it is too short for a substring block.
+ * Exact source/publication names that are email-only or paywalled, shipped
+ * hashed (see term-hash.ts) so this file names no sources. Matching is exact on
+ * the normalized name, so very short names never act as substring blocks.
+ * `PRIVATE_SOURCE_NAMES` adds more exact names (comma-separated).
  */
-const EXACT_PRIVATE_SOURCES = new Set([
-  'ap',
-  'alyosha',
-  'ap research',
-  'alpha picks',
-  'alphapicks',
-  'market vibes',
-  'marketvibes',
-  'bloomberg',
-  'bloomberg.com',
-  'the economist',
-  'economist',
-  'economist.com',
-]);
+const DEFAULT_PRIVATE_SOURCES: HashedTerm[] = [
+  { len: 2, rk: 25041, fh: 1529158612 },
+  { len: 7, rk: 763749361, fh: 2103158538 },
+  { len: 11, rk: 1628927806, fh: 3775521137 },
+  { len: 11, rk: 3712418880, fh: 2456508325 },
+  { len: 10, rk: 131489312, fh: 812386263 },
+  { len: 12, rk: 1107570365, fh: 2207907380 },
+  { len: 11, rk: 1861683869, fh: 2272789586 },
+  { len: 9, rk: 1855120057, fh: 2933163550 },
+  { len: 13, rk: 492996390, fh: 2290168557 },
+  { len: 13, rk: 3202409522, fh: 3004341531 },
+  { len: 9, rk: 3830507729, fh: 1812714584 },
+  { len: 13, rk: 264826174, fh: 3636858491 },
+];
+
+let privateSources: HashedTerm[] = DEFAULT_PRIVATE_SOURCES;
+
+/** Tests only: replace the built-in names with fictional ones. `null` restores them. */
+export function setPrivateSourceDefaultsForTests(names: string[] | null): void {
+  privateSources = names === null ? DEFAULT_PRIVATE_SOURCES : names.map((n) => hashTerm(n));
+}
+
+function envPrivateSources(): Set<string> {
+  return new Set(
+    (process.env.PRIVATE_SOURCE_NAMES ?? '')
+      .split(',')
+      .map((name) => name.trim().toLowerCase().replace(/\s+/g, ' '))
+      .filter((name) => name.length > 0),
+  );
+}
+
+function isExactPrivateSource(name: string): boolean {
+  return envPrivateSources().has(name) || privateSources.some((term) => equalsHashed(name, term));
+}
 
 const SOURCE_FIELDS = new Set([
   'source',
@@ -34,7 +57,7 @@ function normalizeSource(value: string): string {
 
 /** True when a source or publication name is one of the blocked outlets. */
 export function isPrivateSourceName(value: string): boolean {
-  return EXACT_PRIVATE_SOURCES.has(normalizeSource(value)) || mentionsBlockedPublisher(value);
+  return isExactPrivateSource(normalizeSource(value)) || mentionsBlockedPublisher(value);
 }
 
 /**
