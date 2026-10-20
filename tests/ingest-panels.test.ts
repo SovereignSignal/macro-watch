@@ -82,8 +82,8 @@ it('stores watch keys inside the scoreboard payload and keeps rows', async () =>
         totals: { hit: 1, miss: 0, hit_rate: 1, brier: null },
         recent: [
           { call_id: 'sovs-macro:keep', title: 'Public call', status: 'hit', source: 'sovs-macro' },
-          { call_id: 'ap:drop', title: 'Oil under 70', status: 'miss', source: 'ap' },
-          { call_id: 'sovs-macro:alyosha', title: 'Dollar breaks', status: 'hit', publication: 'Alyosha' },
+          { call_id: 'dp:drop', title: 'Oil under 70', status: 'miss', source: 'dp' },
+          { call_id: 'sovs-macro:corvina', title: 'Dollar breaks', status: 'hit', publication: 'Corvina' },
         ],
       },
       kalshi_movers: {
@@ -91,7 +91,7 @@ it('stores watch keys inside the scoreboard payload and keeps rows', async () =>
         stale: false,
         items: [
           { ticker: 'KXOK', title: 'Fed hike', prob_now: 0.4, prob_prev: 0.2, change_pp: 20, change_1h_pp: 2 },
-          { ticker: 'KXNO', title: 'The Economist market', url: 'https://www.economist.com/markets', prob_now: 0.5, prob_prev: 0.4, change_pp: 10 },
+          { ticker: 'KXNO', title: 'The Halvorsen market', url: 'https://www.halvorsen.com/markets', prob_now: 0.5, prob_prev: 0.4, change_pp: 10 },
         ],
       },
     },
@@ -107,7 +107,7 @@ it('stores watch keys inside the scoreboard payload and keeps rows', async () =>
   expect(payload.rows).toEqual(rows);
   expect(payload.updated_at).toBe('2026-09-30T14:14:00Z');
   expect(payload.scoreboard.recent.map((item) => item.call_id)).toEqual(['sovs-macro:keep']);
-  expect(JSON.stringify(payload).toLowerCase()).not.toMatch(/alyosha|economist/);
+  expect(JSON.stringify(payload).toLowerCase()).not.toMatch(/corvina|halvorsen/);
   expect(payload.kalshi_movers.items.map((item) => item.ticker)).toEqual(['KXOK']);
   expect(payload.kalshi_movers.stale).toBe(false);
 });

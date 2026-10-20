@@ -99,8 +99,12 @@ renders an empty state. `rows` is still stored and is not the track-record table
 | `scoreboard` panel `payload.kalshi_movers.items[]` | `{ticker,title,url,prob_now,prob_prev,change_pp,change_1h_pp?,volume_24h,category}`. The 1-hour column renders only when `change_1h_pp` is present. |
 
 `hit_rate` and `brier` may be JSON `null`. Calls and markets whose id, title, note, url,
-source, or publication names AP Research, Alpha Picks, Alyosha, Market Vibes, Bloomberg,
-or The Economist are dropped on ingest and again at render. `payload.rows` is not filtered.
+source, or publication names a guarded paywalled or email-only outlet are dropped on ingest
+and again at render. `payload.rows` is not filtered. The built-in guard lists in
+`src/lib/security/blocked-publishers.ts` and `private-sources.ts` are stored hashed
+(`src/lib/security/term-hash.ts`); `BLOCKED_PUBLISHERS` and `PRIVATE_SOURCE_NAMES` add
+plaintext entries from the deploy environment. Tests install fictional stand-ins
+(`tests/helpers/fake-source-defaults.ts`).
 
 ## Health endpoint
 
