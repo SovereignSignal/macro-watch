@@ -38,18 +38,18 @@ const FULL = {
         url: 'https://kalshi.com/markets/kxexample',
       },
       {
-        call_id: 'ap:c-private',
-        title: 'Alpha Picks oil call',
+        call_id: 'dp:c-private',
+        title: 'Desk Picks oil call',
         made_at: '2026-06-02',
         resolved_at: '2026-07-02',
         status: 'hit',
-        source: 'ap',
+        source: 'dp',
         note: 'Must not render.',
       },
     ],
     open: [
       { call_id: 'sovs-macro:c-open', title: 'Dollar index holds above 100', made_at: '2026-09-01', horizon: '2026-10-31' },
-      { call_id: 'sovs-macro:c-vibes', title: 'Quiet tape', made_at: '2026-09-02', horizon: '2026-11-01', publication: 'Market Vibes' },
+      { call_id: 'sovs-macro:c-vibes', title: 'Quiet tape', made_at: '2026-09-02', horizon: '2026-11-01', publication: 'Desk Notes' },
     ],
   },
   kalshi_movers: {
@@ -80,8 +80,8 @@ const FULL = {
       },
       {
         ticker: 'KXBB',
-        title: 'Bloomberg desk market',
-        url: 'https://www.bloomberg.com/markets',
+        title: 'Northwire desk market',
+        url: 'https://www.northwire.com/markets',
         prob_now: 0.5,
         prob_prev: 0.1,
         change_pp: 40,
@@ -215,8 +215,8 @@ it('renders the track record and the Kalshi board from a full payload', async ()
   expect(page).toContain('September 15, 2026');
   expect(page).toContain('Dollar index holds above 100');
   expect(page).toContain('October 31, 2026');
-  expect(page.toLowerCase()).not.toContain('alpha picks');
-  expect(page.toLowerCase()).not.toContain('market vibes');
+  expect(page.toLowerCase()).not.toContain('desk picks');
+  expect(page.toLowerCase()).not.toContain('desk notes');
   expect(page).not.toContain('Must not render');
 
   const home = renderToStaticMarkup(
@@ -245,7 +245,7 @@ it('renders the track record and the Kalshi board from a full payload', async ()
   expect(home).toContain('Growth');
   expect(home).toContain('href="https://kalshi.com/markets/kxfed"');
   expect(home).toContain('KXFED-26OCT');
-  expect(home.toLowerCase()).not.toContain('bloomberg');
+  expect(home.toLowerCase()).not.toContain('northwire');
 });
 
 it('renders a partial scoreboard without inventing a Brier score or a link', async () => {
@@ -298,24 +298,24 @@ it('still hides a private item that was stored before the ingest filter', async 
         totals: { hit: 1, miss: 0, hit_rate: 1 },
         recent: [
           { call_id: 'sovs-macro:clean', title: 'Public call', status: 'hit' },
-          { call_id: 'ap:leak', title: 'AP Research call', status: 'hit', source: 'AP Research', note: 'secret desk' },
+          { call_id: 'dp:leak', title: 'Dp Research call', status: 'hit', source: 'Dp Research', note: 'secret desk' },
         ],
       },
       kalshi_movers: {
-        items: [{ ticker: 'KXECON', title: 'Economist special', publication: 'The Economist', prob_now: 0.2, prob_prev: 0.1, change_pp: 10 }],
+        items: [{ ticker: 'KXECON', title: 'Halvorsen special', publication: 'The Halvorsen', prob_now: 0.2, prob_prev: 0.1, change_pp: 10 }],
       },
     },
   });
   const page = renderToStaticMarkup(await TrackRecordPage());
   expect(page).toContain('Public call');
-  expect(page.toLowerCase()).not.toContain('ap research');
+  expect(page.toLowerCase()).not.toContain('dp research');
   expect(page).not.toContain('secret desk');
   const { getPublishedWatch } = await import('@/lib/queries/watch');
   const home = renderToStaticMarkup(
     <HomeView member brief={null} panel={null} cards={[]} watch={await getPublishedWatch(db)} />,
   );
   expect(home).toContain('No markets moved in this window.');
-  expect(home.toLowerCase()).not.toContain('economist');
+  expect(home.toLowerCase()).not.toContain('halvorsen');
 });
 
 it('drops stale, settled, and past-close Kalshi movers and stamps the as-of in UTC', () => {

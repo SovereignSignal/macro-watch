@@ -23,11 +23,11 @@ function escapeRegExp(value: string): string {
 }
 
 const PAID = new RegExp(blockedPublisherTerms().map(escapeRegExp).join('|'), 'i');
-const BLOOMBERG = /bloomberg/i;
+const NORTHWIRE = /northwire/i;
 
 function expectNoPaidSource(html: string) {
   expect(html).not.toMatch(PAID);
-  expect(html).not.toMatch(BLOOMBERG);
+  expect(html).not.toMatch(NORTHWIRE);
 }
 
 describe('public pages never render paid-source text', () => {
@@ -60,9 +60,9 @@ describe('public pages never render paid-source text', () => {
         themeSlug: 'copper-demand',
         direction: 'raise',
         evidence:
-          'Copper cargoes moved covertly. Bloomberg reported cargoes moving covertly, per Money Stuff, The Economist argued it https://www.bloomberg.com/news/copper and Businessweek agreed.',
-        triggerState: 'Copper trigger per Money Stuff and Bloomberg.',
-        nextCheck: 'Check copper again via https://www.bloomberg.com/news/next and The Economist.',
+          'Copper cargoes moved covertly. Northwire reported cargoes moving covertly, per Ledger Lines, The Halvorsen argued it https://www.northwire.com/news/copper and Ledgerweek agreed.',
+        triggerState: 'Copper trigger per Ledger Lines and Northwire.',
+        nextCheck: 'Check copper again via https://www.northwire.com/news/next and The Halvorsen.',
         source: 'daily',
       },
     ]);
@@ -74,15 +74,15 @@ describe('public pages never render paid-source text', () => {
           {
             slug: 'copper-demand',
             name: 'Copper demand',
-            description: 'Copper demand per Money Stuff and Bloomberg Businessweek.',
-            current_read: 'Copper stocks keep drawing. Bloomberg reported cargoes moving covertly.',
+            description: 'Copper demand per Ledger Lines and Northwire Ledgerweek.',
+            current_read: 'Copper stocks keep drawing. Northwire reported cargoes moving covertly.',
             conviction: 'medium',
             status: 'active',
-            raise_conditions: ['Exchange stocks fall again', 'The Economist argued stocks will fall'],
-            lower_conditions: ['Money Stuff says demand fades', 'Stocks rebuild'],
+            raise_conditions: ['Exchange stocks fall again', 'The Halvorsen argued stocks will fall'],
+            lower_conditions: ['Ledger Lines says demand fades', 'Stocks rebuild'],
             triggers: [
               { name: 'LME stocks', state: 'live' },
-              { name: 'Bloomberg copper screen', state: 'Money Stuff watching' },
+              { name: 'Northwire copper screen', state: 'Ledger Lines watching' },
             ],
           },
         ],
@@ -103,11 +103,11 @@ describe('public pages never render paid-source text', () => {
         eventId: 'fe-leak',
         eventDate: '2099-01-20',
         payload: {
-          event: 'Copper auction, Bloomberg reported cargoes moving covertly',
-          expectation: 'Per Money Stuff the auction clears.',
-          surprise: 'The Economist argued a miss is likely.',
-          source_title: 'Bloomberg copper note',
-          source_url: 'https://www.bloomberg.com/news/articles/copper',
+          event: 'Copper auction, Northwire reported cargoes moving covertly',
+          expectation: 'Per Ledger Lines the auction clears.',
+          surprise: 'The Halvorsen argued a miss is likely.',
+          source_title: 'Northwire copper note',
+          source_url: 'https://www.northwire.com/news/articles/copper',
         },
         resolution: null,
       },
@@ -120,9 +120,9 @@ describe('public pages never render paid-source text', () => {
           surprise: 'Under 50k.',
         },
         resolution: {
-          outcome: 'Bloomberg reported a strong print, per Money Stuff.',
+          outcome: 'Northwire reported a strong print, per Ledger Lines.',
           resolved_at: '2026-01-06',
-          note: 'The Economist argued the print was noisy. See https://www.bloomberg.com/news/payrolls',
+          note: 'The Halvorsen argued the print was noisy. See https://www.northwire.com/news/payrolls',
         },
       },
     ]);
@@ -138,9 +138,9 @@ describe('public pages never render paid-source text', () => {
       {
         date: '2026-09-28',
         kind: 'daily',
-        subject: 'Copper per Money Stuff and Bloomberg',
-        ping: 'Bloomberg reported cargoes moving covertly.',
-        html: '<p>Copper wire. <a href="https://www.bloomberg.com/news/copper">Bloomberg</a> Money Stuff The Economist argued.</p>',
+        subject: 'Copper per Ledger Lines and Northwire',
+        ping: 'Northwire reported cargoes moving covertly.',
+        html: '<p>Copper wire. <a href="https://www.northwire.com/news/copper">Northwire</a> Ledger Lines The Halvorsen argued.</p>',
         sentVerifiedAt: new Date('2026-09-28T14:00:00Z'),
       },
     ]);
@@ -160,7 +160,7 @@ describe('public pages never render paid-source text', () => {
           date: '2026-09-28',
           kind: 'daily',
           subject: 'Copper wire',
-          html: '<p>Copper wire. <a href="https://www.bloomberg.com/news/copper">Bloomberg</a> Money Stuff The Economist argued.</p><p>The two-year rose.</p>',
+          html: '<p>Copper wire. <a href="https://www.northwire.com/news/copper">Northwire</a> Ledger Lines The Halvorsen argued.</p><p>The two-year rose.</p>',
         }}
       />,
     );
@@ -200,29 +200,29 @@ describe('public pages never render paid-source text', () => {
 });
 
 describe('blocked publisher terms', () => {
-  it('includes the Bloomberg-owned newsletter names', () => {
+  it('includes the Northwire-owned newsletter names', () => {
     const terms = blockedPublisherTerms();
-    expect(terms).toContain('money stuff');
-    expect(terms).toContain('businessweek');
-    expect(terms).toContain('bloomberg');
+    expect(terms).toContain('ledger lines');
+    expect(terms).toContain('ledgerweek');
+    expect(terms).toContain('northwire');
   });
 
-  it('flags Money Stuff and Businessweek without the word Bloomberg', () => {
-    expect(mentionsBlockedPublisher('Money Stuff says')).toBe(true);
-    expect(mentionsBlockedPublisher('per MONEY STUFF today')).toBe(true);
-    expect(mentionsBlockedPublisher('Businessweek reported it')).toBe(true);
-    expect(isBlockedPublisherHost('www.businessweek.com')).toBe(true);
+  it('flags Ledger Lines and Ledgerweek without the word Northwire', () => {
+    expect(mentionsBlockedPublisher('Ledger Lines says')).toBe(true);
+    expect(mentionsBlockedPublisher('per LEDGER LINES today')).toBe(true);
+    expect(mentionsBlockedPublisher('Ledgerweek reported it')).toBe(true);
+    expect(isBlockedPublisherHost('www.ledgerweek.com')).toBe(true);
   });
 
   it('does not flag ordinary text', () => {
     expect(mentionsBlockedPublisher('Stuff about money and the economy')).toBe(false);
-    expect(mentionsBlockedPublisher('Economists expect a hold')).toBe(false);
+    expect(mentionsBlockedPublisher('Halvorsens expect a hold')).toBe(false);
   });
 
   it('redacts the new terms from stored text', () => {
-    const out = redactBlockedPublisherText('Money Stuff says copper rose. Businessweek agreed.');
-    expect(out).not.toMatch(/money stuff/i);
-    expect(out).not.toMatch(/businessweek/i);
+    const out = redactBlockedPublisherText('Ledger Lines says copper rose. Ledgerweek agreed.');
+    expect(out).not.toMatch(/ledger lines/i);
+    expect(out).not.toMatch(/ledgerweek/i);
     expect(out).toContain('copper rose');
     expect(out).toContain('[redacted source]');
   });

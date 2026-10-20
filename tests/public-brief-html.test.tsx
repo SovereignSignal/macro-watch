@@ -213,11 +213,11 @@ describe('sanitizePublicBriefHtml', () => {
 
   it('drops paywalled publisher blocks and redacts any leftover name', () => {
     const clean = sanitizePublicBriefHtml(
-      '<p>See <a href="https://www.bloomberg.com/news/story">the wire</a> for the auction.</p>' +
+      '<p>See <a href="https://www.northwire.com/news/story">the wire</a> for the auction.</p>' +
         '<p>The two-year rose nine basis points.</p>' +
-        '<p>A &#66;loomberg desk note.</p>',
+        '<p>A &#78;orthwire desk note.</p>',
     );
-    expect(clean.toLowerCase()).not.toContain('bloomberg');
+    expect(clean.toLowerCase()).not.toContain('northwire');
     expect(clean).toContain('The two-year rose nine basis points.');
     expect(clean).not.toContain('the wire');
   });
