@@ -1,5 +1,6 @@
 import type { PanelRowItem } from '@/lib/panel-contract';
 import type { BriefRow } from '@/lib/queries/briefs';
+import type { OddsStatus } from '@/lib/odds-state';
 import type { ThemeCard } from '@/lib/queries/map';
 import { presentDashboardRows, presentPanelRows, publicOddsNote } from '@/lib/panel-present';
 import { EMPTY_WATCH, type PublishedWatch } from '@/lib/public-watch';
@@ -13,7 +14,14 @@ import { TrackRecordSummary } from './TrackRecord';
 export function HomeView(props: {
   brief: BriefRow | null;
   panel: { takenAt: string; rows: PanelRowItem[]; history?: Record<string, number[]> } | null;
-  oddsPanel?: { takenAt: string; rows: PanelRowItem[]; summary?: string | null } | null;
+  oddsPanel?: {
+    takenAt: string | null;
+    rows: PanelRowItem[];
+    summary?: string | null;
+    /** Omitted by older callers: treated as fresh. Stale and unavailable never render odds. */
+    status?: OddsStatus;
+    message?: string | null;
+  } | null;
   cards: ThemeCard[];
   sparks?: Record<string, number[]>;
   asOf?: string;
@@ -23,7 +31,9 @@ export function HomeView(props: {
 }) {
   const member = props.member === true;
   const dashboard = presentDashboardRows(props.panel?.rows ?? [], props.panel?.history, props.panel?.takenAt);
-  const oddsRows = presentPanelRows(props.oddsPanel?.rows ?? [], props.oddsPanel?.takenAt).map((row) => ({
+  const oddsStatus = props.oddsPanel?.status ?? 'fresh';
+  const oddsLive = oddsStatus === 'fresh';
+  const oddsRows = presentPanelRows(oddsLive ? props.oddsPanel?.rows ?? [] : [], props.oddsPanel?.takenAt ?? undefined).map((row) => ({
     ...row,
     note: member ? publicOddsNote(row.note) : null,
   }));
@@ -47,8 +57,14 @@ export function HomeView(props: {
           horizonColumns={dashboard.horizonColumns}
         />
       </section>
-      {props.oddsPanel ? (
-        <section aria-label="Prediction market lens">
+      {props.oddsPanel && !oddsLive ? (
+        <section aria-label="Prediction market lens" data-odds-status={oddsStatus}>
+          <h2>Prediction Market Lens</h2>
+          <p className="odds-status">{props.oddsPanel.message ?? 'Prediction market odds are unavailable right now.'}</p>
+        </section>
+      ) : null}
+      {props.oddsPanel && oddsLive ? (
+        <section aria-label="Prediction market lens" data-odds-status="fresh">
           <PanelTable
             title="Prediction Market Lens"
             rows={oddsRows}
