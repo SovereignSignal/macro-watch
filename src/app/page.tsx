@@ -4,7 +4,7 @@ import { isMember } from '@/lib/member-session';
 import { panelRows } from '@/lib/panel-contract';
 import { getLatestBrief } from '@/lib/queries/briefs';
 import { getConvictionSparks, getThemeMapCards } from '@/lib/queries/map';
-import { getDashboardHistory, getLatestPanel, getLatestVerifiedPanel } from '@/lib/queries/panels';
+import { getDashboardHistory, getLatestPanel, getOddsLensState } from '@/lib/queries/panels';
 import { getPublishedWatch } from '@/lib/queries/watch';
 import { EMPTY_WATCH } from '@/lib/public-watch';
 import { safeQuery } from '@/lib/safe';
@@ -25,7 +25,7 @@ export default async function HomePage() {
   const brief = await safeQuery(() => getLatestBrief(db), null);
   const panel = await safeQuery(() => getLatestPanel(db, 'dashboard'), null);
   const dashboardHistory = await safeQuery(() => getDashboardHistory(db), {});
-  const oddsPanel = await safeQuery(() => getLatestVerifiedPanel(db, 'odds_lens'), null);
+  const odds = await safeQuery(() => getOddsLensState(db), null);
   const map = await safeQuery(() => getThemeMapCards(db), { takenAt: null, cards: [], asOf: null });
   const sparks = await safeQuery(() => getConvictionSparks(db), {});
   const watch = await safeQuery(() => getPublishedWatch(db), EMPTY_WATCH);
@@ -39,10 +39,12 @@ export default async function HomePage() {
         rows: panelRows(panel.payload),
         history: dashboardHistory,
       } : null}
-      oddsPanel={oddsPanel ? {
-        takenAt: oddsPanel.takenAt.toISOString(),
-        rows: oddsPanel.view.rows,
-        summary: oddsPanel.view.coverage,
+      oddsPanel={odds ? {
+        takenAt: odds.observedAt,
+        rows: odds.rows,
+        summary: odds.summary,
+        status: odds.status,
+        message: odds.message,
       } : null}
       cards={map.cards}
       sparks={sparks}

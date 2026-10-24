@@ -50,7 +50,15 @@ it('ingest fixture -> home page shows it (full wiring)', async () => {
     payload: { rows: [{ label: 'LEGACY RAW ODDS', value: 0.725 }] },
   }))).status).toBe(200);
 
-  const markup = renderToStaticMarkup(await HomePage());
+  // Odds expire after six hours, so render on the fixture's own clock.
+  vi.useFakeTimers({ toFake: ['Date'] });
+  vi.setSystemTime(new Date('2026-07-11T13:00:00Z'));
+  let markup: string;
+  try {
+    markup = renderToStaticMarkup(await HomePage());
+  } finally {
+    vi.useRealTimers();
+  }
   expect(markup).toContain('Weekend review: what the map got right about the dollar'); // latest brief
   expect(markup).toContain('6,412.50'); // dashboard panel row
   expect(markup).toContain('Prediction Market Lens');
